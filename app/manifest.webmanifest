@@ -1,8 +1,8 @@
 {
   "name": "NOVAFit",
   "short_name": "NOVAFit",
-  "description": "NOVAFit · Trainings-App: Po-Tag, Oberkörper, Laufen und Yoga mit Fortschritt und Statistik",
-  "lang": "de",
+  "description": "NOVAFit · Training app for strength, running and yoga with personal plans, progress and stats",
+  "lang": "en",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

@@ -1,18 +1,18 @@
-// Push (OneSignal) + Offline-Cache für NOVAFit
+// Push (OneSignal) + offline cache for NOVAFit
 importScripts("https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js");
 
-// Zahl am App-Symbol: bei Trainings-Erinnerung und Nachfrage eine "1" setzen
+// Badge on the app icon: set a "1" for training reminders and check-ins
 self.addEventListener("push", e => {
   try{
     const t = e.data ? e.data.text() : "";
-    if(/dein Training!|schon trainiert/.test(t) && self.navigator && self.navigator.setAppBadge){
+    if(/dein Training!|schon trainiert|your session|trained yet/i.test(t) && self.navigator && self.navigator.setAppBadge){
       e.waitUntil(self.navigator.setAppBadge(1).catch(() => {}));
     }
   }catch(_){}
 });
 
-const CACHE = "novafit-v2";
-const FILES = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png", "./OneSignalSDKWorker.js", "./img/campus-1.svg", "./img/campus-2.svg", "./img/gym.svg", "./img/run.svg", "./img/yoga.svg"];
+const CACHE = "novafit-v3";
+const FILES = ["./", "./index.html", "./plan.js", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png", "./OneSignalSDKWorker.js", "./img/campus-1.svg", "./img/campus-2.svg", "./img/gym.svg", "./img/run.svg", "./img/yoga.svg"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
@@ -23,7 +23,7 @@ self.addEventListener("activate", e => {
 self.addEventListener("fetch", e => {
   if (e.request.method !== "GET") return;
   const url = new URL(e.request.url);
-  // Eigene Seite: erst Netz (für Updates), sonst Cache
+  // Own pages: network first (for updates), otherwise cache
   if (url.origin === location.origin) {
     e.respondWith(
       fetch(e.request).then(r => { const copy = r.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); return r; })
@@ -31,7 +31,7 @@ self.addEventListener("fetch", e => {
     );
     return;
   }
-  // Schriften: Cache zuerst
+  // Fonts: cache first
   if (/fonts\.(googleapis|gstatic)\.com/.test(url.host)) {
     e.respondWith(caches.match(e.request).then(hit => hit || fetch(e.request).then(r => { const copy = r.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); return r; })));
   }
