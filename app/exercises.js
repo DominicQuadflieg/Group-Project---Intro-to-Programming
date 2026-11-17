@@ -223,9 +223,30 @@
   // Drawings of the start and end position in app/img/ex/<id>-start.svg and <id>-end.svg
   // (Everkinetic, CC BY-SA 4.0, see app/img/ex/SOURCES.md) with a caption for each
   const DRAWINGS = {
-    squat: ["Stand tall", "Sit down"], deadlift: ["Set up", "Stand up"], pullup: ["Hang", "Pull up"],
-    bench: ["Arms straight", "Bar to chest"], incl: ["Arms straight", "Lower to chest"], lra: ["Arms down", "Raise"],
-    crow: ["Arms long", "Pull"], legpress: ["Legs straight", "Lower"], rdl: ["Stand tall", "Hips back"], legcurl: ["Legs long", "Curl"]
+    bench: ["Arms straight", "Bar to chest"], inclbb: ["Arms straight", "Bar to chest"], declbb: ["Arms straight", "Bar to chest"],
+    flatdb: ["Arms straight", "Lower to chest"], incl: ["Arms straight", "Lower to chest"], dbfly: ["Arms up", "Open wide"],
+    incfly: ["Arms up", "Open wide"], pullover: ["Over your chest", "Behind your head"], smithbench: ["Arms straight", "Bar to chest"],
+    chestpress: ["Handles at chest", "Press"], crossover: ["Arms open", "Hands together"], pushup: ["Arms straight", "Chest down"],
+    chestdip: ["Arms straight", "Lower"], deadlift: ["Set up", "Stand up"], tbar: ["Arms long", "Pull"],
+    dbrow: ["Arm long", "Pull to hip"], crow: ["Arms long", "Pull"], latclose: ["Arms long", "Pull down"],
+    straightarm: ["Arms up", "Sweep down"], pullup: ["Hang", "Pull up"], invrow: ["Arms long", "Chest to bar"],
+    bbshrug: ["Arms long", "Shoulders up"], dbshrug: ["Arms long", "Shoulders up"], lra: ["Arms down", "Raise"],
+    frontdb: ["Arms down", "Raise"], revflydb: ["Arms down", "Raise"], uprow: ["Arms long", "Pull up"],
+    bbcurl: ["Arms long", "Curl"], bic: ["Arms long", "Curl"], cablecurl: ["Arms long", "Curl"],
+    hammer: ["Arms long", "Curl"], inccurl: ["Arms long", "Curl"], conccurl: ["Arm long", "Curl"],
+    preacher: ["Arms long", "Curl"], preacherm: ["Arms long", "Curl"], pushdown: ["Elbows bent", "Push down"],
+    ropepd: ["Elbows bent", "Push down"], tri: ["Arms straight", "Lower behind head"], skull: ["Arms straight", "Lower to forehead"],
+    cgbench: ["Arms straight", "Bar to chest"], tridip: ["Arms straight", "Lower"], benchdip: ["Arms straight", "Lower"],
+    kickback: ["Elbow bent", "Extend"], squat: ["Stand tall", "Sit down"], smithsq: ["Stand tall", "Sit down"],
+    frontsq: ["Stand tall", "Sit down"], hack: ["Legs straight", "Lower"], legpress: ["Legs straight", "Lower"],
+    rdl: ["Stand tall", "Hips back"], dbrdl: ["Stand tall", "Hips back"], goodmorning: ["Stand tall", "Bow forward"],
+    lunge: ["Stand tall", "Step and lower"], walklunge: ["Stand tall", "Step and lower"], revlunge: ["Stand tall", "Step back and lower"],
+    stepup: ["Foot on the box", "Step up"], bridge: ["Hips down", "Hips up"], kick: ["Stand tall", "Kick back"],
+    abd: ["Knees together", "Push out"], add: ["Legs open", "Squeeze together"], cableadd: ["Leg out", "Pull across"],
+    legext: ["Knees bent", "Extend"], legcurl: ["Legs long", "Curl"], seatcurl: ["Legs long", "Curl"],
+    hyper: ["Bend down", "Lift up"], calf: ["Heels down", "Rise up"], seatcalf: ["Heels down", "Rise up"],
+    sideplank: ["Set up", "Hips up and hold"], crunch: ["Lie back", "Crunch up"], bicycle: ["Start", "Elbow to knee"],
+    declcrunch: ["Lie back", "Crunch up"], llr: ["Legs down", "Legs up"], abwheel: ["On your knees", "Roll out"]
   };
   LIBRARY.forEach(e => { if (DRAWINGS[e.id]) e.img = DRAWINGS[e.id].slice(); });
   const BY_ID = {};
