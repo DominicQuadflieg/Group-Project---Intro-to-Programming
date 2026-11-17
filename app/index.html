@@ -3698,7 +3698,6 @@ function weekData(ws){
   r.runs = H.filter(e => e.run).length;
   const yo = H.filter(e => e.yoga); r.yoga = yo.length; r.yogaMin = yo.reduce((x,e) => x+num(e.yoga.min), 0);
   r.mob = (S.settings.mob||[]).filter(t => t>=ws && t<ws+WEEK).length;
-  r.calm = NFYoga.tension(calmEntries().filter(x => x.t>=ws && x.t<ws+WEEK));
   r.streak = r.cur ? stats().streak : 0;
   const tips = {}; H.forEach(e => Object.keys(e.sets||{}).forEach(id => { const u = upSuggest(id, e.sets[id], exIn(e.type, id)); if(u) tips[id] = u; else delete tips[id]; }));
   r.tips = Object.entries(tips).map(([id,kg]) => ({n:EXN[id] ? EXN[id].n : id, kg}));
@@ -3720,7 +3719,7 @@ function weekSlides(r){
     if(r.vol>0 || hl.length) sl.push({c:"s5", h:`<p class="sy-eb">Highlights</p>${r.vol>0?`<h2 class="sy-num pop tnum"${fmt(Math.round(r.vol),0).length>3?' style="font-size:72px"':""}>${fmt(Math.round(r.vol),0)} kg</h2><p class="sy-p">is what you moved this week.</p>`:`<h2 class="sy-big pop">Your wins</h2>`}${hl.length?`<div class="sy-list fadeup"${dl(400)}>${hl.join("")}</div>`:`<p class="sy-p fadeup"${dl(400)} style="opacity:.85">No new records this time, but showing up is the most important part. 💪</p>`}`});
     const msw = muscleSlide(r.H, "week"); if(msw){ msw.c = "s1"; sl.push(msw); }
     if(r.runs) sl.push({c:"s4", h:`<p class="sy-eb">Running</p><h2 class="sy-num pop tnum">${fmt(r.km)} km</h2><p class="sy-p">is how far you ran this week.</p><div class="sy-list fadeup"${dl(400)}>${r.alster?`<p>🌊 <b>${r.alster}×</b> around the Alster</p>`:""}${r.bestAlW?`<p>⏱️ Best loop: <b class="tnum">${hms(r.bestAlW)}</b></p>`:""}<p>🗺️ <b class="tnum">${fmt(stats().km,0)} km</b> in total so far</p></div>`});
-    if(r.yoga || r.mob || r.kcal) sl.push({c:"s6", h:`<p class="sy-eb">Body and mind</p>${r.yoga?`<h2 class="sy-num pop tnum">${fmt(r.yogaMin,0)} min</h2><p class="sy-p">of yoga this week. Namaste 🧘‍♀️</p>`:`<h2 class="sy-big pop">Kind to yourself</h2>`}<div class="sy-list fadeup"${dl(400)}>${r.mob?`<p>🤸‍♀️ ${r.mob}× glute mobility</p>`:""}${r.calm && r.calm.n>=2 && r.calm.diff>0?`<p>😌 tension <b class="tnum">${fmt(r.calm.before)} → ${fmt(r.calm.after)}</b> after yoga</p>`:""}${r.kcal?`<p>🔥 about <b class="tnum">${fmt(r.kcal,0)} kcal</b> burned</p>`:""}</div>`});
+    if(r.yoga || r.mob || r.kcal) sl.push({c:"s6", h:`<p class="sy-eb">Body and mind</p>${r.yoga?`<h2 class="sy-num pop tnum">${fmt(r.yogaMin,0)} min</h2><p class="sy-p">of yoga this week. Namaste 🧘‍♀️</p>`:`<h2 class="sy-big pop">Kind to yourself</h2>`}<div class="sy-list fadeup"${dl(400)}>${r.mob?`<p>🤸‍♀️ ${r.mob}× glute mobility</p>`:""}${r.kcal?`<p>🔥 about <b class="tnum">${fmt(r.kcal,0)} kcal</b> burned</p>`:""}</div>`});
     if(r.tips.length || r.streak>1) sl.push({c:"s3", h:`<p class="sy-eb">Next week</p>${r.streak>1?`<h2 class="sy-num pop tnum">${r.streak}</h2><p class="sy-p">weeks in a row you reached your goal. 🔥</p>`:`<h2 class="sy-big pop">${r.n>=g?"Keep it going":"There's more in you"}</h2>`}${r.tips.length?`<div class="sy-list fadeup"${dl(400)}><p class="sy-sm">Try next time</p>${r.tips.map(t => `<p>💪 <b>${esc(t.n)}</b> with <b class="tnum">${fmt(t.kg)} kg</b></p>`).join("")}</div>`:""}`});
   }
   const end = r.n>=g ? "Weekly goal reached! 🎉" : r.n>0 ? "Keep it up 💪" : "New week, new chance ❤️";
@@ -4103,9 +4102,9 @@ function monthShareSpec(r){
   const items = [];
   if(r.curve) items.push(`💪 ${r.curve.n} +${r.curve.pct} %`);
   if(r.alster) items.push(`🌊 ${r.alster}× around the Alster`);
+  const M = muscleLoad(r.H); if(M.rank[0] && M.rank[0].k==="glutes") items.push(`🍑 ${M.glutePct} % for the glutes`);
   if(r.calm && r.calm.n>=2 && r.calm.diff>0) items.push(`😌 Tension ${fmt(r.calm.before)} → ${fmt(r.calm.after)} after yoga`);
   else if(r.breaks) items.push(`📚 ${r.breaks} study ${r.breaks===1?"break":"breaks"}`);
-  const M = muscleLoad(r.H); if(M.rank[0] && M.rank[0].k==="glutes") items.push(`🍑 ${M.glutePct} % for the glutes`);
   const st2 = [["Sessions", String(r.n)]]; if(r.km) st2.push(["Run", fmt(r.km)+" km"]); if(r.vol) st2.push(["Moved", tons(r.vol)]);
   return {key:"m"+r.y+"-"+r.m, col:THEME_COL[""], eyebrow:`${MONTHS[r.m]} ${r.y}`, title:`My ${MONTHS[r.m]}`, sub:"Your training month ✨", stats:st2, items:items.slice(0,3), kcal:r.kcal, foot:`${r.days} training days`, text:`My training month: ${MONTHS[r.m]} ✨`};
 }

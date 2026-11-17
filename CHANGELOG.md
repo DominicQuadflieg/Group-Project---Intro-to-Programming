@@ -5,7 +5,7 @@ Alle Versionen der App, die neueste oben.
 ## Unreleased – Tension check before and after yoga
 
 - Before a yoga session or study break the app asks "How tense do you feel right now?" (1 relaxed to 5 very tense), and again afterwards: "From 4 down to 2. Nice." Skip is always one tap away, "Don't ask me again" turns it off, the yoga screen turns it back on
-- After two checks the result shows the average of the last 60 days; weekly, monthly and yearly reviews show "tension 3.8 → 2.1 after yoga" when it went down, otherwise the number of study breaks
+- After two checks the result shows the average of the last 60 days; the monthly and yearly reviews show "tension 3.8 → 2.1 after yoga" when it went down, otherwise the number of study breaks
 - Answers are saved with the yoga session (`e.yoga.calm`) or, for study breaks from the home screen, in `S.settings.breaks`; `validTension`, `tension` and `tensionText` in `app/yoga.js` with tests
 
 ## Unreleased – Yoga level and spoken guidance
