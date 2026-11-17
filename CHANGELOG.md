@@ -2,6 +2,24 @@
 
 Alle Versionen der App, die neueste oben.
 
+## v2.7 – Strava: runs from your watch come in by themselves
+
+- New “Connect Strava” in the run menu and in Settings. Runs from Garmin, Polar, Coros, Suunto and Apple Watch that reach Strava are added automatically when NOVAFit is opened (can be turned off)
+- “Get runs from Strava” shows new runs from the last 30 days to pick from; treadmill runs and the Alster loop are recognised, own run titles become the note
+- No double counting: runs that are already imported or were logged by hand the same day are skipped; rides and other sports are left out
+- The Strava secret stays on the server in a Netlify Function (`netlify/functions/strava.mjs`); the app only gets read access; the login stays on the phone and is not part of backups or the cloud sync; “Disconnect Strava” removes the access
+- New `netlify.toml` and setup steps in the README; without the setup the app looks and works as before
+- 11 new tests for the Strava logic and the function (65 in total)
+
+## v2.6 – Import runs from your watch
+
+- New “Import from your watch” button when logging an outdoor run: choose a GPX, FIT or TCX file, also the ZIP from Garmin Connect (“Export Original”) or a .gz file
+- Works for Garmin, Strava, Polar, Coros, Suunto, Wahoo and Apple Watch (via an export app); “How do I get the file?” explains the export for each
+- Exact values instead of text recognition: distance, moving time (pauses at traffic lights don't count) and start time; everything runs on the phone, no account or internet needed
+- Same “Is this right?” step as for screenshots; rides, swims and other sports are refused with a clear message
+- Warning when the run is already saved, so it isn't counted twice (also for screenshots)
+- 13 new tests with example GPX, TCX, FIT and ZIP files (54 in total)
+
 ## v2.5 – Run screenshots: more reliable and with a check
 
 - Reading run screenshots works with many more layouts: Strava (distance, pace and time in one row), Garmin, Apple Fitness and Nike, labels in English and German, whole kilometres (“10 km”), miles, distances without a unit under their label
