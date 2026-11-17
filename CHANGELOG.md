@@ -2,6 +2,16 @@
 
 Alle Versionen der App, die neueste oben.
 
+## v2.5 – Run screenshots: more reliable and with a check
+
+- Reading run screenshots works with many more layouts: Strava (distance, pace and time in one row), Garmin, Apple Fitness and Nike, labels in English and German, whole kilometres (“10 km”), miles, distances without a unit under their label
+- The clock in the status bar is no longer taken as the running time; typical reading errors (O for 0, l for 1) are fixed; a misread distance is corrected from pace and time
+- Dates in more formats: 17.11.2026, 2026-11-17, 11/17/2026, “Nov 17, 2026 at 7:12 AM”, “Yesterday”
+- New “Is this right?” step after reading: the screenshot next to distance, time and date, all editable and checked with clear errors, before anything is saved
+- Clear messages for each problem (not an image, image can't be opened, offline, nothing found) instead of always “needs internet”
+- The text recognition starts loading as soon as “Upload screenshot” is tapped and shows its progress; after the first time it is kept for offline use, also across app updates
+- New file `app/run.js` with the running logic and 20 new tests (41 in total)
+
 ## v2.4 – Goals per type, body data, lower body, reset
 
 - Goals: up to 6 in total and at most 2 per type (strength, running, yoga); the counter per type shows how many are picked

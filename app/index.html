@@ -488,6 +488,11 @@ a.dl{display:grid;place-items:center;text-decoration:none;color:var(--ink)}
 .runnote summary{list-style:none;color:var(--run);font-weight:600;font-size:14px;padding:2px 4px;cursor:pointer}
 .runnote summary::-webkit-details-marker{display:none}
 .runnote[open] summary{margin-bottom:8px}
+.shotok{display:grid;grid-template-columns:92px 1fr;gap:12px;align-items:start}
+.shotok img{width:92px;max-height:190px;object-fit:cover;object-position:top;border:1px solid var(--line);border-radius:calc(var(--rs) * 10px)}
+.shotf{display:flex;flex-direction:column;gap:2px;min-width:0}
+.shotf .field input{padding-right:12px}
+.hint.warn{color:var(--ink);background:var(--accent-soft);border-left:3px solid var(--hl)}
 .ocrwait{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;padding:14px 0}
 .spin{width:38px;height:38px;border-radius:50%;border:4px solid var(--run-soft);border-top-color:var(--run);animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -818,6 +823,7 @@ section[id]{scroll-margin-top:calc(var(--nf-hmin) + 14px)}
 <button class="btt" data-act="totop" aria-label="Back to top"><span>Back to top</span><i></i></button>
 
 <script src="plan.js"></script>
+<script src="run.js"></script>
 <script>
 /* ================= Plan ================= */
 const W = {
@@ -1565,13 +1571,22 @@ function planView(p){
 
 /* ================= Lauf-Screenshot lesen (Texterkennung direkt auf dem Handy) ================= */
 const TESS_URL = "https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js";
-let OCRW = null;
-function loadScript(src){ return new Promise((res, rej) => { const s = document.createElement("script"); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); }); }
-async function ocrWorker(){
-  if(OCRW) return OCRW;
-  if(!window.Tesseract) await loadScript(TESS_URL);
-  OCRW = await Tesseract.createWorker("eng", 1);
-  return OCRW;
+let OCRW = null, OCRP = null;
+function loadScript(src){ return new Promise((res, rej) => { const s = document.createElement("script"); s.src = src; s.onload = res; s.onerror = () => { s.remove(); rej(new Error("load")); }; document.head.appendChild(s); }); }
+/* Lädt die Texterkennung nur einmal; ein zweiter Aufruf wartet auf denselben Ladevorgang */
+function ocrWorker(){
+  if(OCRW) return Promise.resolve(OCRW);
+  if(!OCRP) OCRP = (async () => {
+    if(!window.Tesseract) await loadScript(TESS_URL);
+    OCRW = await Tesseract.createWorker("eng", 1, {logger: ocrLog});
+    return OCRW;
+  })().catch(e => { OCRP = null; throw e; });
+  return OCRP;
+}
+function ocrLog(m){
+  const el = $("#ocrp"); if(!el || !m || !(m.progress>0)) return;
+  const pc = Math.round(m.progress*100) + " %";
+  el.textContent = /recogni/i.test(m.status||"") ? `Reading … ${pc}` : `Loading text recognition … ${pc}`;
 }
 async function shotCanvas(file){
   const url = URL.createObjectURL(file);
@@ -1583,51 +1598,55 @@ async function shotCanvas(file){
     return c;
   }finally{ URL.revokeObjectURL(url); }
 }
-function parseShot(text){
-  const T = String(text||"").replace(/[’′´`]/g, "'").replace(/[”″]/g, '"'), lines = T.split(/\n/);
-  const dateRe = /(\d{1,2})\.(\d{1,2})\.(\d{2,4})\s*[-–·,]?\s*(\d{1,2})[:.](\d{2})\s*(AM|PM)?/i;
-  let dur = 0, durTok = "";
-  const h = T.match(/\b(\d{1,2}):(\d{2}):(\d{2})\b/);
-  if(h){ dur = (+h[1])*60 + (+h[2]) + (+h[3])/60; durTok = h[0]; }
-  let pace = 0; const pm = T.match(/(\d{1,2})\s*[:']\s*(\d{2})\s*"?\s*(?:min)?\s*\/\s*km/i); if(pm) pace = +pm[1] + (+pm[2])/60;
-  let spd = 0; const sm = T.match(/(\d{1,2}[.,]\d)\s*(?:kph|km\s*\/\s*h)/i); if(sm) spd = num(sm[1]);
-  if(!dur){
-    const cand = [];
-    lines.forEach((l, i) => { if(i===0 || dateRe.test(l) || /\/\s*km|min\s*\/|pace|tempo/i.test(l)) return; (l.match(/\b\d{1,3}:\d{2}\b/g)||[]).forEach(tk => { const [m, s] = tk.split(":"); const v = +m + (+s)/60; if(v>=8 && v<=300) cand.push({tk, v}); }); });
-    if(cand.length){ dur = cand[0].v; durTok = cand[0].tk; }
-  }
-  let km = 0;
-  const dl = durTok ? lines.find(l => l.includes(durTok)) : null;
-  if(dl){ const k = dl.replace(durTok, " ").match(/(\d{1,2}[.,]\d{1,2})(?!\d)/); if(k) km = num(k[1]); }
-  if(!km){ const k = T.match(/(\d{1,2}[.,]\d{1,2})\s*(?:km|kilometer)\b/i); if(k) km = num(k[1]); }
-  const est = pace && dur ? dur/pace : spd && dur ? spd*dur/60 : 0;
-  if(est>0.5 && (!km || Math.abs(km-est)/est > .06)) km = est;
-  let at = 0; const dm = T.match(dateRe);
-  if(dm){
-    let y = +dm[3]; if(y<100) y += 2000; let hh = +dm[4]; if(dm[6]){ const pmF = /pm/i.test(dm[6]); if(pmF && hh<12) hh += 12; if(!pmF && hh===12) hh = 0; }
-    const t = new Date(y, +dm[2]-1, +dm[1], hh, +dm[5]).getTime();
-    if(t < Date.now() + 36e5 && t > Date.now() - 400*864e5) at = t;
-  }
-  if(!(dur>0) && !(km>0)) return null;
-  return {km:km>0 ? Math.round(km*100)/100 : 0, min:dur, at};
-}
+/* Die Auswertung des Texts steckt in run.js (NFRun.parseShot) und ist in tests/run.test.js getestet */
+let SHOT = null;   // Screenshot, der gerade bestätigt wird: {url, r}
+function localDT(t){ return new Date(t - new Date(t).getTimezoneOffset()*60000).toISOString().slice(0,16); }
+function shotErr(title, txt){ sheet(`<h3>${title}</h3><p class="muted">${txt}</p><button class="primary run" data-act="closesheet">Enter it myself</button>`); }
+function shotDrop(){ if(SHOT && SHOT.url) URL.revokeObjectURL(SHOT.url); SHOT = null; }
 async function runShot(file){
   if(!file || !S.active || !S.active.run) return;
-  sheet(`<div class="ocrwait"><div class="spin"></div><h3>Reading screenshot …</h3><p class="muted small" style="margin:0">It takes a little longer the first time. The image stays on your phone.</p></div>`);
-  try{
-    const [w, c] = await Promise.all([ocrWorker(), shotCanvas(file)]);
-    const { data } = await w.recognize(c);
-    const r = parseShot(data.text);
-    if(!r || !(r.min>0)){ sheet(`<h3>That didn't work</h3><p class="muted">No running time was found in the image. Enter the time yourself, it only takes a moment.</p><button class="primary run" data-act="closesheet">Okay</button>`); return; }
-    const run = S.active.run;
-    run.min = hms(r.min);
-    if(r.km>0) run.km = fmt(r.km, 2);
-    if(r.at) S.active.runAt = r.at;
-    save(); closeSheet(); renderSession();
-    toast(`Added: ${r.km>0?fmt(r.km,2)+" km in ":""}${hms(r.min)} 🏃‍♀️`);
-  }catch(e){
-    sheet(`<h3>Not possible right now</h3><p class="muted">Text recognition needs an internet connection the first time. Enter the time yourself.</p><button class="primary run" data-act="closesheet">Okay</button>`);
-  }
+  if(file.type && !/^image\//.test(file.type)) return shotErr("Not an image", "Please choose a screenshot (PNG or JPG) from your running app.");
+  sheet(`<div class="ocrwait"><div class="spin"></div><h3>Reading screenshot …</h3><p class="muted small" id="ocrp" style="margin:0">${OCRW ? "Just a moment." : "The first time, NOVAFit downloads the text recognition (a few MB). After that it also works offline."}</p><p class="muted small" style="margin:0">The image stays on your phone.</p></div>`);
+  let c, w, text;
+  try{ c = await shotCanvas(file); }
+  catch(e){ return shotErr("Couldn't open the image", "This file can't be read. Take a normal screenshot (PNG or JPG) and try again."); }
+  try{ w = await ocrWorker(); }
+  catch(e){ return shotErr("Text recognition not available", navigator.onLine===false ? "You're offline. The text recognition has to be downloaded once with internet, after that it works offline." : "The text recognition couldn't be loaded. Check your connection and try again, or enter the run yourself."); }
+  try{ text = (await w.recognize(c)).data.text; }
+  catch(e){ return shotErr("Couldn't read the image", "Something went wrong while reading the screenshot. Try again or enter the run yourself."); }
+  if(!S.active || !S.active.run) return;
+  const r = NFRun.parseShot(text);
+  shotDrop(); SHOT = {url: URL.createObjectURL(file), r};
+  shotConfirm(r ? {km: r.km>0 ? fmt(r.km,2) : "", time: r.min>0 ? hms(r.min) : "", date: r.at ? localDT(r.at) : ""} : {km:"", time:"", date:""}, {});
+}
+/* Erkannte Werte zeigen und bestätigen lassen, statt sie ungefragt zu übernehmen */
+function shotConfirm(v, err){
+  const r = SHOT && SHOT.r;
+  const miss = !r ? "No run data found in this screenshot. You can fill in the fields yourself."
+    : !(r.min>0) ? "The time couldn't be read. Please add it."
+    : !(r.km>0) ? "The distance couldn't be read. Add it if you know it." : "";
+  const fld = (id, lbl, val, attrs, unit, e) => `<div><label class="lbl" for="${id}">${lbl}</label><div class="field"><input id="${id}" data-in="shot" ${attrs} value="${esc(val)}" aria-invalid="${e?"true":"false"}">${unit?`<span class="u">${unit}</span>`:""}</div><p class="err" role="alert" aria-live="polite">${esc(e||"")}</p></div>`;
+  sheet(`<h3>Is this right?</h3>
+    <div class="shotok">${SHOT ? `<img src="${SHOT.url}" alt="Your screenshot">` : ""}<div class="shotf">
+      ${miss ? `<p class="hint warn">${miss}</p>` : `<p class="small muted" style="margin:0">Check the values read from your screenshot.</p>`}
+      ${fld("sh-km", "Distance", v.km, `inputmode="decimal" autocomplete="off" placeholder="e.g. 7.72"`, "km", err.km)}
+      ${fld("sh-time", "Time", v.time, `inputmode="numeric" autocomplete="off" placeholder="42:38"`, "", err.time)}
+      ${fld("sh-date", "Date · optional", v.date, `type="datetime-local" max="${localDT(Date.now())}"`, "", err.date)}
+    </div></div>
+    <button class="primary run" data-act="shotuse">Use these values</button>
+    <button class="secondary" data-act="shotcancel">Cancel</button>`);
+}
+function shotUse(){
+  const v = {km: $("#sh-km").value, time: $("#sh-time").value, date: $("#sh-date").value};
+  const res = NFRun.validateRun(v);
+  if(!res.ok){ shotConfirm(v, res.errors); const f = $(res.errors.km ? "#sh-km" : res.errors.time ? "#sh-time" : "#sh-date"); if(f) f.focus(); return; }
+  if(!S.active || !S.active.run){ shotDrop(); closeSheet(); return; }
+  const run = S.active.run, x = res.value;
+  run.min = hms(x.min);
+  run.km = x.km>0 ? fmt(x.km, 2) : "";
+  if(x.at) S.active.runAt = x.at; else delete S.active.runAt;
+  shotDrop(); save(); closeSheet(); renderSession();
+  toast(`Added: ${x.km>0 ? fmt(x.km,2)+" km in " : ""}${hms(x.min)} 🏃‍♀️`);
 }
 
 function yogaBlock(){
@@ -3886,6 +3905,8 @@ document.addEventListener("click", async ev => {
     case "planend": sheet(`<h3>End plan?</h3><p class="muted">Your runs stay saved. You can set a new goal any time.</p><button class="primary run" data-act="planendok">End plan</button><button class="secondary" data-act="closesheet">Cancel</button>`); break;
     case "planendok": delete S.settings.runPlan; PLW = null; save(); closeSheet(); screen = "home"; render(); break;
     case "planall": planAll = !planAll; render(); break;
+    case "shotuse": shotUse(); break;
+    case "shotcancel": shotDrop(); closeSheet(); break;
     case "kmalster": { const k = $("#run-km"); S.active.run.km = fmt(alsterKm()); if(k){ k.value = S.active.run.km; k.dispatchEvent(new Event("input", {bubbles:true})); } save(); break; }
     case "runedit": S.active.run.edit = true; save(); renderSession(); setTimeout(() => { const k = $("#run-km"); if(k) k.focus(); }, 50); break;
     case "mode": {
@@ -4025,6 +4046,8 @@ document.addEventListener("change", ev => {
   };
   rd.readAsText(f);
 });
+/* Texterkennung schon beim Antippen laden, während die Fotoauswahl offen ist */
+document.addEventListener("pointerdown", ev => { if(ev.target.closest && ev.target.closest(".shotcta") && navigator.onLine!==false) ocrWorker().catch(() => {}); });
 document.addEventListener("change", ev => { if(ev.target.id==="runshot"){ const f = ev.target.files && ev.target.files[0]; ev.target.value = ""; runShot(f); } });
 document.addEventListener("input", ev => {
   const t = ev.target, k = t.dataset.in; if(!k) return;
@@ -4032,6 +4055,7 @@ document.addEventListener("input", ev => {
   if(k==="bodykg"){ S.settings.bodyKg = t.value.trim(); save(); return; }
   if(k==="time"){ S.settings.remTime = t.value || "18:00"; save(); return; }
   if(k==="plw"){ if(t.dataset.f==="target"){ const f = fmtTimeDigits(t.value); if(f!==t.value) t.value = f; } PLW[t.dataset.f] = t.value; if(t.type==="date") render(); return; }
+  if(k==="shot"){ if(t.id==="sh-time"){ const f = fmtTimeDigits(t.value); if(f!==t.value) t.value = f; } t.setAttribute("aria-invalid", "false"); const e = t.closest("div").parentNode.querySelector(".err"); if(e) e.textContent = ""; return; }
   if(!S.active) return;
   if(k==="set"){
     const s = S.active.sets[t.dataset.ex][+t.dataset.i]; s[t.dataset.f] = t.value;
