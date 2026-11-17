@@ -1989,7 +1989,44 @@ function tick(exId, i){
   s.ok = true; row.classList.remove("pre"); row.classList.add("done");
   if(document.activeElement) document.activeElement.blur();
   rest = {end:Date.now() + ex.rest*1000, total:ex.rest*1000};
-  updateBottom(); save();
+  restAudio(); updateBottom(); save();
+}
+
+/* ================= Während des Trainings: Bildschirm an, Ton nach der Pause =================
+   Der Bildschirm bleibt vom Start bis zum Ende an (Wake Lock, kommt nach einem App-Wechsel wieder).
+   Am Pausenende kurzer Doppelton auf allen Handys (iPhones können aus dem Browser nicht vibrieren),
+   dazu Vibration, wo es geht. Der Ton lässt sich in den Einstellungen ausschalten.
+   Hinweis: Steht das iPhone auf lautlos, bleibt auch der Ton stumm. */
+let SWL = null, RAC = null;
+async function keepAwake(on){
+  try{
+    if(on && !SWL && navigator.wakeLock && document.visibilityState==="visible"){
+      SWL = await navigator.wakeLock.request("screen"); SWL.addEventListener("release", () => { SWL = null; });
+    } else if(!on && SWL){ const l = SWL; SWL = null; await l.release(); }
+  }catch(e){ SWL = null; }
+}
+document.addEventListener("visibilitychange", () => { if(document.visibilityState==="visible" && screen==="session" && S.active) keepAwake(true); });
+// Browsers only allow sound after a tap, so the audio is set up when a set is ticked
+function restAudio(){ try{ RAC = RAC || new (window.AudioContext || window.webkitAudioContext)(); if(RAC.state==="suspended") RAC.resume(); }catch(e){} }
+function restBeep(){
+  if(S.settings.restSound===false || !RAC) return;
+  try{
+    const t = RAC.currentTime;
+    [[880, 0], [1175, .2]].forEach(([f, d]) => {
+      const o = RAC.createOscillator(), g = RAC.createGain();
+      o.type = "sine"; o.frequency.value = f;
+      g.gain.setValueAtTime(.0001, t+d); g.gain.exponentialRampToValueAtTime(.4, t+d+.02); g.gain.exponentialRampToValueAtTime(.0001, t+d+.28);
+      o.connect(g); g.connect(RAC.destination); o.start(t+d); o.stop(t+d+.32);
+    });
+  }catch(e){}
+}
+function restOver(){
+  rest = null; updateBottom(); restBeep();
+  try{ navigator.vibrate && navigator.vibrate([200,100,200]); }catch(e){}
+  toast("Rest over, next set!");
+  // bring the next open set into view
+  const nx = [...document.querySelectorAll('[data-act="tick"]')].find(b => !b.closest(".done"));
+  if(nx){ const r = nx.getBoundingClientRect(); if(r.top < 70 || r.bottom > innerHeight - 150) nx.scrollIntoView({block:"center", behavior:"smooth"}); }
 }
 
 /* ================= Beenden & Zusammenfassung ================= */
@@ -2205,6 +2242,9 @@ function settingsSheet(){
       <p class="small muted" style="margin:6px 0 10px">Only used to estimate calories after a session.</p>
       <span class="lbl">Show calories</span>
       <div class="seg theme" id="kcalseg">${[["1","On"],["0","Off"]].map(([k,l]) => `<button data-act="kcalshow" data-v="${k}" aria-pressed="${(st.showKcal!==false)===(k==="1")}">${l}</button>`).join("")}</div>
+      <span class="lbl" style="margin-top:14px">Sound when rest is over</span>
+      <div class="seg theme" id="restsoundseg">${[["1","On"],["0","Off"]].map(([k,l]) => `<button data-act="restsound" data-v="${k}" aria-pressed="${(st.restSound!==false)===(k==="1")}">${l}</button>`).join("")}</div>
+      <p class="small muted" style="margin:6px 0 0">The screen stays on during a workout. On an iPhone set to silent the sound stays off too.</p>
     </div>
     ${stravaSettings()}
     <div class="card" style="background:var(--bg);border:0">
@@ -4305,6 +4345,7 @@ function render(){
   if(screen==="summary" && !summary) screen = "home";
   if(screen==="home") renderHome(); else if(screen==="session") renderSession(); else if(screen==="runplan") renderPlan(); else renderSummary();
   updateBadge();
+  keepAwake(screen==="session" && !!S.active);
 }
 
 document.addEventListener("click", async ev => {
@@ -4477,6 +4518,8 @@ document.addEventListener("click", async ev => {
     case "nrchelp": nrcHelp(); break;
     case "nrcuse": { const r = parseRunText($("#nrctext").value); if(!r){ toast("No run found in that text."); break; } closeSheet(); applyRun(r); break; }
     case "storyclose": closeStory(); render(); break;
+    case "restsound": S.settings.restSound = b.dataset.v==="1"; save(); if(b.dataset.v==="1"){ restAudio(); restBeep(); }
+      document.querySelectorAll("#restsoundseg button").forEach(x => x.setAttribute("aria-pressed", x.dataset.v===b.dataset.v)); break;
     case "kcalshow": S.settings.showKcal = b.dataset.v==="1"; save();
       document.querySelectorAll("#kcalseg button").forEach(x => x.setAttribute("aria-pressed", x.dataset.v===b.dataset.v)); break;
     case "goal": { S.settings.goal = Math.min(7, Math.max(1, S.settings.goal + (+b.dataset.d))); $("#goalv").textContent = S.settings.goal; save(); break; }
@@ -4550,7 +4593,7 @@ setInterval(() => {
   if(screen==="session") updProg();
   if(rest){
     const left = rest.end - Date.now();
-    if(left<=0){ rest = null; updateBottom(); try{ navigator.vibrate && navigator.vibrate([200,100,200]); }catch(e){} toast("Rest over, next set!"); }
+    if(left<=0) restOver();
     else{ const t = $("#restT"), i = $("#restI"); if(t) t.textContent = clock(left); if(i) i.style.width = (left/rest.total*100)+"%"; }
   }
 }, 500);

@@ -2,6 +2,12 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Screen stays on, sound when rest is over
+
+- The screen stays on from Start to Finish of every workout, not only in the warm-up and yoga timers; it comes back on after switching apps
+- When the rest is over, a short double tone plays on every phone (iPhones can't vibrate from a web app), plus vibration on Android, and the next open set scrolls into view
+- New switch in Settings: “Sound when rest is over” (on by default). On an iPhone set to silent the tone stays off
+
 ## Unreleased – New app icon
 
 - New home screen icon: the white NOVA ring with its bar on Nova blue (`icon-192.png`, `icon-512.png`, `apple-touch-icon.png`); the design keeps to the safe area, so Android's round and squircle masks don't cut it
