@@ -2,6 +2,14 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Build my own strength plan
+
+- New step after the questionnaire: “Recommended for you” (the ready plan as before) or “Build my own”
+- Build my own: pick a split (or a custom split with your own day names, e.g. “Chest & Back”), then for each day choose “Recommended” (our template, you can still add exercises during the workout) or “Choose my own” (no suggestions, you pick every exercise, up to 15)
+- Your own days show up by name in the plan, on the home screen and in the history, and start with exactly your exercises
+- Exercise list redone in the style of Strong: a small drawing next to every exercise, A–Z sections, search, body part and equipment filters, an ⓘ button for the how-to with “Back to the list”, and checkboxes to pick several exercises at once
+- 4 new tests for the own-day logic in `app/plan.js`
+
 ## Unreleased – New app icon
 
 - New home screen icon: the white NOVA ring with its bar on Nova blue (`icon-192.png`, `icon-512.png`, `apple-touch-icon.png`); the design keeps to the safe area, so Android's round and squircle masks don't cut it

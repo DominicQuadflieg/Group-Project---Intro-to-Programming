@@ -243,3 +243,55 @@ test("each strength session and run gets a matching mobility add-on", () => {
   const f = P.suggestPlans(answers({ days: 3, mix: { s: 3, r: 0, y: 0 }, goals: ["muscle"], split: "full3" }))[0];
   assert.ok(f.sessions.every(s => s.addon.id === "stretch"));
 });
+
+/* ---------- Own program (Build my own) ---------- */
+test("own days start from the chosen split, a custom split has named own days", () => {
+  const d = P.ownDaysFor("ppl3", 3);
+  assert.deepEqual(d.map(x => [x.name, x.tpl, x.mode]), [["Push", "push", "rec"], ["Pull", "pull", "rec"], ["Legs", "legs", "rec"]]);
+  const c = P.ownDaysFor("custom", 2);
+  assert.deepEqual(c.map(x => [x.name, x.tpl, x.mode]), [["Day 1", null, "own"], ["Day 2", null, "own"]]);
+  assert.deepEqual(P.ownDaysFor("nope", 3), []);
+});
+
+test("own days: recommended needs a template, own needs 1 to 15 different exercises", () => {
+  const days = P.ownDaysFor("ppl3", 3);
+  assert.equal(P.validateOwnDays(days, 3).ok, true);
+  assert.match(P.validateOwnDays(days, 4).error, /Set up 4 strength days/);
+  const own = JSON.parse(JSON.stringify(days)); own[0].mode = "own";
+  assert.equal(P.validateOwnDays(own, 3).day, 0);
+  assert.match(P.validateOwnDays(own, 3).error, /Add at least one exercise to Push/);
+  own[0].ex = ["bench", "incl"];
+  assert.equal(P.validateOwnDays(own, 3).ok, true);
+  own[0].ex = ["bench", "bench"];
+  assert.match(P.validateOwnDays(own, 3).error, /twice/);
+  own[0].ex = Array.from({ length: 16 }, (_, i) => "x" + i);
+  assert.match(P.validateOwnDays(own, 3).error, /15 exercises or fewer/);
+});
+
+test("own days: names are required, short and plain", () => {
+  const c = P.ownDaysFor("custom", 1); c[0].ex = ["bench"];
+  assert.equal(P.validateOwnDays(c, 1).ok, true);
+  c[0].name = "  "; assert.match(P.validateOwnDays(c, 1).error, /Give day 1 a name/);
+  c[0].name = "Chest <b>"; assert.match(P.validateOwnDays(c, 1).error, /letters, numbers and spaces/);
+  c[0].name = "x".repeat(31); assert.match(P.validateOwnDays(c, 1).error, /30 characters or fewer/);
+  c[0].name = "Arms"; c[0].mode = "rec"; assert.match(P.validateOwnDays(c, 1).error, /no template/);
+  assert.equal(P.validateOwnDays([], 1).ok, false);
+});
+
+test("own days go into the plan's strength sessions in week order", () => {
+  const a = answers({ days: 5, mix: { s: 3, r: 1, y: 1 }, goals: ["muscle"] });
+  a.split = "ppl3";
+  const plan = P.suggestPlans(a)[0];
+  const days = P.ownDaysFor("ppl3", 3); days[0].mode = "own"; days[0].ex = ["bench"]; days[0].name = "My Push";
+  const keys = P.ownDayKeys(days);
+  assert.deepEqual(keys, [{ workout: "own1", title: "My Push" }, { workout: "pull", title: "Pull" }, { workout: "legs", title: "Legs" }]);
+  const out = P.applyOwnDays(plan, keys);
+  const st = out.sessions.filter(x => x.kind === "s").sort((x, y) => x.day - y.day);
+  assert.deepEqual(st.map(x => x.workout), ["own1", "pull", "legs"]);
+  assert.equal(st[0].title, "My Push");
+  assert.equal(P.applyOwnDays(plan, keys, "Custom split").split.name, "Custom split");
+  assert.equal(P.applyOwnDays(plan, keys).split.name, plan.split.name);
+  // runs and yoga stay, the original plan is not changed
+  assert.equal(out.sessions.filter(x => x.kind !== "s").length, plan.sessions.filter(x => x.kind !== "s").length);
+  assert.notEqual(plan.sessions.find(x => x.kind === "s").workout, "own1");
+});
