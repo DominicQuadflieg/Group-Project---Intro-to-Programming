@@ -912,8 +912,8 @@ NFEx.TEMPLATE_ORDER.forEach(k => {
     desc:ex.filter(e => !e.opt).slice(0, 4).map(e => e.n.replace(/ \(.*\)$/, "")).join(" · ") || "Build your own session"};
 });
 W.lauf = {name:"Run", kind:"run", desc:"Alster loop or treadmill"};
-W.yoga = {name:"Yoga", kind:"yoga", desc:"Study break, wind down, flow and more",
-  intro:"Pick a session below: a 5-minute study break on your chair, a calm wind-down, beginner basics or a sweaty flow. A bell counts down the last 3 seconds and rings at each change, so keep the sound on."};
+W.yoga = {name:"Yoga", kind:"yoga", desc:"Vinyasa flow or mobility",
+  intro:"Guided vinyasa flow. A different sequence every time, you choose the length below. A bell counts down the last 3 seconds and rings at each change. Get your mat ready and keep the sound on."};
 // Home screen order without a plan; ALL_W lists every workout (history, weekly review)
 const ORDER = ["po","lauf","oben","yoga"];
 const ALL_W = ["po","oben","loB","upB","fbA","fbB","fbC","push","pull","legs","empty","lauf","yoga"];
@@ -1902,6 +1902,8 @@ function shotUse(){
 
 /* ================= Yoga: pick a session (sessions in yoga.js) ================= */
 const YLEVEL = ["", "Calm", "Medium", "Strong"];
+Object.assign(W.yoga, {desc:"Study break, wind down, flow and more",
+  intro:"Pick a session below: a 5-minute study break on your chair, a calm wind-down, beginner basics or a sweaty flow. A bell counts down the last 3 seconds and rings at each change, so keep the sound on."});
 // Label for a logged yoga session: the session's name, "Vinyasa Flow" for older guided flows, else ""
 function yogaLabel(y){
   if(!y) return "";
