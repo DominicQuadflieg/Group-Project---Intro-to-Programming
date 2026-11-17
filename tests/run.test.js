@@ -138,3 +138,40 @@ test("invalid values get clear errors", () => {
   assert.ok(R.validateRun({ km: "10", time: "12:00" }, NOW).errors.km, "faster than a world record");
   assert.ok(R.validateRun({ km: "", time: "1:00" }, NOW).errors.time, "too short");
 });
+
+/* ---------- weather where you are & your own loop ---------- */
+test("wxUrl rounds the position to 2 decimals and uses the local time zone", () => {
+  const u = R.wxUrl({ lat: 38.71234, lon: -9.13987 });
+  assert.match(u, /latitude=38\.71&longitude=-9\.14&/);
+  assert.match(u, /timezone=auto/);
+  assert.doesNotMatch(u, /38\.712/);
+});
+test("wxUrl falls back to Carcavelos without a usable position", () => {
+  for (const p of [null, {}, { lat: "x", lon: 1 }, { lat: 120, lon: 0 }])
+    assert.match(R.wxUrl(p), /latitude=38\.68&longitude=-9\.33&/);
+});
+test("samePlace: within about 5 km counts as the same place", () => {
+  assert.equal(R.samePlace({ lat: 38.70, lon: -9.30 }, { lat: 38.72, lon: -9.32 }), true);
+  assert.equal(R.samePlace({ lat: 38.70, lon: -9.30 }, { lat: 53.56, lon: 10.0 }), false);
+  assert.equal(R.samePlace(null, { lat: 1, lon: 1 }), false);
+});
+test("placeName picks the town and copes with empty answers", () => {
+  assert.equal(R.placeName({ city: "", locality: "Carcavelos", principalSubdivision: "Lisbon" }), "Carcavelos");
+  assert.equal(R.placeName({ city: " Lisbon " }), "Lisbon");
+  assert.equal(R.placeName({}), "");
+  assert.equal(R.placeName(null), "");
+});
+test("loopName: own name or Home loop", () => {
+  assert.equal(R.loopName("  Paredão   loop "), "Paredão loop");
+  assert.equal(R.loopName(""), "Home loop");
+  assert.equal(R.loopName(undefined), "Home loop");
+});
+test("validateLoop checks name length and distance", () => {
+  assert.deepEqual(R.validateLoop("Paredão", "6,4"), { name: "Paredão", km: 6.4, err: {}, ok: true });
+  assert.equal(R.validateLoop("", "5").ok, true);
+  assert.ok(R.validateLoop("x".repeat(25), "5").err.name);
+  assert.ok(R.validateLoop("<b>", "5").err.name);
+  assert.ok(R.validateLoop("Loop", "0").err.km);
+  assert.ok(R.validateLoop("Loop", "80").err.km);
+  assert.ok(R.validateLoop("Loop", "abc").err.km);
+});

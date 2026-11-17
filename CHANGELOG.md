@@ -2,6 +2,12 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Weather where you are, your own loop
+
+- Running weather follows your location: tap "📍 Show the weather where I am" on the run screen or pick "Where I am" in Settings. The position is rounded to about 1 km and only used for the forecast (Open-Meteo) and the town name (BigDataCloud). Without permission the weather is for Carcavelos (Nova SBE).
+- The Hamburg leftovers are gone: "Alster loop" is now your own loop with a name and length (Running goals, default "Home loop", 5 km). Old runs keep counting as loop runs.
+- New pure helpers in `run.js` (`wxUrl`, `samePlace`, `placeName`, `loopName`, `validateLoop`) with tests
+
 ## Unreleased – Compact workout page
 
 - Compact workout page: each exercise shows its drawing, name and target in one line; "How to", swap, add set, move and remove sit behind ⋯. Instructions only show for the first 3 times, finished exercises fold into one line (tap to open), and new exercises get a short hint for choosing a weight.
@@ -11,7 +17,6 @@ Alle Versionen der App, die neueste oben.
 - The screen stays on from Start to Finish of every workout, not only in the warm-up and yoga timers; it comes back on after switching apps
 - When the rest is over, a short double tone plays on every phone (iPhones can't vibrate from a web app), plus vibration on Android, and the next open set scrolls into view
 - New switch in Settings: “Sound when rest is over” (on by default). On an iPhone set to silent the tone stays off
-
 ## Unreleased – Readable numbers, safer finish
 
 - Large numbers get thousands separators everywhere they are shown, e.g. “16,440 kg moved” instead of “16440 kg”
