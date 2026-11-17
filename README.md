@@ -39,6 +39,7 @@ The app needs no build step:
 | `app/plan.js` | Sign-up validation, questionnaire checks, strength splits and plan suggestions (pure functions, tested) |
 | `app/exercises.js` | Exercise library, workout templates, search and checks for custom exercises (pure functions, tested) |
 | `app/run.js` | Running logic: reading runs from screenshots and from GPX, TCX and FIT files, checking the values, turning Strava activities into runs (pure functions, tested) |
+| `app/muscles.js` | Which muscles were trained and how much, and the headline of the muscle slide in the reviews (pure functions, tested) |
 | `app/manifest.webmanifest` | Name, colours and icon for the home screen |
 | `app/OneSignalSDKWorker.js` | Service worker: offline use and push reminders |
 | `app/img/` | Pictures for the home screen and training cards (placeholders) |
@@ -52,6 +53,7 @@ The app needs no build step:
 | `tests/exercises.test.js` | Tests for `app/exercises.js` |
 | `tests/run.test.js` | Tests for `app/run.js` (screenshots) |
 | `tests/run-files.test.js` | Tests for `app/run.js` (GPX, TCX, FIT, ZIP) |
+| `tests/muscles.test.js` | Tests for `app/muscles.js` |
 | `tests/strava.test.js` | Tests for the Strava connection (app side and function) |
 
 ## Run

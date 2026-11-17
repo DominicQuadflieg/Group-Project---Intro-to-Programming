@@ -2,6 +2,14 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Muscle slide follows your training
+
+- The muscle slide in the weekly and monthly reviews now names the muscle that got the most volume, e.g. “Back on fire 🔥”, “Quads on fire 🔥” or “Glutes on fire 🔥”, instead of always talking about the glutes
+- Two muscles that are almost even share the headline (“Quads & calves on fire 🔥”)
+- The tip at the bottom points to whatever was left out: a lower body day when the legs got little, an upper body day after a leg-heavy gym week; runners without strength sessions get no tip
+- The monthly share card shows the top muscle instead of only the glutes
+- New file `app/muscles.js` with the muscle logic and 9 new tests
+
 ## Unreleased – New app icon
 
 - New home screen icon: the white NOVA ring with its bar on Nova blue (`icon-192.png`, `icon-512.png`, `apple-touch-icon.png`); the design keeps to the safe area, so Android's round and squircle masks don't cut it
