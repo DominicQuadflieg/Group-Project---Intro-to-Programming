@@ -43,7 +43,7 @@ test("sign-up rejects markup in the name and over-long names", () => {
 test("body data accepts realistic values, also with a decimal comma", () => {
   const r = P.validateBody({ sex: "female", age: "21", kg: "62,5" });
   assert.equal(r.ok, true);
-  assert.deepEqual(r.value, { sex: "female", age: 21, kg: 62.5 });
+  assert.deepEqual(r.value, { sex: "female", age: 21, kg: 62.5, cm: null });
   assert.equal(P.validateBody({ sex: "na", age: 16, kg: 30 }).ok, true);   // lower limits
   assert.equal(P.validateBody({ sex: "male", age: 99, kg: 250 }).ok, true); // upper limits
 });
@@ -242,4 +242,41 @@ test("each strength session and run gets a matching mobility add-on", () => {
   assert.ok(p.sessions.filter(s => s.kind === "y").every(s => !s.addon));
   const f = P.suggestPlans(answers({ days: 3, mix: { s: 3, r: 0, y: 0 }, goals: ["muscle"], split: "full3" }))[0];
   assert.ok(f.sessions.every(s => s.addon.id === "stretch"));
+});
+
+/* ---------- Height and personal calorie factor ---------- */
+test("height is optional, but must be plausible when given", () => {
+  assert.equal(P.validateBody({ sex: "male", age: 21, kg: 72 }).value.cm, null);
+  assert.equal(P.validateBody({ sex: "male", age: 21, kg: 72, cm: "" }).ok, true);
+  assert.equal(P.validateBody({ sex: "male", age: 21, kg: 72, cm: "180" }).value.cm, 180);
+  assert.equal(P.validateBody({ sex: "male", age: 21, kg: 72, cm: "179,6" }).value.cm, 180);
+  assert.equal(P.validateBody({ sex: "male", age: 21, kg: 72, cm: 120 }).ok, true);
+  assert.equal(P.validateBody({ sex: "male", age: 21, kg: 72, cm: 230 }).ok, true);
+  assert.match(P.validateBody({ sex: "male", age: 21, kg: 72, cm: 119 }).errors.cm, /between 120 and 230/);
+  assert.match(P.validateBody({ sex: "male", age: 21, kg: 72, cm: "1.80m" }).errors.cm, /in cm/);
+});
+
+test("resting burn follows Mifflin-St Jeor", () => {
+  assert.equal(P.restingKcalPerDay({ sex: "male", age: 21, kg: 70, cm: 175 }), 1693.75);
+  assert.equal(P.restingKcalPerDay({ sex: "female", age: 21, kg: 70, cm: 175 }), 1527.75);
+  // without height: typical height for the sex
+  assert.equal(P.restingKcalPerDay({ sex: "female", age: 21, kg: 60 }), P.restingKcalPerDay({ sex: "female", age: 21, kg: 60, cm: 165 }));
+  // diverse and prefer not to say: between female and male
+  const d = P.restingKcalPerDay({ sex: "diverse", age: 21, kg: 70, cm: 175 });
+  assert.ok(d > 1527.75 && d < 1693.75);
+  assert.equal(P.restingKcalPerDay({ sex: "male", age: "", kg: 70 }), null);
+});
+
+test("calorie factor: women and older people burn a bit less per MET", () => {
+  const m = P.kcalFactor({ sex: "male", age: 21, kg: 70, cm: 175 });
+  const w = P.kcalFactor({ sex: "female", age: 21, kg: 70, cm: 175 });
+  assert.ok(Math.abs(m - 1) < 0.02, `young man ≈ MET standard (${m})`);
+  assert.ok(w < m && w > 0.85, `same body, woman ≈ 10 % less (${w})`);
+  assert.ok(P.kcalFactor({ sex: "male", age: 60, kg: 70, cm: 175 }) < m);
+  // unknown sex or age: unchanged
+  assert.equal(P.kcalFactor({ age: 21, kg: 70 }), 1);
+  assert.equal(P.kcalFactor({ sex: "male", kg: 70 }), 1);
+  assert.equal(P.kcalFactor(null), 1);
+  // stays within sensible bounds
+  assert.equal(P.kcalFactor({ sex: "female", age: 99, kg: 250, cm: 120 }), 0.7);
 });
