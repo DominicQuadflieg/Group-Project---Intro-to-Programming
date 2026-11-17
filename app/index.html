@@ -488,6 +488,10 @@ a.dl{display:grid;place-items:center;text-decoration:none;color:var(--ink)}
 .runnote summary{list-style:none;color:var(--run);font-weight:600;font-size:14px;padding:2px 4px;cursor:pointer}
 .runnote summary::-webkit-details-marker{display:none}
 .runnote[open] summary{margin-bottom:8px}
+.stlist{display:flex;flex-direction:column;max-height:46vh;overflow:auto;border-top:1px solid var(--line)}
+.strow{display:flex;gap:12px;align-items:center;padding:11px 2px;border-bottom:1px solid var(--line);cursor:pointer}
+.strow input{width:20px;height:20px;accent-color:var(--run);flex:none}
+.strow b{display:block;font-size:15px}.strow small{display:block;font-size:12.5px;color:var(--muted)}
 .filebtn{display:flex;align-items:center;gap:12px;border:1.5px dashed var(--run);border-radius:calc(var(--rs) * 18px);padding:12px 14px;background:var(--surface);cursor:pointer}
 .filebtn b{display:block;font-size:15px;color:var(--ink)}.filebtn small{display:block;color:var(--muted);font-size:12.5px}
 .filebtn:focus-within{outline:2px solid var(--run);outline-offset:2px}
@@ -1421,6 +1425,7 @@ function runSheet(){
   sheet(`<h3>Running</h3>
     <button class="start" data-kind="run" data-act="runout"><span class="stripe"></span><span><b>Outdoor run</b><small>Upload a screenshot or enter it yourself</small><small>${lo?"Last done "+ago(lo.start)+" · "+fmt(num(lo.run.km))+" km":"Not done yet"}</small></span><span class="arrow">›</span></button>
     <button class="start" data-kind="run" data-act="runband"><span class="stripe"></span><span><b>Treadmill at the gym</b><small>Enter km and time from the display</small><small>${lb?"Last done "+ago(lb.start):"Not done yet"}</small></span><span class="arrow">›</span></button>
+    ${stravaRow()}
     <button class="start goalc" data-kind="run" data-act="runplan"><span class="stripe"></span><span><b>My running goal</b><small>${p ? esc(planTitle(p)) + (pg.n ? ` · Week ${pg.i+1} of ${pg.n}` : "") : "Set a goal and get your running plan"}</small>${pg && pg.n ? `<span class="gbar"><i style="width:${Math.round(pg.f*100)}%"></i></span>` : ""}</span><span class="arrow">›</span></button>
     ${nx ? `<div class="plantoday">${rico(nx.type)}<div><small>${nx.today ? "Today per plan" : "Up next · " + WDAY[new Date(nx.date).getDay()]}</small><b>${esc(nx.label)}</b></div></div>` : ""}
     <button class="secondary" data-act="closesheet">Cancel</button>`);
@@ -1579,6 +1584,131 @@ function planView(p){
   h += `<button class="primary run" data-act="runout">Log a run</button><div class="row2"><button class="secondary" data-act="planedit">Change goal</button><button class="secondary" data-act="planend">End plan</button></div>
     <p class="small muted" style="margin:0;text-align:center">Runs you upload are checked off automatically. If you miss one, that's okay – the plan just keeps going.</p></div>`;
   return h;
+}
+
+/* ================= Strava: Läufe von fast jeder Uhr automatisch übernehmen =================
+   Die Anmeldung läuft über die Netlify Function /.netlify/functions/strava (hält das Client Secret).
+   Die Zugangsschlüssel liegen nur auf diesem Gerät unter einem eigenen Schlüssel:
+   nicht in S, also nicht in Sicherungsdateien und nicht in der Cloud-Synchronisierung. */
+const STRAVA_FN = "/.netlify/functions/strava", STRAVA_LS = "novafit-strava", STRAVA_STATE = "novafit-strava-state";
+const STRAVA_DAYS = 30;
+let STRAVA_CFG;                       // undefined = noch unbekannt, null = auf dieser Seite nicht eingerichtet
+function stGet(){ try{ return JSON.parse(localStorage.getItem(STRAVA_LS) || "null"); }catch(e){ return null; } }
+function stSet(v){ try{ if(v) localStorage.setItem(STRAVA_LS, JSON.stringify(v)); else localStorage.removeItem(STRAVA_LS); }catch(e){} }
+async function stFn(body){
+  const r = await fetch(STRAVA_FN, body ? {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)} : {cache:"no-store"});
+  const j = await r.json().catch(() => ({}));
+  if(!r.ok){ const e = new Error(j.error || "http"); e.status = r.status; throw e; }
+  return j;
+}
+async function stConfig(){
+  if(STRAVA_CFG!==undefined) return STRAVA_CFG;
+  try{ const c = await stFn(); STRAVA_CFG = c && c.clientId ? c : null; }catch(e){ STRAVA_CFG = null; }
+  return STRAVA_CFG;
+}
+const stOn = () => !!stGet();
+async function stConnect(){
+  const c = await stConfig();
+  if(!c) return shotErr("Strava isn't set up", "This version of NOVAFit can't connect to Strava yet. Import a file from your watch or upload a screenshot instead.");
+  const st = Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2, "0")).join("");
+  try{ localStorage.setItem(STRAVA_STATE, st); }catch(e){}
+  location.href = NFRun.stravaAuthUrl({clientId:c.clientId, redirect:location.origin + location.pathname, state:st});
+}
+/* Zurück von Strava: ?code=…&scope=…&state=… */
+async function stReturn(){
+  const q = new URLSearchParams(location.search);
+  if(!q.has("state") || !(q.has("code") || q.has("error"))) return false;
+  try{ history.replaceState(null, "", location.pathname + location.hash); }catch(e){}
+  let want = null; try{ want = localStorage.getItem(STRAVA_STATE); localStorage.removeItem(STRAVA_STATE); }catch(e){}
+  if(!want || q.get("state")!==want){ toast("Strava login expired. Please try again."); return true; }
+  if(q.get("error")){ toast("Strava not connected."); return true; }
+  if(!NFRun.stravaScopeOk(q.get("scope"))){ shotErr("Strava not connected", "NOVAFit needs permission to view your activities. Connect again and leave “View data about your activities” ticked."); return true; }
+  try{
+    const t = await stFn({action:"token", code:q.get("code")});
+    stSet({access:t.access_token, refresh:t.refresh_token, expires:t.expires_at, name:t.firstname || "", auto:true});
+    stravaSync(true);
+  }catch(e){ shotErr("Strava not connected", "The connection didn't work. Please try again in a moment."); }
+  return true;
+}
+async function stAccess(){
+  const t = stGet(); if(!t) throw Object.assign(new Error("unauthorized"), {status:401});
+  if(t.expires*1000 > Date.now() + 120000) return t.access;
+  const n = await stFn({action:"refresh", refresh_token:t.refresh});
+  stSet(Object.assign(t, {access:n.access_token, refresh:n.refresh_token, expires:n.expires_at}));
+  return n.access_token;
+}
+/* Neue Läufe der letzten 30 Tage holen. Nach einem abgelaufenen Zugang einmal neu anmelden lassen. */
+async function stNewRuns(){
+  const after = Math.floor(Date.now()/1000) - STRAVA_DAYS*86400;
+  const call = async () => (await stFn({action:"activities", access_token:await stAccess(), after})).activities || [];
+  let acts;
+  try{ acts = await call(); }
+  catch(e){
+    if(e.status===401){ const t = stGet(); if(t){ t.expires = 0; stSet(t); } try{ acts = await call(); }catch(e2){ if(e2.status===401) stSet(null); throw e2; } }
+    else throw e;
+  }
+  return NFRun.stravaNew(S.history, acts, alsterKm());
+}
+function stAdd(list){
+  const ids = new Set(S.history.map(e => e.id));
+  const add = list.filter(e => !ids.has(e.id));
+  if(!add.length) return 0;
+  S.history.push(...add); S.history.sort((x, y) => x.start - y.start);
+  save(); checkBadges(false); syncTags();
+  return add.length;
+}
+const stErrTxt = e => e && e.status===401 ? "Your Strava connection has ended. Connect again in the run menu."
+  : e && e.status===429 ? "Strava is busy right now. Try again in 15 minutes."
+  : navigator.onLine===false ? "You're offline." : "Strava can't be reached right now. Try again later.";
+/* Beim Öffnen der App: neue Läufe still übernehmen (wenn „automatisch“ an ist), höchstens alle 15 Minuten */
+let stLastSync = 0;
+async function stravaSync(fromConnect){
+  const t = stGet(); if(!t || (!t.auto && !fromConnect) || Date.now()-stLastSync < 15*60000 && !fromConnect) return;
+  stLastSync = Date.now();
+  try{
+    const n = stAdd(await stNewRuns());
+    if(n){ toast(`${fromConnect ? "Strava connected ✓ " : ""}Added ${n} ${n===1 ? "run" : "runs"} from Strava 🏃`); if(screen==="home" && !$("#layer").innerHTML) render(); }
+    else if(fromConnect) toast("Strava connected ✓ No new runs in the last 30 days.");
+  }catch(e){ if(fromConnect) toast("Strava connected ✓ " + stErrTxt(e)); else if(e && e.status===401) toast(stErrTxt(e)); }
+}
+/* Lauf-Menü: Strava von Hand abgleichen und Läufe auswählen */
+let ST_LIST = [];
+async function stravaSheet(){
+  if(!stOn()) return stConnect();
+  sheet(`<div class="ocrwait"><div class="spin"></div><h3>Checking Strava …</h3></div>`);
+  try{ ST_LIST = await stNewRuns(); }
+  catch(e){ return shotErr("Strava", stErrTxt(e)); }
+  if(!ST_LIST.length) return sheet(`<h3>All up to date</h3><p class="muted">All your Strava runs from the last ${STRAVA_DAYS} days are already in NOVAFit.</p><button class="primary run" data-act="closesheet">Okay</button>`);
+  sheet(`<h3>New on Strava</h3><p class="small muted" style="margin:0">Runs from the last ${STRAVA_DAYS} days that aren't in NOVAFit yet.</p>
+    <div class="stlist">${ST_LIST.map((e, i) => `<label class="strow"><input type="checkbox" data-st="${i}" checked><span><b>${fmt(e.run.km, 2)} km · ${hms(e.run.min)}</b><small>${new Date(e.start).toLocaleDateString("en-GB", {weekday:"short", day:"numeric", month:"short"})}, ${new Date(e.start).toLocaleTimeString("en-GB", {hour:"2-digit", minute:"2-digit"})}${e.run.mode==="band" ? " · Treadmill" : e.run.mode==="alster" ? " · Alster loop" : ""}${e.run.note ? " · " + esc(e.run.note) : ""}</small></span></label>`).join("")}</div>
+    <button class="primary run" data-act="stadd">Add selected runs</button>
+    <button class="secondary" data-act="closesheet">Cancel</button>`);
+}
+function stravaAddSel(){
+  const pick = [...document.querySelectorAll("[data-st]")].filter(c => c.checked).map(c => ST_LIST[+c.dataset.st]).filter(Boolean);
+  if(!pick.length){ toast("Select at least one run."); return; }
+  const n = stAdd(pick); ST_LIST = []; closeSheet(); render();
+  toast(`Added ${n} ${n===1 ? "run" : "runs"} from Strava 🏃`);
+}
+function stravaRow(){
+  if(!STRAVA_CFG && !stOn()) return "";
+  const t = stGet();
+  return `<button class="start" data-kind="run" data-act="strava"><span class="stripe"></span><span><b>${t ? "Get runs from Strava" : "Connect Strava"}</b><small>${t ? `Connected${t.name ? " as " + esc(t.name) : ""}${t.auto ? " · new runs are added automatically" : ""}` : "Runs from Garmin, Polar, Coros, Apple Watch … come in by themselves"}</small></span><span class="arrow">›</span></button>`;
+}
+function stravaSettings(){
+  if(!STRAVA_CFG && !stOn()) return "";
+  const t = stGet();
+  return `<div class="card" style="background:var(--bg);border:0"><span class="lbl">Strava</span>
+    ${t ? `<p class="small" style="margin:0 0 8px">Connected${t.name ? " as <b>" + esc(t.name) + "</b>" : ""}. Your login stays on this phone and is not part of backups.</p>
+      <span class="lbl">Add new runs automatically</span>
+      <div class="seg theme">${[["1","On"],["0","Off"]].map(([k,l]) => `<button data-act="stauto" data-v="${k}" aria-pressed="${!!t.auto===(k==="1")}">${l}</button>`).join("")}</div>
+      <button class="secondary danger" style="margin-top:10px" data-act="stoff">Disconnect Strava</button>`
+    : `<p class="small muted" style="margin:0 0 8px">Connect Strava and runs from your watch come into NOVAFit by themselves. NOVAFit can only read your activities, never change them.</p><button class="secondary" data-act="strava">Connect Strava</button>`}</div>`;
+}
+async function stravaOff(){
+  const t = stGet(); stSet(null);
+  if(t) stFn({action:"deauth", access_token:t.access}).catch(() => {});
+  toast("Strava disconnected."); settingsSheet();
 }
 
 /* ================= Lauf-Screenshot lesen (Texterkennung direkt auf dem Handy) ================= */
@@ -1984,6 +2114,7 @@ function settingsSheet(){
       <span class="lbl">Show calories</span>
       <div class="seg theme" id="kcalseg">${[["1","On"],["0","Off"]].map(([k,l]) => `<button data-act="kcalshow" data-v="${k}" aria-pressed="${(st.showKcal!==false)===(k==="1")}">${l}</button>`).join("")}</div>
     </div>
+    ${stravaSettings()}
     <div class="card" style="background:var(--bg);border:0">
       <span class="lbl">Photos for reviews <span id="phcount" class="muted" style="text-transform:none;letter-spacing:0"></span></span>
       <p class="small muted" style="margin:0">Shown in the background of your weekly and yearly reviews. They stay on this phone and are never uploaded.</p>
@@ -3946,6 +4077,10 @@ document.addEventListener("click", async ev => {
     case "planendok": delete S.settings.runPlan; PLW = null; save(); closeSheet(); screen = "home"; render(); break;
     case "planall": planAll = !planAll; render(); break;
     case "shotuse": shotUse(); break;
+    case "strava": stravaSheet(); break;
+    case "stadd": stravaAddSel(); break;
+    case "stoff": stravaOff(); break;
+    case "stauto": { const t = stGet(); if(t){ t.auto = b.dataset.v==="1"; stSet(t); } settingsSheet(); break; }
     case "shotcancel": shotDrop(); closeSheet(); break;
     case "kmalster": { const k = $("#run-km"); S.active.run.km = fmt(alsterKm()); if(k){ k.value = S.active.run.km; k.dispatchEvent(new Event("input", {bubbles:true})); } save(); break; }
     case "runedit": S.active.run.edit = true; save(); renderSession(); setTimeout(() => { const k = $("#run-km"); if(k) k.focus(); }, 50); break;
@@ -4229,6 +4364,9 @@ function handleHash(){
 }
 window.addEventListener("hashchange", handleHash);
 setTimeout(handleHash, 0);
+// Strava: Rückkehr von der Anmeldung, sonst neue Läufe holen; beim Zurückkehren in die App erneut
+stConfig().then(async c => { if(await stReturn()) return; if(c) stravaSync(false); });
+document.addEventListener("visibilitychange", () => { if(document.visibilityState==="visible" && STRAVA_CFG) stravaSync(false); });
 // Older versions: "Glute Day" is now "Lower Body" with new exercises
 (function migrate(){
   const pl = S.settings.plan; let ch = false;
