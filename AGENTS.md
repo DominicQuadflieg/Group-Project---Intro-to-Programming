@@ -5,7 +5,7 @@ Notes for coding agents (and new team members) working on NOVAFit.
 ## Stack
 
 - Plain HTML, CSS and JavaScript, no framework and no build step
-- `app/index.html` contains the app; `app/plan.js` holds the testable logic for sign-up, questionnaire and plans; `app/run.js` the testable running logic (screenshots)
+- `app/index.html` contains the app; `app/plan.js` holds the testable logic for sign-up, questionnaire and plans; `app/run.js` the testable running logic (screenshots, GPX/TCX/FIT files)
 - Data is stored in `localStorage` under the key `po-plan-app-v2` (do not rename it, or existing users lose their data)
 - Service worker and push reminders: `app/OneSignalSDKWorker.js` (bump `CACHE` when files change)
 - Tests: Node.js built-in test runner, no dependencies

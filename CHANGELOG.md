@@ -2,6 +2,15 @@
 
 Alle Versionen der App, die neueste oben.
 
+## v2.6 – Import runs from your watch
+
+- New “Import from your watch” button when logging an outdoor run: choose a GPX, FIT or TCX file, also the ZIP from Garmin Connect (“Export Original”) or a .gz file
+- Works for Garmin, Strava, Polar, Coros, Suunto, Wahoo and Apple Watch (via an export app); “How do I get the file?” explains the export for each
+- Exact values instead of text recognition: distance, moving time (pauses at traffic lights don't count) and start time; everything runs on the phone, no account or internet needed
+- Same “Is this right?” step as for screenshots; rides, swims and other sports are refused with a clear message
+- Warning when the run is already saved, so it isn't counted twice (also for screenshots)
+- 13 new tests with example GPX, TCX, FIT and ZIP files (54 in total)
+
 ## v2.5 – Run screenshots: more reliable and with a check
 
 - Reading run screenshots works with many more layouts: Strava (distance, pace and time in one row), Garmin, Apple Fitness and Nike, labels in English and German, whole kilometres (“10 km”), miles, distances without a unit under their label

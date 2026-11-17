@@ -488,6 +488,10 @@ a.dl{display:grid;place-items:center;text-decoration:none;color:var(--ink)}
 .runnote summary{list-style:none;color:var(--run);font-weight:600;font-size:14px;padding:2px 4px;cursor:pointer}
 .runnote summary::-webkit-details-marker{display:none}
 .runnote[open] summary{margin-bottom:8px}
+.filebtn{display:flex;align-items:center;gap:12px;border:1.5px dashed var(--run);border-radius:calc(var(--rs) * 18px);padding:12px 14px;background:var(--surface);cursor:pointer}
+.filebtn b{display:block;font-size:15px;color:var(--ink)}.filebtn small{display:block;color:var(--muted);font-size:12.5px}
+.filebtn:focus-within{outline:2px solid var(--run);outline-offset:2px}
+.filehelp ul{margin:0 0 6px;padding-left:18px;font-size:13.5px;line-height:1.45;display:flex;flex-direction:column;gap:4px}
 .shotok{display:grid;grid-template-columns:92px 1fr;gap:12px;align-items:start}
 .shotok img{width:92px;max-height:190px;object-fit:cover;object-position:top;border:1px solid var(--line);border-radius:calc(var(--rs) * 10px)}
 .shotf{display:flex;flex-direction:column;gap:2px;min-width:0}
@@ -1377,6 +1381,13 @@ function runBlock(){
     ${nx ? `<div class="plantoday">${rico(nx.type)}<div><small>${nx.today ? "Today per plan" : "Up next in your plan"}</small><b>${esc(nx.label)}</b><span>${esc(nx.desc)}</span></div></div>` : ""}
     <div class="wx1" data-wx="plain"${WX?"":" hidden"}>${wxPlain()}</div>
     <label class="shotcta"><input type="file" accept="image/*" id="runshot" hidden>${rico("cam")}<span>Upload screenshot</span></label>
+    <label class="filebtn"><input type="file" id="runfile" hidden>${rico("watch")}<span><b>Import from your watch</b><small>GPX, FIT or TCX file · also the ZIP from Garmin Connect</small></span></label>
+    <details class="runnote filehelp"><summary>How do I get the file?</summary><ul>
+      <li><b>Garmin Connect</b> (website): open the run → gear icon → <i>Export Original</i> (ZIP) or <i>Export to GPX</i></li>
+      <li><b>Strava</b> (website): open the run → <i>…</i> → <i>Export GPX</i> or <i>Export Original</i></li>
+      <li><b>Polar Flow, Coros, Suunto</b>: open the run → <i>Export</i> → GPX or FIT</li>
+      <li><b>Apple Watch</b>: export the workout as GPX with an app like HealthFit</li>
+    </ul><p class="small muted" style="margin:0">On the phone: save the file to Files, then choose it here.</p></details>
     <p class="orline"><span>or enter it yourself</span></p>
     ${kmBox}${timeBox}<div id="runwin">${inf.win}</div>${note}</div>`;
 }
@@ -1393,6 +1404,7 @@ const RSVG = {
   long:`<path d="M4 18c4 0 4-12 8-12s4 12 8 12"/>`,
   race:`<path d="M6 21V4M6 4h11l-2.5 4L17 12H6"/>`,
   check:`<path d="M5 12.5l4.2 4.2L19 7"/>`,
+  watch:`<rect x="6.5" y="6" width="11" height="12" rx="2.5"/><path d="M9 6l.8-3h4.4l.8 3M9 18l.8 3h4.4l.8-3M12 9.5V12l1.8 1.2"/>`,
   fit:`<path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"/>`,
   alster:`<path d="M3 15c2 1.5 4 1.5 6 0s4-1.5 6 0 4 1.5 6 0M3 10c2 1.5 4 1.5 6 0s4-1.5 6 0 4 1.5 6 0"/>`,
   hm:`<circle cx="12" cy="14" r="6"/><path d="M9 3l3 5 3-5"/>`
@@ -1619,16 +1631,44 @@ async function runShot(file){
   shotDrop(); SHOT = {url: URL.createObjectURL(file), r};
   shotConfirm(r ? {km: r.km>0 ? fmt(r.km,2) : "", time: r.min>0 ? hms(r.min) : "", date: r.at ? localDT(r.at) : ""} : {km:"", time:"", date:""}, {});
 }
+/* ================= Lauf aus einer Datei der Uhr (GPX, TCX, FIT, auch als ZIP) ================= */
+async function unpack(u8, format){
+  if(typeof DecompressionStream!=="function") throw new Error("Your browser can't unpack this file. Unpack it first and choose the file inside.");
+  try{ return new Uint8Array(await new Response(new Blob([u8]).stream().pipeThrough(new DecompressionStream(format))).arrayBuffer()); }
+  catch(e){ throw new Error("This packed file is damaged. Unpack it first and choose the file inside."); }
+}
+async function runFile(file){
+  if(!file || !S.active || !S.active.run) return;
+  if(file.size > NFRun.MAX_FILE_MB*1048576) return shotErr("File too big", `Activity files are usually smaller than 5 MB, this one has ${Math.round(file.size/1048576)} MB. Export a single run.`);
+  sheet(`<div class="ocrwait"><div class="spin"></div><h3>Reading file …</h3></div>`);
+  let r;
+  try{
+    let u8 = new Uint8Array(await file.arrayBuffer()), name = file.name, kind = NFRun.fileKind(name, u8);
+    if(kind==="zip"){
+      const z = NFRun.zipEntry(u8); name = z.name;
+      if(z.method===0) u8 = z.data; else if(z.method===8) u8 = await unpack(z.data, "deflate-raw");
+      else throw new Error("This ZIP is packed in a way NOVAFit can't open. Unpack it first and choose the file inside.");
+      kind = NFRun.fileKind(name, u8);
+    }
+    if(kind==="gz"){ u8 = await unpack(u8, "gzip"); name = name.replace(/\.gz$/i, ""); kind = NFRun.fileKind(name, u8); }
+    r = NFRun.parseActivity(kind, u8);
+  }catch(e){ return shotErr("Couldn't import this file", esc(e && e.message || "The file can't be read.")); }
+  if(!S.active || !S.active.run) return;
+  shotDrop(); SHOT = {src:"file", name:file.name, r};
+  shotConfirm({km: r.km>0 ? fmt(r.km,2) : "", time: r.min>0 ? hms(r.min) : "", date: r.at ? localDT(r.at) : ""}, {});
+}
 /* Erkannte Werte zeigen und bestätigen lassen, statt sie ungefragt zu übernehmen */
 function shotConfirm(v, err){
-  const r = SHOT && SHOT.r;
+  const r = SHOT && SHOT.r, file = SHOT && SHOT.src==="file";
+  const at = v.date ? new Date(v.date).getTime() : 0, dup = NFRun.findDuplicate(S.history, at, num(v.km));
   const miss = !r ? "No run data found in this screenshot. You can fill in the fields yourself."
     : !(r.min>0) ? "The time couldn't be read. Please add it."
     : !(r.km>0) ? "The distance couldn't be read. Add it if you know it." : "";
   const fld = (id, lbl, val, attrs, unit, e) => `<div><label class="lbl" for="${id}">${lbl}</label><div class="field"><input id="${id}" data-in="shot" ${attrs} value="${esc(val)}" aria-invalid="${e?"true":"false"}">${unit?`<span class="u">${unit}</span>`:""}</div><p class="err" role="alert" aria-live="polite">${esc(e||"")}</p></div>`;
   sheet(`<h3>Is this right?</h3>
     <div class="shotok">${SHOT ? `<img src="${SHOT.url}" alt="Your screenshot">` : ""}<div class="shotf">
-      ${miss ? `<p class="hint warn">${miss}</p>` : `<p class="small muted" style="margin:0">Check the values read from your screenshot.</p>`}
+      ${miss ? `<p class="hint warn">${miss}</p>` : file ? `<p class="small muted" style="margin:0">From <b>${esc(SHOT.name)}</b>${r.name ? ` · ${esc(r.name)}` : ""}. Check the values.</p>` : `<p class="small muted" style="margin:0">Check the values read from your screenshot.</p>`}
+      ${dup ? `<p class="hint warn">You already saved a run on ${new Date(dup.start).toLocaleDateString("en-GB", {day:"numeric", month:"short"})}${num(dup.run.km)>0 ? ` (${fmt(num(dup.run.km), 2)} km)` : ""}. Saving it again would count it twice.</p>` : ""}
       ${fld("sh-km", "Distance", v.km, `inputmode="decimal" autocomplete="off" placeholder="e.g. 7.72"`, "km", err.km)}
       ${fld("sh-time", "Time", v.time, `inputmode="numeric" autocomplete="off" placeholder="42:38"`, "", err.time)}
       ${fld("sh-date", "Date · optional", v.date, `type="datetime-local" max="${localDT(Date.now())}"`, "", err.date)}
@@ -4049,6 +4089,7 @@ document.addEventListener("change", ev => {
 /* Texterkennung schon beim Antippen laden, während die Fotoauswahl offen ist */
 document.addEventListener("pointerdown", ev => { if(ev.target.closest && ev.target.closest(".shotcta") && navigator.onLine!==false) ocrWorker().catch(() => {}); });
 document.addEventListener("change", ev => { if(ev.target.id==="runshot"){ const f = ev.target.files && ev.target.files[0]; ev.target.value = ""; runShot(f); } });
+document.addEventListener("change", ev => { if(ev.target.id==="runfile"){ const f = ev.target.files && ev.target.files[0]; ev.target.value = ""; runFile(f); } });
 document.addEventListener("input", ev => {
   const t = ev.target, k = t.dataset.in; if(!k) return;
   if(k==="name"){ S.settings.name = t.value; save(); return; }

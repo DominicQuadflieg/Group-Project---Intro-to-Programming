@@ -34,14 +34,15 @@ The app needs no build step:
 |---|---|
 | `app/index.html` | The app: layout, design (CSS) and logic (JavaScript) |
 | `app/plan.js` | Sign-up validation, questionnaire checks and plan suggestions (pure functions, tested) |
-| `app/run.js` | Running logic: reading runs from screenshots and checking the values (pure functions, tested) |
+| `app/run.js` | Running logic: reading runs from screenshots and from GPX, TCX and FIT files, checking the values (pure functions, tested) |
 | `app/manifest.webmanifest` | Name, colours and icon for the home screen |
 | `app/OneSignalSDKWorker.js` | Service worker: offline use and push reminders |
 | `app/img/` | Pictures for the home screen and training cards (placeholders) |
 | `app/icon-*.png`, `app/apple-touch-icon.png` | App icons |
 | `app/INSTALL.txt` | How to install the app on a phone |
 | `tests/plan.test.js` | Tests for `app/plan.js` |
-| `tests/run.test.js` | Tests for `app/run.js` |
+| `tests/run.test.js` | Tests for `app/run.js` (screenshots) |
+| `tests/run-files.test.js` | Tests for `app/run.js` (GPX, TCX, FIT, ZIP) |
 
 ## Run
 
