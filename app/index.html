@@ -918,6 +918,7 @@ section[id]{scroll-margin-top:calc(var(--nf-hmin) + 14px)}
 <script src="exercises.js"></script>
 <script src="plan.js"></script>
 <script src="run.js"></script>
+<script src="muscles.js"></script>
 <script>
 /* ================= Plan ================= */
 /* Strength workouts come from the templates in exercises.js (NFEx), exercises from its library */
@@ -1104,7 +1105,10 @@ const GYM_MAX = 60*60000;
 function isGym(t){ return !!(W[t] && W[t].kind==="gym"); }
 function elapsedOf(a){ const d = Date.now()-a.start; return isGym(a.type) ? Math.min(d, GYM_MAX) : d; }
 function elapsedTxt(a){ const c = clock(elapsedOf(a)); return isGym(a.type) && Date.now()-a.start>=GYM_MAX ? c+" · stopped" : c; }
-/* Kalorien-Schätzung (MET-Werte bzw. ~1 kcal pro kg und km beim Laufen) */
+/* Kalorien-Schätzung (MET-Werte bzw. ~1 kcal pro kg und km beim Laufen).
+   MET-Teile werden mit dem persönlichen Ruheumsatz aus Geschlecht, Alter, Gewicht und Größe
+   angepasst (NFPlan.kcalFactor, getestet in tests/plan.test.js). Laufen nach Strecke und das
+   Laufband nach ACSM bleiben, wie sie sind: sie rechnen schon mit Gewicht und Tempo. */
 function kcalOn(){ return S.settings.showKcal!==false && num(S.settings.bodyKg)>0; }
 function distKcal(km, min, kg){ const v = min>0 ? km/(min/60) : 10; return km*kg*(v<7 ? 0.6 : 1.0); }
 /* Laufband: ACSM-Formel mit Steigung (Gehen bis ~7,2 km/h, darüber Laufen) */
@@ -1116,14 +1120,15 @@ function treadKcal(km, min, incl, kg){
 }
 function kcalOf(e){
   const kg = num(S.settings.bodyKg); if(!(kg>0)) return 0;
+  const f = NFPlan.kcalFactor(Object.assign({}, S.settings.body, {kg}));
   let k = 0;
-  if(e.run){ const km = num(e.run.km), mn = num(e.run.min); k += e.run.mode==="band" && km>0 && mn>0 ? treadKcal(km, mn, e.run.incline, kg) : km>0 ? distKcal(km, mn, kg) : mn*kg*9.8/60; }
-  if(e.yoga) k += num(e.yoga.min)*kg*(e.yoga.flow ? 3.5 : 3.0)/60;
+  if(e.run){ const km = num(e.run.km), mn = num(e.run.min); k += e.run.mode==="band" && km>0 && mn>0 ? treadKcal(km, mn, e.run.incline, kg) : km>0 ? distKcal(km, mn, kg) : mn*kg*9.8/60*f; }
+  if(e.yoga) k += num(e.yoga.min)*kg*(e.yoga.flow ? 3.5 : 3.0)/60*f;
   if(isGym(e.type)){
     const nSets = Object.values(e.sets||{}).reduce((x,a) => x+a.length, 0);
     const tot = Math.min(60, Math.max(((e.end||e.start)-e.start)/60000, nSets*3)), tm = e.tread ? num(e.tread.min) : 0;
-    if(e.tread) k += num(e.tread.km)>0 && tm>0 ? treadKcal(num(e.tread.km), tm, e.tread.incline, kg) : tm*kg*(6 + num(e.tread.incline)*.45)/60;
-    if(e.sets) k += Math.max(0, tot-tm)*kg*5/60;
+    if(e.tread) k += num(e.tread.km)>0 && tm>0 ? treadKcal(num(e.tread.km), tm, e.tread.incline, kg) : tm*kg*(6 + num(e.tread.incline)*.45)/60*f;
+    if(e.sets) k += Math.max(0, tot-tm)*kg*5/60*f;
   }
   return Math.round(k/5)*5;
 }
@@ -1262,6 +1267,25 @@ try{ matchMedia("(prefers-reduced-motion: reduce)").addEventListener("change", (
 /* Campus-Fotos für den großen Kasten oben. Eigene Fotos (Einstellungen → Fotos) haben Vorrang.
    Zum Austauschen: Bilder nach app/img legen und hier eintragen. */
 const CAMPUS_PHOTOS = [{url:"img/campus-1.svg"}, {url:"img/campus-2.svg"}];
+/* Standard-Fotopaket für Startseite und Rückblicke (img/pack/, siehe img/pack/README.txt).
+   Gilt, solange keine eigenen Fotos in den Einstellungen sind. Fehlende Dateien werden übersprungen;
+   fehlt das ganze Paket, zeigt die Startseite CAMPUS_PHOTOS und die Rückblicke bleiben ohne Foto.
+   pos = Bildausschnitt (wie CSS object-position), damit im Hochformat das Wichtige sichtbar bleibt. */
+const PHOTO_PACK = [
+  {url:"img/pack/campus-plaza.jpg", pos:"62% 50%"},
+  {url:"img/pack/campus-terrace.jpg", pos:"86% 55%"},
+  {url:"img/pack/campus-glass-hall.jpg", pos:"62% 55%"},
+  {url:"img/pack/gym-cardio.jpg", pos:"40% 60%"},
+  {url:"img/pack/gym-weights.jpg", pos:"55% 60%"}
+];
+let PACK = null;
+function packPhotos(){
+  return PACK || (PACK = Promise.all(PHOTO_PACK.map(p => new Promise(ok => {
+    const im = new Image(); im.onload = () => ok(p); im.onerror = () => ok(null); im.src = p.url;
+  }))).then(a => a.filter(Boolean)));
+}
+// Eigene Fotos haben Vorrang, sonst das Paket
+function defaultPhotos(){ return photoUrls().catch(() => []).then(ps => ps.length ? ps : packPhotos()); }
 let HERO_STEP = null, REVEALED = false;
 const smoothOk = () => !(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
 const HB_ICON = '<svg viewBox="0 0 30 24" aria-hidden="true"><rect y="1" width="30" height="4.5" fill="currentColor"/><rect y="9.75" width="30" height="4.5" fill="currentColor"/><rect y="18.5" width="30" height="4.5" fill="currentColor"/></svg>';
@@ -2251,7 +2275,8 @@ function settingsSheet(){
     <div><span class="lbl">Weekly goal</span><div class="stepper"><button data-act="goal" data-d="-1" aria-label="fewer">−</button><b id="goalv">${st.goal}</b><button data-act="goal" data-d="1" aria-label="more">+</button><span class="muted small">sessions per week</span></div></div>
     <div class="card" style="background:var(--bg);border:0">
       <span class="lbl">My profile</span>
-      <div class="rungrid"><div><label class="lbl" for="set-kg">Body weight</label><div class="field"><input inputmode="decimal" id="set-kg" data-in="bodykg" value="${esc(st.bodyKg)}" placeholder="e.g. 60"><span class="u">kg</span></div></div></div>
+      <div class="rungrid"><div><label class="lbl" for="set-kg">Body weight</label><div class="field"><input inputmode="decimal" id="set-kg" data-in="bodykg" value="${esc(st.bodyKg)}" placeholder="e.g. 60"><span class="u">kg</span></div></div>
+      <div><label class="lbl" for="set-cm">Height</label><div class="field"><input inputmode="numeric" id="set-cm" data-in="bodycm" value="${esc((st.body && st.body.cm) || "")}" placeholder="e.g. 175"><span class="u">cm</span></div></div></div>
       <p class="small muted" style="margin:6px 0 10px">Only used to estimate calories after a session.</p>
       <span class="lbl">Show calories</span>
       <div class="seg theme" id="kcalseg">${[["1","On"],["0","Off"]].map(([k,l]) => `<button data-act="kcalshow" data-v="${k}" aria-pressed="${(st.showKcal!==false)===(k==="1")}">${l}</button>`).join("")}</div>
@@ -3407,14 +3432,14 @@ function heroPhotos(){
   clearInterval(HERO_ROT);
   const hero = document.querySelector("#app section.hero"); if(!hero) return;
   const go = ps => { if(!ps || !ps.length) ps = CAMPUS_PHOTOS; if(hero.isConnected && !hero.querySelector(".hph")) mountHeroPhotos(hero, ps); };
-  if(PHOTOS) go(PHOTOS); else photoUrls().then(go).catch(() => go(null));
+  defaultPhotos().then(go).catch(() => go(null));
 }
 function mountHeroPhotos(hero, ps){
   const now = new Date(), doy = Math.floor((now - new Date(now.getFullYear(),0,0))/864e5);
   const n = Math.min(ps.length, 5), start = doy % ps.length;
-  const pick = Array.from({length:n}, (_,i) => ps[(start+i) % ps.length].url);
+  const pick = Array.from({length:n}, (_,i) => ps[(start+i) % ps.length]);
   const box = document.createElement("div"); box.className = "hph"; box.setAttribute("aria-hidden", "true");
-  box.innerHTML = pick.map((u,i) => `<img src="${u}" alt="" class="${i===0?"on":""}" style="animation-name:kb${i%3}">`).join("") + `<div class="hblur"></div><div class="hov"></div>`;
+  box.innerHTML = pick.map((p,i) => `<img src="${p.url}" alt="" class="${i===0?"on":""}" style="animation-name:kb${i%3}${p.pos?`;object-position:${p.pos}`:""}">`).join("") + `<div class="hblur"></div><div class="hov"></div>`;
   hero.prepend(box); hero.classList.add("photo");
   if(n>1){ const dots = document.createElement("div"); dots.className = "hdots"; dots.innerHTML = pick.map((_,i) => `<i class="${i===0?"on":""}"></i>`).join(""); hero.querySelector("h2").before(dots); }
   HERO_STEP = null;
@@ -3788,10 +3813,11 @@ async function addPhotos(files){
   toast(ok ? `${ok} ${ok===1?"photo":"photos"} added ❤️` : "That didn't work.");
 }
 function attachPhotos(st){
-  photoUrls().then(ps => {
+  defaultPhotos().then(ps => {
     if(!ps.length || STORY!==st) return;
     const sh = ps.slice().sort(() => Math.random()-.5);
-    st.photos = st.slides.map((_,i) => sh[i % sh.length].url);
+    let j = 0;   // Folien mit Diagrammen (nophoto) bleiben ohne Foto, damit sie lesbar sind
+    st.photos = st.slides.map(sl => sl.nophoto ? null : sh[j++ % sh.length]);
     drawStory(true);
   }).catch(() => {});
 }
@@ -3850,34 +3876,9 @@ function nrcHelp(){
 }
 
 /* ================= Muskeln: welche Muskeln wurden wie stark trainiert ================= */
-const MUSC = {
-  squat:{quads:1,glutes:.7,adduct:.3,lowback:.2}, smithsq:{quads:1,glutes:.6,adduct:.3}, gobletsq:{quads:1,glutes:.6,adduct:.3}, legpress:{quads:1,glutes:.5},
-  legcurl:{hams:1}, seatcurl:{hams:1}, calf:{calves:1},
-  hip:{glutes:1,hams:.3}, smithhip:{glutes:1,hams:.3}, glutebridge:{glutes:1,hams:.2}, dbhip:{glutes:1,hams:.3},
-  bulgarian:{glutes:.8,quads:.6,adduct:.2}, split:{glutes:.7,quads:.7,adduct:.2}, revlunge:{glutes:.8,quads:.6},
-  rdl:{hams:1,glutes:.7,lowback:.4}, dbrdl:{hams:1,glutes:.7,lowback:.4}, hyper:{glutes:.9,hams:.5,lowback:.4},
-  kick:{glutes:1}, kickm:{glutes:1}, abd:{glutes:.9}, add:{adduct:1}, cableadd:{adduct:1},
-  lat:{back:1,biceps:.4}, latclose:{back:1,biceps:.4}, latone:{back:1,biceps:.4},
-  incl:{chest:1,shoulders:.4,triceps:.4}, inclm:{chest:1,shoulders:.4,triceps:.4}, flatdb:{chest:1,triceps:.4,shoulders:.3},
-  lra:{shoulders:1}, lracable:{shoulders:1}, lram:{shoulders:1},
-  bic:{biceps:1}, hammer:{biceps:1}, cablecurl:{biceps:1}, tri:{triceps:1}, pushdown:{triceps:1}, ohtri:{triceps:1}
-};
-const MUSC_N = {glutes:"Glutes", hams:"Hamstrings", quads:"Quads", adduct:"Inner thighs", calves:"Calves", back:"Back", lowback:"Lower back", chest:"Chest", shoulders:"Shoulders", biceps:"Biceps", triceps:"Triceps", core:"Core"};
-const UPPER = ["back","chest","shoulders","biceps","triceps"];
-function muscleLoad(H){
-  const L = {};
-  const add = (m, v) => L[m] = (L[m]||0) + v;
-  H.forEach(e => {
-    Object.keys(e.sets||{}).forEach(id => { const map = MUSC[id] || (EXN[id] && EXN[id].m); if(!map) return; const n = (e.sets[id]||[]).filter(s => num(s.r)>0).length; Object.entries(map).forEach(([m,w]) => add(m, n*w)); });
-    const km = kmOf(e); if(km>0){ const k = Math.min(2, km/5); add("quads", 2*k); add("calves", 2*k); add("hams", 1.2*k); add("glutes", 1*k); add("core", .4*k); }
-    if(e.yoga){ const k = Math.min(1.5, Math.max(.5, num(e.yoga.min)/30)); add("core", 2*k); add("glutes", 1*k); add("hams", 1*k); add("back", .5*k); add("shoulders", .5*k); }
-  });
-  const tot = Object.values(L).reduce((a,b) => a+b, 0), max = Math.max(0, ...Object.values(L));
-  const rank = Object.entries(L).filter(x => x[1]>0).sort((a,b) => b[1]-a[1]).map(([k,v]) => ({k, n:MUSC_N[k], pct:tot ? Math.round(v/tot*100) : 0, rel:max ? v/max : 0}));
-  const I = {}; Object.entries(L).forEach(([k,v]) => I[k] = max ? v/max : 0);
-  I.traps = (I.back||0)*.5;
-  return {I, rank, tot, glutePct:tot ? Math.round((L.glutes||0)/tot*100) : 0};
-}
+/* Welche Muskeln wie viel abbekommen und die Überschrift dazu stecken in muscles.js (NFMuscles), getestet in tests/muscles.test.js.
+   Übungen ohne eigenen Eintrag dort nehmen die Muskeln aus der Bibliothek (NFEx, Feld m). */
+const muscleLoad = H => NFMuscles.load(H, id => EXN[id] && EXN[id].m);
 function bodySvg(view, I){
   const base = "rgba(255,255,255,.16)", sk = "rgba(255,255,255,.08)";
   const c = k => { const v = I[k]||0; return v<=0.02 ? base : `rgba(255,255,255,${(.24+.76*v).toFixed(2)})`; };
@@ -3907,15 +3908,11 @@ function bodySvg(view, I){
 }
 function muscleSlide(H, when){
   const M = muscleLoad(H); if(!M.rank.length) return null;
-  const top = M.rank[0].k, dl = ms => ` style="animation-delay:${ms}ms"`;
-  let big, p;
-  if(top==="glutes"){ big = "Glutes on fire 🔥"; p = `${M.glutePct} % of your training ${when==="week"?"this week ":""}went to your glutes 🍑`; }
-  else if(UPPER.includes(top)){ big = "Upper body power 💪"; p = `Worked the most: ${M.rank[0].n}.`; }
-  else if(top==="core"){ big = "Strong core 🧘‍♀️"; p = "Yoga really challenged your core."; }
-  else { big = "Strong legs 🏃‍♀️"; p = `Worked the most: ${M.rank[0].n}.`; }
-  const hint = top!=="glutes" && M.glutePct<20 ? `<p class="sy-p mhint fadeup"${dl(700)}>Your glutes got a bit less attention ${when==="week"?"this week":"this month"}. Lower body day next time? 🦵</p>` : "";
+  const dl = ms => ` style="animation-delay:${ms}ms"`;
+  const hd = NFMuscles.headline(M, when);
+  const hint = hd.hint ? `<p class="sy-p mhint fadeup"${dl(700)}>${hd.hint}</p>` : "";
   const rank = M.rank.slice(0,3).map((r,i) => `<div class="mrk fadeup"${dl(500+i*120)}><b>${i+1}</b><span>${r.n}</span><span class="tnum">${r.pct} %</span><i class="mtr"><i style="width:${Math.round(r.rel*100)}%"></i></i></div>`).join("");
-  return {c:"s5", nophoto:true, h:`<p class="sy-eb">Your muscles ${when==="week"?"this week":"in "+when}</p><h2 class="sy-big pop">${big}</h2><p class="sy-p">${p}</p><div class="sy-panel mfig fadeup"${dl(300)}><div class="mfigs"><div>${bodySvg("front", M.I)}<small>front</small></div><div>${bodySvg("back", M.I)}<small>back</small></div></div></div><div class="mrank">${rank}</div>${hint}`};
+  return {c:"s5", nophoto:true, h:`<p class="sy-eb">Your muscles ${when==="week"?"this week":"in "+when}</p><h2 class="sy-big pop">${hd.title}</h2><p class="sy-p">${hd.text}</p><div class="sy-panel mfig fadeup"${dl(300)}><div class="mfigs"><div>${bodySvg("front", M.I)}<small>front</small></div><div>${bodySvg("back", M.I)}<small>back</small></div></div></div><div class="mrank">${rank}</div>${hint}`};
 }
 
 /* ================= Monatsrückblick (Story) ================= */
@@ -4015,7 +4012,7 @@ function monthShareSpec(r){
   const items = [];
   if(r.curve) items.push(`💪 ${r.curve.n} +${r.curve.pct} %`);
   if(r.alster) items.push(`🌊 ${r.alster}× around the Alster`);
-  const M = muscleLoad(r.H); if(M.rank[0] && M.rank[0].k==="glutes") items.push(`🍑 ${M.glutePct} % for the glutes`);
+  const M = muscleLoad(r.H), mt = M.rank[0]; if(mt) items.push(`${NFMuscles.EMOJI[mt.k] || "💪"} ${mt.pct} % for the ${String(mt.n).toLowerCase()}`);
   const st2 = [["Sessions", String(r.n)]]; if(r.km) st2.push(["Run", fmt(r.km)+" km"]); if(r.vol) st2.push(["Moved", tons(r.vol)]);
   return {key:"m"+r.y+"-"+r.m, col:THEME_COL[""], eyebrow:`${MONTHS[r.m]} ${r.y}`, title:`My ${MONTHS[r.m]}`, sub:"Your training month ✨", stats:st2, items:items.slice(0,3), kcal:r.kcal, foot:`${r.days} training days`, text:`My training month: ${MONTHS[r.m]} ✨`};
 }
@@ -4043,7 +4040,7 @@ function drawStory(noFx){
   const sl = STORY.slides[STORY.i];
   const ph = STORY.photos && STORY.photos[STORY.i];
   el.className = "story " + sl.c + (ph ? " has-photo" : "");
-  el.innerHTML = (ph ? `<div class="sy-bg kb${STORY.i%3}" style="background-image:url('${ph}')"></div><div class="sy-tint"></div><div class="sy-shade"></div>` : "") + `<div class="sy-prog">${STORY.slides.map((_,i) => `<i class="${i<STORY.i?"done":i===STORY.i?"on":""}"></i>`).join("")}</div><button class="sy-snd" data-act="storymute" aria-label="${S.settings.storyMute?"Music on":"Music off"}">${S.settings.storyMute?"🔇":"🔊"}</button><button class="sy-x" data-act="storyclose" aria-label="Close">✕</button><div class="sy-in">${sl.h}</div>`;
+  el.innerHTML = (ph ? `<div class="sy-bg kb${STORY.i%3}" style="background-image:url('${ph.url}')${ph.pos?`;background-position:${ph.pos}`:""}"></div><div class="sy-tint"></div><div class="sy-shade"></div>` : "") + `<div class="sy-prog">${STORY.slides.map((_,i) => `<i class="${i<STORY.i?"done":i===STORY.i?"on":""}"></i>`).join("")}</div><button class="sy-snd" data-act="storymute" aria-label="${S.settings.storyMute?"Music on":"Music off"}">${S.settings.storyMute?"🔇":"🔊"}</button><button class="sy-x" data-act="storyclose" aria-label="Close">✕</button><div class="sy-in">${sl.h}</div>`;
   if(sl.end && !noFx) confetti(true);
   musicLevel(STORY.i, STORY.slides.length);
 }
@@ -4152,14 +4149,15 @@ function renderOnboard(){
       break;
     }
     case "body": {
-      const b = OB.body || (OB.body = Object.assign({sex:"", age:""}, S.settings.body||{}, {kg:S.settings.bodyKg ? String(S.settings.bodyKg) : ""}));
+      const b = OB.body || (OB.body = Object.assign({sex:"", age:"", cm:""}, S.settings.body||{}, {kg:S.settings.bodyKg ? String(S.settings.bodyKg) : ""}));
       h = obHead("") + obStep(1, obTotal()) + `<h2>A bit about you</h2>
-        <p class="lead">Saved in your profile on this phone. Your weight is used to estimate the calories you burn.</p>
+        <p class="lead">Saved in your profile on this phone. Sex, age, weight and height are used to estimate the calories you burn.</p>
         <label class="f" id="ob-sex-l">Sex</label>
         <div class="opts sexes" role="group" aria-labelledby="ob-sex-l">${Object.entries(SEX_TXT).map(([k,l]) => `<button type="button" class="opt" data-act="ob" data-do="sex" data-v="${k}" aria-pressed="${b.sex===k}">${l}</button>`).join("")}</div>${errEl("ob-sex-err")}
         <form id="ob-form" data-form="body" novalidate>
           <div class="two"><div><label class="f" for="ob-age">Age</label><input class="inp" id="ob-age" name="age" inputmode="numeric" maxlength="3" autocomplete="off" value="${esc(b.age)}" placeholder="21">${errEl("ob-age-err")}</div>
           <div><label class="f" for="ob-kg">Weight (kg)</label><input class="inp" id="ob-kg" name="kg" inputmode="decimal" maxlength="5" autocomplete="off" value="${esc(b.kg)}" placeholder="68">${errEl("ob-kg-err")}</div></div>
+          <div class="two"><div><label class="f" for="ob-cm">Height (cm) <span class="muted" style="text-transform:none;letter-spacing:0">optional</span></label><input class="inp" id="ob-cm" name="cm" inputmode="numeric" maxlength="3" autocomplete="off" value="${esc(b.cm==null ? "" : b.cm)}" placeholder="175">${errEl("ob-cm-err")}</div><div></div></div>
           <div class="foot"><button class="primary" type="submit">Continue</button></div>
         </form>`;
       break;
@@ -4283,10 +4281,11 @@ async function obSubmit(form){
       obGo("body");
     }catch(e){ obError("ob-pw-err", "This browser can't store a password securely. Open NOVAFit over https or in Safari or Chrome."); btn.disabled = false; }
   }else if(kind==="body"){
-    const b = OB.body || {}, v = NFPlan.validateBody({sex:b.sex, age:form.age.value, kg:form.kg.value});
-    obError("ob-sex-err", v.errors.sex); obError("ob-age-err", v.errors.age); obError("ob-kg-err", v.errors.kg);
+    const b = OB.body || {}, v = NFPlan.validateBody({sex:b.sex, age:form.age.value, kg:form.kg.value, cm:form.cm.value});
+    obError("ob-sex-err", v.errors.sex); obError("ob-age-err", v.errors.age); obError("ob-kg-err", v.errors.kg); obError("ob-cm-err", v.errors.cm);
     if(!v.ok){ const bad = form.querySelector('[aria-invalid="true"]'); if(bad) bad.focus(); return; }
-    S.settings.body = {sex:v.value.sex, age:v.value.age}; S.settings.bodyKg = String(v.value.kg); save();
+    S.settings.body = {sex:v.value.sex, age:v.value.age}; if(v.value.cm) S.settings.body.cm = v.value.cm;
+    S.settings.bodyKg = String(v.value.kg); save();
     OB.body = null; obGo("days");
   }else if(kind==="login"){
     const pw = form.password.value;
@@ -4421,7 +4420,7 @@ function accountHtml(){
   const p = S.settings.profile; if(!p) return "";
   return `<div class="card" style="background:var(--bg);border:0"><span class="lbl">Account</span>
     <p style="margin:0"><b>${esc(p.name)}</b><br><span class="small muted">${esc(p.email)} · saved on this phone only</span></p>
-    ${S.settings.body ? `<p class="small muted" style="margin:0">${esc(SEX_TXT[S.settings.body.sex]||"")} · ${esc(S.settings.body.age)} years${num(S.settings.bodyKg)>0 ? " · " + fmt(num(S.settings.bodyKg)) + " kg" : ""}</p>` : ""}
+    ${S.settings.body ? `<p class="small muted" style="margin:0">${esc(SEX_TXT[S.settings.body.sex]||"")} · ${esc(S.settings.body.age)} years${num(S.settings.bodyKg)>0 ? " · " + fmt(num(S.settings.bodyKg)) + " kg" : ""}${S.settings.body.cm ? " · " + esc(S.settings.body.cm) + " cm" : ""}</p>` : ""}
     <p class="small muted" style="margin:0">Plan: ${esc((S.settings.plan||{}).name || "none yet")}</p>
     <div class="row2"><button class="secondary" data-act="ob" data-do="edit">Edit profile and plan</button><button class="secondary" data-act="ob" data-do="pwsheet">Change password</button></div>
     <button class="secondary" data-act="ob" data-do="lock">Lock app</button></div>`;
@@ -4671,6 +4670,8 @@ document.addEventListener("input", ev => {
   if(k==="ownname"){ const day = OB.a && OB.a.own && OB.a.own.days[+t.dataset.i]; if(day) day.name = t.value; return; }
   if(k==="name"){ S.settings.name = t.value; save(); return; }
   if(k==="bodykg"){ S.settings.bodyKg = t.value.trim(); save(); return; }
+  if(k==="bodycm"){ const cm = Math.round(num(t.value)); S.settings.body = S.settings.body || {};
+    if(cm>=NFPlan.MIN_CM && cm<=NFPlan.MAX_CM) S.settings.body.cm = cm; else delete S.settings.body.cm; save(); return; }
   if(k==="time"){ S.settings.remTime = t.value || "18:00"; save(); return; }
   if(k==="plw"){ if(t.dataset.f==="target"){ const f = fmtTimeDigits(t.value); if(f!==t.value) t.value = f; } PLW[t.dataset.f] = t.value; if(t.type==="date") render(); return; }
   if(k==="shot"){ if(t.id==="sh-time"){ const f = fmtTimeDigits(t.value); if(f!==t.value) t.value = f; } t.setAttribute("aria-invalid", "false"); const e = t.closest("div").parentNode.querySelector(".err"); if(e) e.textContent = ""; return; }
