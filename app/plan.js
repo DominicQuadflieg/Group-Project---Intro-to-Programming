@@ -1,5 +1,5 @@
 /* NOVAFit · onboarding logic
-   Sign-up validation, questionnaire answers and training plan suggestions.
+   Sign-up validation, questionnaire answers, strength splits and training plan suggestions.
    Pure functions without any DOM access, so they run in the browser (window.NFPlan)
    and in Node for the tests in tests/plan.test.js. */
 (function (root) {
@@ -133,6 +133,7 @@
     const checks = [validateDays(a.days), validateMix(a.mix, a.days), validateGoals(a.goals, a.mix)];
     if (!LEVELS.includes(a.level)) checks.push({ ok: false, error: "Choose your level" });
     if (!MINUTES.includes(a.min)) checks.push({ ok: false, error: "Choose a session length" });
+    if (a.split != null && a.mix) checks.push(validateSplit(a.split, a.mix.s));
     const bad = checks.find(c => !c.ok);
     return bad || { ok: true };
   }
@@ -144,26 +145,154 @@
     return ["Easy run", "Intervals 6 × 1 min", "Tempo run"];
   }
 
-  // Spreads the sessions of a mix over the week, never the same kind twice in a row
-  // if it can be avoided. Returns [{day, kind, workout, title, min}].
-  function scheduleWeek(mix, a, min) {
-    const n = mixTotal(mix), days = DAY_SETS[n] || DAY_SETS[MAX_DAYS].slice(0, n);
-    const left = { s: mix.s, r: mix.r, y: mix.y }, used = { s: 0, r: 0, y: 0 };
-    const strength = a.goals.includes("pullup") ? ["oben", "po"] : ["po", "oben"];
-    const runs = runTitles(a), out = [];
+  /* ---------- Strength splits ---------- */
+  // Strength workouts of the main app (W in index.html). group decides the mobility add-on.
+  const WORKOUTS = {
+    fbA: { title: "Full Body A", group: "full" }, fbB: { title: "Full Body B", group: "full" }, fbC: { title: "Full Body C", group: "full" },
+    oben: { title: "Upper Body", group: "upper" }, upB: { title: "Upper Body B", group: "upper" },
+    po: { title: "Lower Body", group: "lower" }, loB: { title: "Lower Body B", group: "lower" },
+    push: { title: "Push", group: "push" }, pull: { title: "Pull", group: "pull" }, legs: { title: "Legs", group: "legs" }
+  };
+  // Sessions that load the legs heavily. A run the day after one of them is avoided.
+  const HEAVY_LEGS = ["full", "lower", "legs"];
+  // Short mobility routine suggested after a session (minutes match the routines in index.html)
+  const ADDONS = {
+    hips: { id: "hips", name: "Hip mobility", min: 10 },
+    shoulders: { id: "shoulders", name: "Shoulder mobility", min: 6 },
+    stretch: { id: "stretch", name: "Full-body stretch", min: 7 },
+    runner: { id: "runner", name: "Runner's stretch", min: 6 }
+  };
+  const ADDON_FOR = { lower: "hips", legs: "hips", upper: "shoulders", push: "shoulders", pull: "shoulders", full: "stretch", run: "runner" };
+
+  // Ways to split 1–6 strength sessions. fam links similar splits across session counts,
+  // tags say which goals (or "beginner" / "none") a split is recommended for.
+  const SPLITS = {
+    1: [
+      { id: "full1", fam: "full", name: "Full Body", workouts: ["fbA"], why: "Every muscle in one session", tags: ["beginner", "none", "muscle", "squat50"] },
+      { id: "lower1", fam: "lower", name: "Lower Body", workouts: ["po"], why: "Legs and glutes, your runs cover the rest", tags: ["hip20"] },
+      { id: "upper1", fam: "upper", name: "Upper Body", workouts: ["oben"], why: "Back, chest and arms", tags: ["pullup"] }
+    ],
+    2: [
+      { id: "full2", fam: "full", name: "2× Full Body", workouts: ["fbA", "fbB"], why: "Every muscle twice a week. Simple and effective", tags: ["beginner", "none", "squat50"] },
+      { id: "ul2", fam: "ul", name: "Upper + Lower", workouts: ["oben", "po"], why: "More exercises per muscle, longer rest in between", tags: ["muscle", "pullup"] },
+      { id: "lf2", fam: "lower", name: "Lower + Full Body", workouts: ["po", "fbB"], why: "Glutes and legs twice, upper body once", tags: ["hip20"] }
+    ],
+    3: [
+      { id: "full3", fam: "full", name: "3× Full Body", workouts: ["fbA", "fbB", "fbC"], why: "Each muscle three times a week. Great to learn the lifts", tags: ["beginner", "none", "squat50"] },
+      { id: "ppl3", fam: "ppl", name: "Push / Pull / Legs", workouts: ["push", "pull", "legs"], why: "One focus per day, lots of volume per muscle", tags: ["muscle"] },
+      { id: "u2l1", fam: "upper", name: "2× Upper + 1× Lower", workouts: ["oben", "po", "upB"], why: "Extra back and arm work", tags: ["pullup"] },
+      { id: "u1l2", fam: "lower", name: "1× Upper + 2× Lower", workouts: ["po", "oben", "loB"], why: "Extra glute and leg work", tags: ["hip20"] }
+    ],
+    4: [
+      { id: "ul4", fam: "ul", name: "Upper / Lower ×2", workouts: ["oben", "po", "upB", "loB"], why: "The classic for four days: each muscle twice", tags: ["muscle", "none", "pullup"] },
+      { id: "pplf", fam: "ppl", name: "Push / Pull / Legs + Full Body", workouts: ["push", "pull", "legs", "fbA"], why: "Focused days plus one session for everything", tags: [] },
+      { id: "f2ul", fam: "full", name: "2× Full Body + Upper + Lower", workouts: ["fbA", "oben", "fbB", "po"], why: "Easy to follow, each muscle two to three times", tags: ["beginner", "squat50"] },
+      { id: "glute4", fam: "lower", name: "Glute focus", workouts: ["po", "oben", "loB", "fbB"], why: "Three sessions with glute work", tags: ["hip20"] }
+    ],
+    5: [
+      { id: "pplul", fam: "ppl", name: "Push / Pull / Legs + Upper / Lower", workouts: ["push", "pull", "legs", "oben", "po"], why: "High volume for building muscle", tags: ["muscle", "none"] },
+      { id: "ulf", fam: "ul", name: "Upper / Lower ×2 + Full Body", workouts: ["oben", "po", "upB", "loB", "fbA"], why: "Balanced and easy to recover from", tags: ["beginner", "pullup", "squat50"] },
+      { id: "glute5", fam: "lower", name: "Glute focus", workouts: ["po", "oben", "loB", "upB", "fbB"], why: "Glutes and legs three times a week", tags: ["hip20"] }
+    ],
+    6: [
+      { id: "ppl6", fam: "ppl", name: "Push / Pull / Legs ×2", workouts: ["push", "pull", "legs", "push", "pull", "legs"], why: "Every muscle twice with one focus per day", tags: ["muscle", "none"] },
+      { id: "ul6", fam: "ul", name: "Upper / Lower ×3", workouts: ["oben", "po", "upB", "loB", "oben", "po"], why: "Simple rotation, each muscle three times", tags: ["pullup", "beginner", "squat50"] },
+      { id: "glute6", fam: "lower", name: "Glute focus", workouts: ["po", "oben", "loB", "upB", "po", "fbB"], why: "Four sessions with glute work", tags: ["hip20"] }
+    ]
+  };
+
+  const splitsFor = n => SPLITS[n] || [];
+  function splitById(id) {
+    for (const n of Object.keys(SPLITS)) { const s = SPLITS[n].find(x => x.id === id); if (s) return s; }
+    return null;
+  }
+
+  // Best split for n strength sessions: one tagged with a strength goal (in the order picked),
+  // otherwise the beginner split for beginners, otherwise the general one.
+  function recommendSplit(n, goals, level) {
+    const list = splitsFor(n);
+    if (!list.length) return null;
+    for (const g of goals || []) { const s = list.find(x => x.tags.includes(g)); if (s) return { split: s, reason: "goal", goal: g }; }
+    if (level === "beginner") { const s = list.find(x => x.tags.includes("beginner")); if (s) return { split: s, reason: "beginner" }; }
+    return { split: list.find(x => x.tags.includes("none")) || list[0], reason: "general" };
+  }
+
+  // The split a plan with n strength sessions uses: the chosen one, else the same family, else the recommendation.
+  function splitFor(n, preferred, a) {
+    const list = splitsFor(n);
+    if (!list.length) return null;
+    const pick = list.find(x => x.id === preferred);
+    if (pick) return pick;
+    const pref = splitById(preferred), fam = pref && list.find(x => x.fam === pref.fam);
+    return fam || recommendSplit(n, a && a.goals, a && a.level).split;
+  }
+
+  function validateSplit(id, n) {
+    if (!(n > 0)) return { ok: true };
+    if (!splitsFor(n).some(x => x.id === id)) return { ok: false, error: "Choose how to split your strength training" };
+    return { ok: true };
+  }
+
+  /* ---------- Week schedule ---------- */
+  // All orders of a mix, e.g. s, r, s and s, s, r for {s: 2, r: 1}
+  function kindOrders(mix) {
+    const left = { s: mix.s, r: mix.r, y: mix.y }, cur = [], out = [], n = mixTotal(mix);
+    (function rec() {
+      if (cur.length === n) { out.push(cur.slice()); return; }
+      for (const k of KINDS) if (left[k] > 0) { left[k]--; cur.push(k); rec(); cur.pop(); left[k]++; }
+    })();
+    return out;
+  }
+  // The old greedy order: most sessions left first, never the same kind twice in a row
+  function greedyOrder(mix) {
+    const left = { s: mix.s, r: mix.r, y: mix.y }, out = [];
     let last = "";
-    for (let i = 0; i < n; i++) {
+    for (let i = 0; i < mixTotal(mix); i++) {
       const open = KINDS.filter(k => left[k] > 0).sort((x, y) => left[y] - left[x] || KINDS.indexOf(x) - KINDS.indexOf(y));
       const k = open.find(o => o !== last) || open[0];
-      const j = used[k]++;
-      left[k]--; last = k;
-      let workout, title;
-      if (k === "s") { workout = strength[j % 2]; title = workout === "po" ? "Lower Body" : "Upper Body"; }
-      else if (k === "r") { workout = WORKOUT.r; title = runs[j % runs.length]; }
-      else { workout = WORKOUT.y; title = j % 2 ? "Mobility flow" : "Vinyasa flow"; }
-      out.push({ day: days[i], kind: k, workout, title, min: k === "y" ? Math.min(min, 30) : min });
+      left[k]--; out.push(k); last = k;
     }
     return out;
+  }
+
+  function buildSessions(order, days, a, min, split) {
+    const used = { s: 0, r: 0, y: 0 }, runs = runTitles(a), strength = split ? split.workouts : [];
+    return order.map((k, i) => {
+      const j = used[k]++;
+      let workout, title, group;
+      if (k === "s") { workout = strength[j % strength.length]; title = WORKOUTS[workout].title; group = WORKOUTS[workout].group; }
+      else if (k === "r") { workout = WORKOUT.r; title = runs[j % runs.length]; group = "run"; }
+      else { workout = WORKOUT.y; title = j % 2 ? "Mobility flow" : "Vinyasa flow"; }
+      const s = { day: days[i], kind: k, workout, title, min: k === "y" ? Math.min(min, 30) : min };
+      if (group) s.addon = Object.assign({}, ADDONS[ADDON_FOR[group]]);
+      return s;
+    });
+  }
+
+  // 100 per pair of the same kind back to back, 10 per run on the day after a heavy leg session
+  function scheduleScore(sessions) {
+    let score = 0;
+    for (let i = 1; i < sessions.length; i++) {
+      const p = sessions[i - 1], c = sessions[i];
+      if (p.kind === c.kind) score += 100;
+      if (c.kind === "r" && p.kind === "s" && c.day === p.day + 1 && HEAVY_LEGS.includes(WORKOUTS[p.workout].group)) score += 10;
+    }
+    return score;
+  }
+
+  // Spreads the sessions of a mix over the week: never the same kind twice in a row and no run
+  // the day after heavy legs, if it can be avoided. Strength sessions follow the split's order.
+  // Returns [{day, kind, workout, title, min, addon}].
+  function scheduleWeek(mix, a, min, split) {
+    const n = mixTotal(mix), days = DAY_SETS[n] || DAY_SETS[MAX_DAYS].slice(0, n);
+    const sp = mix.s > 0 ? (split || splitFor(mix.s, a.split, a)) : null;
+    let best = null, bestScore = Infinity;
+    for (const order of [greedyOrder(mix)].concat(kindOrders(mix))) {
+      const sessions = buildSessions(order, days, a, min, sp), score = scheduleScore(sessions);
+      if (score < bestScore) { best = sessions; bestScore = score; }
+      if (score === 0) break;
+    }
+    return best;
   }
 
   function mainKind(goals) {
@@ -174,7 +303,9 @@
   }
 
   function makePlan(id, name, why, mix, a, min, best) {
-    return { id, name, why, best: !!best, days: mixTotal(mix), mix: Object.assign({}, mix), min, level: a.level, goals: a.goals.slice(), sessions: scheduleWeek(mix, a, min) };
+    const split = mix.s > 0 ? splitFor(mix.s, a.split, a) : null;
+    return { id, name, why, best: !!best, days: mixTotal(mix), mix: Object.assign({}, mix), min, level: a.level, goals: a.goals.slice(),
+      split: split ? { id: split.id, name: split.name } : null, sessions: scheduleWeek(mix, a, min, split) };
   }
 
   // Three suggestions: the mix as chosen, one shifted towards the main goal, and an easier start.
@@ -225,7 +356,8 @@
     KINDS, KIND_LABEL, DAY_NAMES, GOALS, LEVELS, MINUTES, MIN_DAYS, MAX_DAYS, MAX_GOALS, MAX_PER_KIND,
     SEXES, MIN_AGE, MAX_AGE, MIN_KG, MAX_KG,
     goalById, validateSignup, validateBody, toNumber, validateDays, validateMix, validateGoals, validateAnswers,
-    rebalanceMix, mixTotal, scheduleWeek, suggestPlans, weekdayIndex, sessionOn, nextSession
+    rebalanceMix, mixTotal, scheduleWeek, suggestPlans, weekdayIndex, sessionOn, nextSession,
+    WORKOUTS, HEAVY_LEGS, ADDONS, ADDON_FOR, SPLITS, splitsFor, splitById, recommendSplit, splitFor, validateSplit
   };
   if (typeof module === "object" && module.exports) module.exports = api;
   else root.NFPlan = api;
