@@ -2,6 +2,11 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Readable numbers, safer finish
+
+- Large numbers get thousands separators everywhere they are shown, e.g. “16,440 kg moved” instead of “16440 kg”
+- Finishing with sets that aren't ticked off: the dialog now names them (“Triceps Pushdown set 1, 2 and 3”), and the main button saves only the sets you actually did. Saving the untouched sets with last time's numbers is the second, deliberate choice
+
 ## Unreleased – Build my own strength plan
 
 - New step after the questionnaire: “Recommended for you” (the ready plan as before) or “Build my own”

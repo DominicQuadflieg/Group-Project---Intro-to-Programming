@@ -1087,7 +1087,8 @@ const isTyping = () => document.activeElement && /INPUT|TEXTAREA/.test(document.
 const $ = s => document.querySelector(s);
 const esc = s => String(s==null?"":s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const num = v => { const n = parseFloat(String(v==null?"":v).replace(",", ".")); return isFinite(n) ? n : 0; };
-const fmt = (n,d=1) => Number(n).toLocaleString("en-GB",{maximumFractionDigits:d, useGrouping:false});
+// Display only: thousands separators (16,440 kg). Never feed this back into an input that num() reads, use plain numbers there.
+const fmt = (n,d=1) => Number(n).toLocaleString("en-GB",{maximumFractionDigits:d, useGrouping:true});
 const filled = s => s && String(s.r==null?"":s.r).trim()!=="";
 /* Ein Satz zählt, wenn sie ihn abhakt oder selbst etwas einträgt. Vorausgefüllte Werte vom letzten Mal zählen erst danach. */
 const isDone = s => s && (s.ok===true || (s.ok===undefined && filled(s)));
@@ -2153,6 +2154,15 @@ function buildSummary(e){
   return {e, ups, first:!lastSame, vol, lv, nSets, weekCount, played:false};
 }
 function pendingCount(){ let n = 0; Object.values(S.active.sets||{}).forEach(a => a.forEach(x => { if(!isDone(x) && filled(x)) n++; })); return n; }
+// Which sets are still open, for the finish dialog: "Shoulder Press set 2 and 3"
+function pendingList(){
+  const out = [];
+  Object.entries(S.active.sets||{}).forEach(([id, a]) => {
+    const open = a.map((x, i) => !isDone(x) && filled(x) ? i+1 : 0).filter(Boolean);
+    if(open.length) out.push(`${(EXN[id] ? EXN[id].n : id).replace(/ \(.*\)$/, "")} set ${open.length>1 ? open.slice(0,-1).join(", ") + " and " + open[open.length-1] : open[0]}`);
+  });
+  return out;
+}
 function finishSession(withPending){
   const e = buildEntry(withPending);
   if(!e.sets && !e.run && !e.tread && !e.yoga){
@@ -2668,7 +2678,7 @@ function runGoalsHtml(st){
 function runGoalsSheet(){
   sheet(`<h3>Running goals</h3>
     <div><label class="lbl" for="g-al">Alster loop under (mm:ss)</label><input class="inp tnum" id="g-al" inputmode="text" value="${mmss(S.settings.alsterGoal)}"></div>
-    <div><label class="lbl" for="g-km">Kilometres per month</label><input class="inp tnum" id="g-km" inputmode="decimal" value="${fmt(S.settings.kmGoal,0)}"></div>
+    <div><label class="lbl" for="g-km">Kilometres per month</label><input class="inp tnum" id="g-km" inputmode="decimal" value="${Math.round(num(S.settings.kmGoal))}"></div>
     <button class="primary run" data-act="rungoalsave">Save</button><button class="secondary" data-act="closesheet">Cancel</button>`);
 }
 
@@ -4503,9 +4513,11 @@ document.addEventListener("click", async ev => {
         finishSession(); return;
       }
       if(pend>0){
-        sheet(`<h3>${pend} ${pend===1?"set isn't":"sets aren't"} checked off</h3><p class="muted">They still show the values from last time. Did you do these sets like that?</p>
-          <button class="primary" data-act="finishall">Yes, save all</button>
-          ${e.sets||e.run||e.tread||e.yoga?`<button class="secondary" data-act="finishok">Save checked sets only</button>`:""}
+        // Safer default: the big button saves only what was ticked; saving untouched sets needs a deliberate second choice
+        const done = Object.values(S.active.sets||{}).reduce((n, a) => n + a.filter(isDone).length, 0), list = pendingList();
+        sheet(`<h3>${pend} ${pend===1?"set isn't":"sets aren't"} ticked off</h3><p class="muted">${esc(list.slice(0,3).join(", "))}${list.length>3?" and more":""}. ${pend===1?"It still shows":"They still show"} last time's numbers.</p>
+          ${done ? `<button class="primary" data-act="finishok">Save the ${done} ${done===1?"set":"sets"} I did</button>` : ""}
+          <button class="${done ? "secondary" : "primary"}" data-act="finishall">I did ${done ? `all ${done+pend}` : (pend===1 ? "it" : `all ${pend}`)}, save ${done ? "them all" : (pend===1 ? "it" : "them")}</button>
           <button class="secondary" data-act="closesheet">Keep training</button>`);
         return;
       }
