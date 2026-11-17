@@ -8,42 +8,68 @@ Group project for Introduction to Programming at NOVA.
 - Dominic Quadflieg
 - Julius Veith
 
-## Die App: NOVAFit
+## The app: NOVAFit
 
-Eine Trainings-App im Design der Nova SBE fürs Handy (Progressive Web App): Po-Tag, Oberkörper, Laufen und Yoga, mit Fortschritt, Statistik, Kalender, Abzeichen und Erinnerungen.
+A training app for your phone (Progressive Web App) in the design of Nova SBE: strength (glute day, upper body), running and yoga, with personal training plans, progress, stats, a calendar, badges and reminders.
 
-Die App besteht aus einer einzigen Seite ohne Build-Schritt:
+On first start, new users create an account (name, email, password) and answer a short questionnaire:
 
-| Datei | Inhalt |
+1. How many sessions per week (2–6)
+2. How to split them across strength, running and yoga
+3. Up to three predefined goals (e.g. “10 km under 60 minutes”, “Your first pull-up”, “Exam-week stress relief”)
+4. Level and time per session
+
+NOVAFit then suggests three plans (balanced, focused on the main goal, easy start). The chosen plan sets the weekly goal and shows the next session on the home screen.
+
+The account is a local profile: it lives on the phone together with the training data. The password is never stored in plain text, only as a salted PBKDF2-SHA256 hash, and locks the app on that device (Settings → Lock app).
+
+## Files
+
+The app needs no build step:
+
+| File | Content |
 |---|---|
-| `app/index.html` | Die ganze App: Aufbau, Design (CSS) und Logik (JavaScript) |
-| `app/manifest.webmanifest` | Name, Farben und Symbol für den Home-Bildschirm |
-| `app/OneSignalSDKWorker.js` | Service Worker: Offline-Nutzung und Push-Erinnerungen |
-| `app/icon-*.png`, `app/apple-touch-icon.png` | App-Symbole |
-| `app/LIESMICH.txt` | Anleitung zum Installieren auf dem Handy |
+| `app/index.html` | The app: layout, design (CSS) and logic (JavaScript) |
+| `app/plan.js` | Sign-up validation, questionnaire checks and plan suggestions (pure functions, tested) |
+| `app/manifest.webmanifest` | Name, colours and icon for the home screen |
+| `app/OneSignalSDKWorker.js` | Service worker: offline use and push reminders |
+| `app/img/` | Pictures for the home screen and training cards (placeholders) |
+| `app/icon-*.png`, `app/apple-touch-icon.png` | App icons |
+| `app/INSTALL.txt` | How to install the app on a phone |
+| `tests/plan.test.js` | Tests for `app/plan.js` |
 
-## Bilder austauschen
+## Run
 
-Die Bilder in `app/img/` sind noch Platzhalter-Grafiken:
+- **Locally:** `python3 -m http.server 8000 --directory app`, then open http://localhost:8000 (opening `app/index.html` directly also works in most browsers).
+- **On a phone:** drag the `app` folder onto https://app.netlify.com/drop, open the address on the phone and choose “Add to Home Screen” (details in `app/INSTALL.txt`).
 
-| Datei | Wo |
+## Test
+
+Requires Node.js 18 or newer, no packages to install:
+
+```
+node --test
+```
+
+or `npm test`. The tests cover valid and rejected sign-up input (empty fields, invalid email, weak or too long passwords, markup in names), questionnaire limits (days, mix, goals, level, session length) and the plan suggestions (session counts, rest days, edge cases). GitHub runs them automatically on every push and pull request.
+
+## Replacing the pictures
+
+The pictures in `app/img/` are placeholder graphics:
+
+| File | Where |
 |---|---|
-| `campus-1.svg`, `campus-2.svg` | Großer Foto-Kasten oben auf der Startseite |
-| `gym.svg`, `run.svg`, `yoga.svg` | Bild oben in den Trainingskarten |
+| `campus-1.svg`, `campus-2.svg` | Large photo box at the top of the home screen |
+| `gym.svg`, `run.svg`, `yoga.svg` | Picture at the top of the training cards |
 
-So ersetzt ihr sie durch eigene Fotos (am besten JPG, Campus-Fotos im Hochformat, ca. 1200 px breit):
+To use your own photos (ideally JPG, campus photos in portrait, about 1200 px wide):
 
-1. Fotos in `app/img/` legen, z. B. `campus-1.jpg`.
-2. In `app/index.html` die Liste `CAMPUS_PHOTOS` anpassen (beliebig viele Fotos) bzw. bei `.simg-gym`, `.simg-run`, `.simg-yoga` den Dateinamen ändern.
-3. In `app/OneSignalSDKWorker.js` die Dateinamen in `FILES` eintragen und `CACHE` um eins erhöhen, damit installierte Apps die neuen Bilder laden.
+1. Put the photos into `app/img/`, e.g. `campus-1.jpg`.
+2. In `app/index.html`, update the `CAMPUS_PHOTOS` list or the file names in `.simg-gym`, `.simg-run`, `.simg-yoga`.
+3. In `app/OneSignalSDKWorker.js`, add the file names to `FILES` and increase `CACHE` by one so installed apps load the new pictures.
 
-Nur eigene Fotos oder Fotos mit passender Lizenz verwenden – Bilder von der Nova-Website sind urheberrechtlich geschützt.
+Only use your own photos or photos with a suitable licence – pictures from the Nova website are protected by copyright.
 
-## Starten
+## Tracking changes
 
-- **Lokal:** `app/index.html` im Browser öffnen.
-- **Auf dem Handy:** den Ordner `app` auf https://app.netlify.com/drop ziehen, die Adresse auf dem Handy öffnen und „Zum Home-Bildschirm“ wählen (Details in `app/LIESMICH.txt`).
-
-## Änderungen nachvollziehen
-
-Jede Änderung wird als eigener Commit mit kurzer Beschreibung gespeichert. Die Versionen stehen in [`CHANGELOG.md`](CHANGELOG.md), die genauen Code-Änderungen sieht man unter „Commits“ auf GitHub.
+Every change is saved as its own commit with a short description. Versions are listed in [`CHANGELOG.md`](CHANGELOG.md); the exact code changes are under “Commits” on GitHub.

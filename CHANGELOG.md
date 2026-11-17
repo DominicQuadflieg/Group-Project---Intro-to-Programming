@@ -2,6 +2,19 @@
 
 Alle Versionen der App, die neueste oben.
 
+## v2.3 – English, account and personal plans
+
+- The whole app is now in English: all screens, workouts, yoga flows, exercise guides, badges, reviews, share images, calendar files and notification settings; dates and numbers in English format
+- New first start: welcome screen, then create an account with name, email and password (checked for valid input with clear error messages)
+- The password is stored only as a salted PBKDF2-SHA256 hash, never in plain text; “Lock app” in Settings locks NOVAFit until the password is entered (after 5 wrong tries there is a 30-second pause); password can be changed
+- Questionnaire in four steps: sessions per week, split across strength/running/yoga, up to three predefined goals (running, strength, yoga and mobility), level and time per session
+- NOVAFit suggests three plans (balanced week, goal-focused “best match”, easy start); the chosen plan sets the weekly goal
+- Home screen: new plan card with the week, today's or the next session and a start button; the hero box and reminders follow the plan's training days
+- Existing users keep all their training data: they create an account once and can skip the questionnaire
+- “I already have an account” loads a backup file on a new phone
+- New file `app/plan.js` with the logic for validation and plans, plus 19 automated tests (`node --test`), run by GitHub on every push and pull request
+- `LIESMICH.txt` is now `INSTALL.txt` (in English)
+
 ## v2.2 – Nova-Design: Fotos, Bilder-Karten, Farbblöcke, Menü
 
 - Großer Kasten oben zeigt Campus-Fotos statt Schwarz (wechseln alle 10 s, Pfeile ‹ › zum Blättern). Eigene Fotos aus den Einstellungen haben Vorrang
