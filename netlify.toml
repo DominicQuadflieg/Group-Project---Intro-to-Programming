@@ -1,0 +1,5 @@
+# Netlify settings for NOVAFit (used when the site is connected to this GitHub repository)
+# The app is the plain folder "app" (no build step); the Strava connection runs as a function.
+[build]
+  publish = "app"
+  functions = "netlify/functions"

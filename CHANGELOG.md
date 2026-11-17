@@ -2,6 +2,15 @@
 
 Alle Versionen der App, die neueste oben.
 
+## v2.7 – Strava: runs from your watch come in by themselves
+
+- New “Connect Strava” in the run menu and in Settings. Runs from Garmin, Polar, Coros, Suunto and Apple Watch that reach Strava are added automatically when NOVAFit is opened (can be turned off)
+- “Get runs from Strava” shows new runs from the last 30 days to pick from; treadmill runs and the Alster loop are recognised, own run titles become the note
+- No double counting: runs that are already imported or were logged by hand the same day are skipped; rides and other sports are left out
+- The Strava secret stays on the server in a Netlify Function (`netlify/functions/strava.mjs`); the app only gets read access; the login stays on the phone and is not part of backups or the cloud sync; “Disconnect Strava” removes the access
+- New `netlify.toml` and setup steps in the README; without the setup the app looks and works as before
+- 11 new tests for the Strava logic and the function (65 in total)
+
 ## v2.6 – Import runs from your watch
 
 - New “Import from your watch” button when logging an outdoor run: choose a GPX, FIT or TCX file, also the ZIP from Garmin Connect (“Export Original”) or a .gz file

@@ -425,8 +425,48 @@
     )) || null;
   }
 
+  /* ================= Strava =================
+     Garmin, Polar, Coros, Suunto and Apple Watch can all send runs to Strava automatically,
+     so connecting Strava brings in the runs of almost every watch. */
+  const STRAVA_RUN_TYPES = ["Run", "TrailRun", "VirtualRun", "Walk"];
+  const STRAVA_SCOPE = "activity:read_all";
+
+  function stravaAuthUrl(o) {
+    const q = new URLSearchParams({ client_id: String(o.clientId), redirect_uri: o.redirect, response_type: "code",
+      approval_prompt: "auto", scope: STRAVA_SCOPE, state: o.state });
+    return "https://www.strava.com/oauth/authorize?" + q.toString();
+  }
+
+  /* Did the runner allow NOVAFit to read activities? (They can untick it on the Strava page.) */
+  const stravaScopeOk = scope => String(scope || "").split(",").some(s => /^activity:read/.test(s));
+
+  /* A Strava activity as a NOVAFit history entry. alsterKm: length of the Alster loop. */
+  function stravaEntry(a, alsterKm) {
+    const km = round2((a.distance || 0) / 1000), min = (a.moving_time || a.elapsed_time || 0) / 60;
+    const start = Date.parse(a.start_date) || 0;
+    const band = !!a.trainer || a.sport_type === "VirtualRun";
+    const mode = band ? "band" : km > 0 && alsterKm && Math.abs(km - alsterKm) < 1.2 ? "alster" : "out";
+    const name = String(a.name || "").trim();
+    // Strava's automatic names ("Morning Run") say nothing, real titles become the note
+    const note = /^(morning|lunch|afternoon|evening|night) (run|walk|trail run)$/i.test(name) ? "" : name.slice(0, 200);
+    return { id: "st" + a.id, type: "lauf", start, end: start + Math.round((a.elapsed_time || min * 60) * 1000),
+      run: { mode, km, min, note, strava: String(a.id) } };
+  }
+
+  /* Runs from Strava that are not in NOVAFit yet (same Strava id, or the same run logged by hand). */
+  function stravaNew(history, acts, alsterKm) {
+    const have = new Set((history || []).filter(e => e && e.run && e.run.strava).map(e => String(e.run.strava)));
+    return (acts || [])
+      .filter(a => a && STRAVA_RUN_TYPES.includes(a.sport_type || a.type) && (a.distance > 0 || a.moving_time > 0))
+      .filter(a => !have.has(String(a.id)))
+      .map(a => stravaEntry(a, alsterKm))
+      .filter(e => e.start > 0 && e.run.min >= 1 && !findDuplicate(history, e.start, e.run.km))
+      .sort((x, y) => x.start - y.start);
+  }
+
   const api = { KM_PER_MI, MAX_FILE_MB, cleanText, timeTokens, parseDate, parseShot, validateRun,
-    gpsDist, parseGpx, parseTcx, parseFit, zipEntry, fileKind, parseActivity, findDuplicate, isRunSport };
+    gpsDist, parseGpx, parseTcx, parseFit, zipEntry, fileKind, parseActivity, findDuplicate, isRunSport,
+    STRAVA_SCOPE, stravaAuthUrl, stravaScopeOk, stravaEntry, stravaNew };
   if (typeof module === "object" && module.exports) module.exports = api;
   else root.NFRun = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);
