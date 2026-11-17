@@ -139,14 +139,19 @@ test("focusOf names the main muscles", () => {
   assert.equal(X.focusOf(null), "");
 });
 
-test("every drawing exists as start and end image with two captions", () => {
+test("every drawing frame exists, has a caption and a credited source", () => {
   const fs = require("node:fs"), path = require("node:path");
-  const ids = Object.keys(X.DRAWINGS);
-  assert.ok(ids.length >= 10);
+  const ids = Object.keys(X.DRAWINGS), dir = path.join(__dirname, "..", "app", "img", "ex");
+  assert.ok(ids.length >= 120);
+  const sources = fs.readFileSync(path.join(dir, "SOURCES.md"), "utf8");
   for (const id of ids) {
-    assert.ok(X.BY_ID[id], id);
-    assert.equal(X.BY_ID[id].img.length, 2, id);
-    for (const k of ["start", "end"]) assert.ok(fs.existsSync(path.join(__dirname, "..", "app", "img", "ex", `${id}-${k}.svg`)), `${id}-${k}.svg`);
+    const e = X.BY_ID[id];
+    assert.ok(e && !e.hidden, id);
+    assert.ok(e.img.length >= 1 && e.img.length <= 3 && e.img.every(c => c.trim()), id);
+    assert.ok(["ek", "wg"].includes(e.imgSrc), id);
+    assert.ok(sources.includes(`| ${id} – `), `${id} missing in SOURCES.md`);
+    e.img.forEach((c, i) => assert.ok(fs.existsSync(path.join(dir, `${id}-${i + 1}.svg`)), `${id}-${i + 1}.svg`));
+    assert.ok(!fs.existsSync(path.join(dir, `${id}-${e.img.length + 1}.svg`)), `${id}: extra frame`);
   }
   assert.ok(fs.existsSync(path.join(__dirname, "..", "app", "img", "ex", "SOURCES.md"))); // licence credit
 });

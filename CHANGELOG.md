@@ -2,6 +2,13 @@
 
 Alle Versionen der App, die neueste oben.
 
+## v2.8.1 – Drawings for 124 exercises
+
+- 52 more exercises have drawings, from Workout Guide by Bryl Lim (based on Everkinetic, CC BY-SA 4.0): e.g. Hip Thrust, Plank, Overhead Press, Lat Pulldown, Bulgarian Split Squat, Kettlebell Swing, Face Pull and all cardio machines
+- The how-to sheet shows one to three numbered frames; the credit names the source of each drawing
+- Drawings are now numbered files (`<id>-1.svg`, `<id>-2.svg`, …); `app/img/ex/SOURCES.md` lists the source and frames of every drawing
+- Test checks every frame, caption and credit (88 tests)
+
 ## v2.8 – Exercise library, splits and mobility
 
 - Exercise library with 146 exercises named like in the Strong app (“Bench Press (Barbell)”, “Lat Pulldown (Cable)”), searchable and filtered by body part and equipment; tap one to see how it's done and which muscles it trains

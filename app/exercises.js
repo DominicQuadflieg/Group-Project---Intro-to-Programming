@@ -220,8 +220,8 @@
   }
   const LIBRARY = ROWS.map(fromRow);
 
-  // Drawings of the start and end position in app/img/ex/<id>-start.svg and <id>-end.svg
-  // (Everkinetic, CC BY-SA 4.0, see app/img/ex/SOURCES.md) with a caption for each
+  // Drawings of each exercise in app/img/ex/<id>-1.svg, <id>-2.svg … with a caption per frame.
+  // Sources (both CC BY-SA 4.0, see app/img/ex/SOURCES.md): Everkinetic, and Workout Guide by Bryl Lim (WG).
   const DRAWINGS = {
     bench: ["Arms straight", "Bar to chest"], inclbb: ["Arms straight", "Bar to chest"], declbb: ["Arms straight", "Bar to chest"],
     flatdb: ["Arms straight", "Lower to chest"], incl: ["Arms straight", "Lower to chest"], dbfly: ["Arms up", "Open wide"],
@@ -246,9 +246,29 @@
     legext: ["Knees bent", "Extend"], legcurl: ["Legs long", "Curl"], seatcurl: ["Legs long", "Curl"],
     hyper: ["Bend down", "Lift up"], calf: ["Heels down", "Rise up"], seatcalf: ["Heels down", "Rise up"],
     sideplank: ["Set up", "Hips up and hold"], crunch: ["Lie back", "Crunch up"], bicycle: ["Start", "Elbow to knee"],
-    declcrunch: ["Lie back", "Crunch up"], llr: ["Legs down", "Legs up"], abwheel: ["On your knees", "Roll out"]
+    declcrunch: ["Lie back", "Crunch up"], llr: ["Legs down", "Legs up"], abwheel: ["On your knees", "Roll out"],
+    // Workout Guide (Bryl Lim), recoloured from white to black
+    pecdeck: ["Arms open", "Bring together"], incpushup: ["Arms straight", "Chest to the box"], bbrow: ["Arms long", "Pull to belly"],
+    pendlay: ["Bar on the floor", "Pull to chest"], rackpull: ["Bar at the knees", "Stand up"], csrow: ["Arms long", "Pull"],
+    mrow: ["Arms long", "Pull"], lat: ["Arms long", "Pull to chest"], chinup: ["Hang", "Pull up"],
+    apullup: ["Hang", "Pull up"], ohp: ["Bar at shoulders", "Press up"], pushpress: ["Dip the knees", "Drive up"],
+    landmine: ["Bar at shoulder", "Press"], dbsp: ["At shoulder height", "Press up"], arnold: ["Palms to you", "Rotate and press"],
+    msp: ["Handles at shoulders", "Press up"], lracable: ["Arms down", "Raise"], lram: ["Arms down", "Raise"],
+    frontplate: ["Plate down", "Raise"], revflym: ["Arms in front", "Open wide"], facepull: ["Arms long", "Pull to face"],
+    revcurl: ["Arms long", "Curl"], ohcable: ["Elbows bent", "Extend"], gobletsq: ["Stand tall", "Sit down"],
+    sumo: ["Set up", "Stand up"], bulgarian: ["Stand tall", "Lower"], split: ["Stand tall", "Lower"],
+    pistol: ["Stand on one leg", "Sit down"], hip: ["Hips down", "Drive up"], smithhip: ["Hips down", "Drive up"],
+    dbhip: ["Hips down", "Drive up"], nordic: ["Kneel tall", "Lower slowly"], wallsit: ["Back on the wall", "Sit and hold"],
+    plank: ["Body in one line"], hollow: ["Lower back down, hold"], climber: ["Plank", "Knee to chest"],
+    vup: ["Lie long", "Fold up"], deadbug: ["Arms and knees up", "Extend opposite arm and leg"], hlr: ["Hang", "Raise your legs"],
+    hkr: ["Hang", "Knees up"], rtwist: ["Turn to one side", "Turn to the other"], pallof: ["Handle at chest", "Press out"],
+    kbswing: ["Hinge", "Swing up"], burpee: ["Squat down", "Jump back to plank", "Jump up"], farmer: ["Stand tall", "Walk"],
+    ropes: ["Make waves"], rowing: ["Catch", "Finish"], bike: ["Push and pull"],
+    cycling: ["Pedal"], elliptical: ["Stride"], stairs: ["Climb"],
+    jumprope: ["Small jumps"]
   };
-  LIBRARY.forEach(e => { if (DRAWINGS[e.id]) e.img = DRAWINGS[e.id].slice(); });
+  const DRAWING_WG = new Set(["pecdeck", "incpushup", "bbrow", "pendlay", "rackpull", "csrow", "mrow", "lat", "chinup", "apullup", "ohp", "pushpress", "landmine", "dbsp", "arnold", "msp", "lracable", "lram", "frontplate", "revflym", "facepull", "revcurl", "ohcable", "gobletsq", "sumo", "bulgarian", "split", "pistol", "hip", "smithhip", "dbhip", "nordic", "wallsit", "plank", "hollow", "climber", "vup", "deadbug", "hlr", "hkr", "rtwist", "pallof", "kbswing", "burpee", "farmer", "ropes", "rowing", "bike", "cycling", "elliptical", "stairs", "jumprope"]);
+  LIBRARY.forEach(e => { if (DRAWINGS[e.id]) { e.img = DRAWINGS[e.id].slice(); e.imgSrc = DRAWING_WG.has(e.id) ? "wg" : "ek"; } });
   const BY_ID = {};
   LIBRARY.forEach(e => { BY_ID[e.id] = e; });
 

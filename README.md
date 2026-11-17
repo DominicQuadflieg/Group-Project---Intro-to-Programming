@@ -42,7 +42,7 @@ The app needs no build step:
 | `app/manifest.webmanifest` | Name, colours and icon for the home screen |
 | `app/OneSignalSDKWorker.js` | Service worker: offline use and push reminders |
 | `app/img/` | Pictures for the home screen and training cards (placeholders) |
-| `app/img/ex/` | Exercise drawings (start and end position) from Everkinetic, CC BY-SA 4.0, see `SOURCES.md` there |
+| `app/img/ex/` | Exercise drawings from Everkinetic and Workout Guide, CC BY-SA 4.0, see `SOURCES.md` there |
 | `app/icon-*.png`, `app/apple-touch-icon.png` | App icons |
 | `netlify/functions/strava.mjs` | Server part of the Strava connection (keeps the client secret) |
 | `netlify.toml` | Netlify settings: publishes `app`, runs the Strava function |
@@ -107,7 +107,7 @@ Only use your own photos or photos with a suitable licence – pictures from the
 
 ## Credits
 
-The exercise drawings in `app/img/ex/` are from [Everkinetic](https://github.com/everkinetic/data) and licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). The app shows this credit under each drawing. New drawings must come from a source with a suitable licence and be listed in `app/img/ex/SOURCES.md`.
+The exercise drawings in `app/img/ex/` are from [Everkinetic](https://github.com/everkinetic/data) and [Workout Guide](https://github.com/bryllim/workout-guide) by Bryl Lim and licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). The app shows this credit under each drawing. New drawings must come from a source with a suitable licence and be listed in `app/img/ex/SOURCES.md`.
 
 ## Tracking changes
 
