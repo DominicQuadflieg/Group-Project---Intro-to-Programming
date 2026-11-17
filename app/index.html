@@ -901,7 +901,7 @@ NFEx.TEMPLATE_ORDER.forEach(k => {
   W[k] = {name:t.name, kind:"gym", group:t.group, intro:INTRO[t.group], ex,
     desc:ex.filter(e => !e.opt).slice(0, 4).map(e => e.n.replace(/ \(.*\)$/, "")).join(" · ") || "Build your own session"};
 });
-W.lauf = {name:"Run", kind:"run", desc:"Alster loop or treadmill"};
+W.lauf = {name:"Run", kind:"run", desc:"Outside or on the treadmill"};
 W.yoga = {name:"Yoga", kind:"yoga", desc:"Vinyasa flow or mobility",
   intro:"Guided vinyasa flow. A different sequence every time, you choose the length below. A bell counts down the last 3 seconds and rings at each change. Get your mat ready and keep the sound on."};
 // Home screen order without a plan; ALL_W lists every workout (history, weekly review)
@@ -936,7 +936,8 @@ const YOGA = [
   {n:"Final Relaxation", s:"Savasana", i:"Lie long on your back, arms by your sides, eyes closed. Do nothing at all. Namaste.", d:240}
 ];
 const YOGA_MIN = Math.round(YOGA.reduce((a,x) => a+x.d, 0)/60);
-const ALSTER_KM = 7.4;
+// Your usual running loop (the stored mode id stays "alster" so older data keeps working)
+const LN = () => NFRun.loopName(S.settings.loopName);
 /* Every exercise by id: the library plus the user's own exercises (added after loading, see addCustomToEXN) */
 const EXN = {}; NFEx.LIBRARY.forEach(e => EXN[e.id] = exFromLib(e));
 const customList = () => (S && S.settings && Array.isArray(S.settings.custom)) ? S.settings.custom : [];
@@ -1310,9 +1311,9 @@ function renderHome(){
   // Laufen
   h += `<section class="pblock c-run"><h2 class="sec">Running</h2><div class="card"><div class="tiles">
     <div class="tile run">${PICO.km}<small>This month</small><b class="tnum">${fmt(st.kmMonth)} km</b></div>
-    <button class="tile run tbtn" data-act="runchart" data-k="alster">${PICO.runde}<small>Best Alster loop</small><b class="tnum">${st.bestAlster?hms(st.bestAlster):"–"}</b></button>
+    <button class="tile run tbtn" data-act="runchart" data-k="alster">${PICO.runde}<small>Best ${esc(LN())}</small><b class="tnum">${st.bestAlster?hms(st.bestAlster):"–"}</b></button>
     <button class="tile run tbtn" data-act="runchart" data-k="pace">${PICO.tempo}<small>Best pace</small><b class="tnum">${st.bestPace?mmss(st.bestPace):"–"}</b></button>
-  </div>${runGoalsHtml(st)}<p class="small muted" style="margin:0">Total <b class="tnum" style="color:var(--ink)">${fmt(st.km)} km</b>${st.longest?` · longest run ${fmt(st.longest)} km`:""}</p>${st.alsterN?`<p class="alsterc">🌊 You've run around the Alster <b class="tnum">${st.alsterN}×</b>.</p>`:""}</div></section>`;
+  </div>${runGoalsHtml(st)}<p class="small muted" style="margin:0">Total <b class="tnum" style="color:var(--ink)">${fmt(st.km)} km</b>${st.longest?` · longest run ${fmt(st.longest)} km`:""}</p>${st.alsterN?`<p class="alsterc">🔁 You've run your ${esc(LN())} <b class="tnum">${st.alsterN}×</b>.</p>`:""}</div></section>`;
 
   // Kalender
   h += `<section id="sec-cal"><h2 class="sec">Calendar</h2><div class="card" id="calcard">${calendarHtml()}</div>${yearLinkHtml()}</section>`;
@@ -1422,7 +1423,7 @@ function treadBlock(){
 }
 
 /* ================= Lauf: schnell eintragen ================= */
-function alsterKm(){ const lr = lastRun("alster"); return lr && num(lr.km)>0 ? num(lr.km) : ALSTER_KM; }
+function alsterKm(){ if(num(S.settings.loopKm)>0) return num(S.settings.loopKm); const lr = lastRun("alster"); return lr && num(lr.km)>0 ? num(lr.km) : NFRun.LOOP_KM; }
 function fmtTimeDigits(v){
   const d = String(v||"").replace(/\D/g, "").replace(/^0+(?=\d{3})/, "").slice(0,6);
   if(d.length<=2) return d;
@@ -1439,7 +1440,7 @@ function runInfoHtml(){
   if(lr && num(lr.min)>0) parts.push(`Last time ${hms(num(lr.min))}`);
   if(!(min>0) && best) parts.push(`Best time ${hms(best)}`);
   let win = "";
-  if(min>0 && isAl && best && min < best - 1e-9) win = `<div class="runwin">${rico("race")}<div>New Alster personal best! ${mmss(best-min)} faster than your previous record.</div></div>`;
+  if(min>0 && isAl && best && min < best - 1e-9) win = `<div class="runwin">${rico("race")}<div>New ${esc(LN())} best! ${mmss(best-min)} faster than your previous record.</div></div>`;
   else if(min>0 && lr && num(lr.min)>0 && min < num(lr.min) - 1e-9 && Math.abs(km - num(lr.km)) < .3) win = `<div class="runwin soft">${rico("tempo")}<div>${mmss(num(lr.min)-min)} faster than last time.</div></div>`;
   if(r.mode!=="band" && !(S.active.runAt && S.active.runAt < mondayOf(Date.now()))) win += planHint(km, min);
   return {line:parts.join(" · ") || "Enter the time from your running app.", win};
@@ -1448,14 +1449,14 @@ function runBlock(){
   wxLoad();
   const a = S.active, r = a.run, band = r.mode==="band", inf = runInfoHtml(), nx = band ? null : planNext();
   const timeBox = `<label class="runtime" for="run-min"><small>${band ? "Time" : "Your time"}</small><input id="run-min" inputmode="numeric" autocomplete="off" data-in="run" data-f="min" value="${esc(r.min)}" placeholder="00:00" aria-label="Time"><span class="ri tnum" id="runinfo">${inf.line}</span></label>`;
-  const kmBox = `<label class="runkm" for="run-km"><small>Distance</small><span><input id="run-km" inputmode="decimal" data-in="run" data-f="km" value="${esc(r.km)}" placeholder="${band?"e.g. 3":"e.g. 7.7"}"><em>km</em></span>${band ? "" : `<button type="button" class="kmchip" data-act="kmalster">Alster loop ${fmt(alsterKm())} km</button>`}</label>`;
+  const kmBox = `<label class="runkm" for="run-km"><small>Distance</small><span><input id="run-km" inputmode="decimal" data-in="run" data-f="km" value="${esc(r.km)}" placeholder="${band?"e.g. 3":"e.g. 7.7"}"><em>km</em></span>${band ? "" : `<button type="button" class="kmchip" data-act="kmalster">${esc(LN())} ${fmt(alsterKm())} km</button>`}</label>`;
   const note = `<details class="runnote"${r.note?" open":""}><summary>+ Add note</summary><textarea id="run-note" data-in="run" data-f="note" placeholder="e.g. easy pace, headwind, lovely sunset …">${esc(r.note)}</textarea></details>`;
   const incBox = `<label class="runkm" for="run-inc"><small>Incline · number from the display</small><span><input id="run-inc" inputmode="decimal" data-in="run" data-f="incline" value="${esc(r.incline||"")}" placeholder="0"><em>%</em></span></label>`;
   if(band) return `<div class="runwrap"><p class="runlead">Enter what the treadmill shows.</p>${kmBox}${timeBox}${incBox}<div id="runwin">${inf.win}</div>
     <button class="secondary" data-act="interval" data-target="run">Start interval timer</button>${note}</div>`;
   return `<div class="runwrap">
     ${nx ? `<div class="plantoday">${rico(nx.type)}<div><small>${nx.today ? "Today per plan" : "Up next in your plan"}</small><b>${esc(nx.label)}</b><span>${esc(nx.desc)}</span></div></div>` : ""}
-    <div class="wx1" data-wx="plain"${WX?"":" hidden"}>${wxPlain()}</div>
+    <div class="wx1" data-wx="plain"${WX?"":" hidden"}>${wxPlain()}</div>${S.settings.wxGeo===true ? "" : `<button type="button" class="linkbtn small" data-act="wxhere" style="align-self:flex-start">📍 Show the weather where I am</button>`}
     <label class="shotcta"><input type="file" accept="image/*" id="runshot" hidden>${rico("cam")}<span>Upload screenshot</span></label>
     <label class="filebtn"><input type="file" id="runfile" hidden>${rico("watch")}<span><b>Import from your watch</b><small>GPX, FIT or TCX file · also the ZIP from Garmin Connect</small></span></label>
     <details class="runnote filehelp"><summary>How do I get the file?</summary><ul>
@@ -1486,9 +1487,9 @@ const RSVG = {
   hm:`<circle cx="12" cy="14" r="6"/><path d="M9 3l3 5 3-5"/>`
 };
 const rico = (k, cls) => `<span class="rico ${cls||""}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${RSVG[k]||RSVG.out}</svg></span>`;
-const runName = m => m==="alster" ? "Alster loop" : m==="band" ? "Treadmill" : "Run";
+const runName = m => m==="alster" ? LN() : m==="band" ? "Treadmill" : "Run";
 const noEmo = s => String(s||"").replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]️?/gu, "").replace(/\s+/g, " ").trim();
-function wxPlain(){ const w = wxInfo(); return w ? noEmo(`Alster ${Math.round(w.t)}° · ${w.v}`) : ""; }
+function wxPlain(){ const w = wxInfo(); return w ? noEmo(`${esc(wxPlace())} ${Math.round(w.t)}° · ${w.v}`) : ""; }
 
 function runSheet(){
   const p = S.settings.runPlan, nx = p ? planNext() : null;
@@ -1515,7 +1516,7 @@ function predict(d){ const f = runForm(); return f ? riegel(f.min, f.km, d) : 0;
 function planTitle(p){
   if(p.goal==="k10") return `10 km under ${hms(p.target)}`;
   if(p.goal==="hm") return p.target ? `Half marathon under ${hms(p.target)}` : "Finish a half marathon";
-  if(p.goal==="alster") return `Alster loop under ${hms(p.target)}`;
+  if(p.goal==="alster") return `${LN()} under ${hms(p.target)}`;
   return "Stay fit";
 }
 function planDist(p){ return p.goal==="k10" ? 10 : p.goal==="hm" ? 21.1 : p.goal==="alster" ? alsterKm() : 0; }
@@ -1536,15 +1537,15 @@ function planWeeks(p){
     const longKm = p.goal==="k10" ? Math.round((7 + 4*f)*2)/2 : p.goal==="hm" ? Math.round((8 + 10*Math.min(1, f/.85))*2)/2 : ak;
     const mk = {
       easy:(km) => ({type:"easy", km, pace:easy, label:`Easy · ${fmt(km)} km`, desc:`about ${mmss(easy)} /km, totally relaxed`}),
-      tempo:() => ({type:"tempo", km:ak, target:tp*ak, label:"Tempo · Alster loop", desc:`Target under ${hms(tp*ak)} (${mmss(tp)} /km)`}),
+      tempo:() => ({type:"tempo", km:ak, target:tp*ak, label:`Tempo · ${LN()}`, desc:`Target under ${hms(tp*ak)} (${mmss(tp)} /km)`}),
       int:() => { const r = 4 + Math.round(f*3); return {type:"int", km:6, label:`Intervals · ${r} × 3 min`, desc:`brisk at about ${mmss(Math.max(3.5, gp-.15))} /km, 2 min easy in between`}; },
-      long:(km) => ({type:"long", km, pace:easy+.1, label:`Long · ${fmt(km)} km`, desc:`very easy, about ${mmss(easy+.1)} /km${km>=8.5 && km<=10.5 ? " · Alster + Binnenalster" : ""}`}),
-      race:() => p.goal==="alster" ? {type:"race", km:ak, target:p.target, label:"Alster test", desc:`Target under ${hms(p.target)}`} : {type:"race", km:planDist(p), target:p.target, label:p.goal==="hm" ? "Race day · half marathon" : "Race day · 10 km", desc:p.target ? `Target under ${hms(p.target)}` : "Finish and enjoy it"}
+      long:(km) => ({type:"long", km, pace:easy+.1, label:`Long · ${fmt(km)} km`, desc:`very easy, about ${mmss(easy+.1)} /km`}),
+      race:() => p.goal==="alster" ? {type:"race", km:ak, target:p.target, label:`${LN()} test`, desc:`Target under ${hms(p.target)}`} : {type:"race", km:planDist(p), target:p.target, label:p.goal==="hm" ? "Race day · half marathon" : "Race day · 10 km", desc:p.target ? `Target under ${hms(p.target)}` : "Finish and enjoy it"}
     };
     let plan;
-    if(p.goal==="fit") plan = p.perWeek===2 ? [mk.easy(5), {...mk.easy(ak), label:"Locker · Alsterrunde"}] : [{...mk.easy(ak), label:"Locker · Alsterrunde"}];
+    if(p.goal==="fit") plan = p.perWeek===2 ? [mk.easy(5), {...mk.easy(ak), label:`Easy · ${LN()}`}] : [{...mk.easy(ak), label:`Easy · ${LN()}`}];
     else if(last) plan = p.perWeek===2 ? [mk.easy(5), mk.race()] : [mk.race()];
-    else if(p.perWeek===2) plan = [i%2===0 ? mk.tempo() : mk.int(), p.goal==="alster" ? {...mk.easy(ak), label:"Locker · Alsterrunde"} : mk.long(longKm)];
+    else if(p.perWeek===2) plan = [i%2===0 ? mk.tempo() : mk.int(), p.goal==="alster" ? {...mk.easy(ak), label:`Easy · ${LN()}`} : mk.long(longKm)];
     else plan = [i%2===0 ? (p.goal==="alster" ? mk.tempo() : mk.long(longKm)) : mk.tempo()];
     plan.forEach((r, j) => {
       const d = days[j] ?? days[days.length-1];
@@ -1582,7 +1583,7 @@ let PLW = null, planAll = false;
 const GOALS = [
   ["k10", "10 km in a target time", "e.g. 10 km under 55 minutes", "tempo"],
   ["hm", "Finish a half marathon", "21.1 km, with a plan up to race day", "hm"],
-  ["alster", "Faster Alster loop", "e.g. under 40 minutes", "alster"],
+  ["alster", "Faster on your loop", "your usual route, set it under Running goals", "alster"],
   ["fit", "Just stay fit", "Easy running, no pressure", "fit"]
 ];
 function plwDefaults(g){
@@ -1608,7 +1609,7 @@ function planWizard(){
   const tgt = parseMin(w.target), pred = w.goal==="fit" ? 0 : predict(dist), f = runForm();
   const weeks = w.date ? Math.round((new Date(w.date).getTime() - Date.now())/WEEK) : 0;
   let info = "";
-  if(f) info = `Your current form: <b>${fmt(f.km)} km in ${hms(f.min)}</b>${pred ? ` → ${w.goal==="k10"?"10 km":w.goal==="hm"?"a half marathon":"the Alster loop"} would take about <b>${hms(pred)}</b>.` : "."}`;
+  if(f) info = `Your current form: <b>${fmt(f.km)} km in ${hms(f.min)}</b>${pred ? ` → ${w.goal==="k10"?"10 km":w.goal==="hm"?"a half marathon":"your loop"} would take about <b>${hms(pred)}</b>.` : "."}`;
   else info = "Once you've uploaded a few runs, the plan adapts to your form.";
   let verdict = "";
   if(pred && tgt){ verdict = tgt >= pred ? " Your goal is well within reach." : tgt >= pred*.94 ? " Very doable with the plan." : " That's ambitious – consider allowing a bit more time."; }
@@ -1752,7 +1753,7 @@ async function stravaSheet(){
   catch(e){ return shotErr("Strava", stErrTxt(e)); }
   if(!ST_LIST.length) return sheet(`<h3>All up to date</h3><p class="muted">All your Strava runs from the last ${STRAVA_DAYS} days are already in NOVAFit.</p><button class="primary run" data-act="closesheet">Okay</button>`);
   sheet(`<h3>New on Strava</h3><p class="small muted" style="margin:0">Runs from the last ${STRAVA_DAYS} days that aren't in NOVAFit yet.</p>
-    <div class="stlist">${ST_LIST.map((e, i) => `<label class="strow"><input type="checkbox" data-st="${i}" checked><span><b>${fmt(e.run.km, 2)} km · ${hms(e.run.min)}</b><small>${new Date(e.start).toLocaleDateString("en-GB", {weekday:"short", day:"numeric", month:"short"})}, ${new Date(e.start).toLocaleTimeString("en-GB", {hour:"2-digit", minute:"2-digit"})}${e.run.mode==="band" ? " · Treadmill" : e.run.mode==="alster" ? " · Alster loop" : ""}${e.run.note ? " · " + esc(e.run.note) : ""}</small></span></label>`).join("")}</div>
+    <div class="stlist">${ST_LIST.map((e, i) => `<label class="strow"><input type="checkbox" data-st="${i}" checked><span><b>${fmt(e.run.km, 2)} km · ${hms(e.run.min)}</b><small>${new Date(e.start).toLocaleDateString("en-GB", {weekday:"short", day:"numeric", month:"short"})}, ${new Date(e.start).toLocaleTimeString("en-GB", {hour:"2-digit", minute:"2-digit"})}${e.run.mode==="band" ? " · Treadmill" : e.run.mode==="alster" ? " · " + esc(LN()) : ""}${e.run.note ? " · " + esc(e.run.note) : ""}</small></span></label>`).join("")}</div>
     <button class="primary run" data-act="stadd">Add selected runs</button>
     <button class="secondary" data-act="closesheet">Cancel</button>`);
 }
@@ -2061,7 +2062,7 @@ function buildSummary(e){
     }
     if(e.run.mode==="alster" && e.run.min>0){
       const prev = prior.filter(x => x.run && x.run.mode==="alster" && num(x.run.min)>0).map(x => num(x.run.min));
-      if(prev.length && e.run.min<Math.min(...prev)){ rec = true; chips.push(`Fastest Alster loop: ${hms(e.run.min)}`); }
+      if(prev.length && e.run.min<Math.min(...prev)){ rec = true; chips.push(`Fastest ${LN()}: ${hms(e.run.min)}`); }
     }
     const prevKm = prior.filter(x => x.run).map(x => num(x.run.km));
     if(prevKm.length && e.run.km>Math.max(...prevKm)){ rec = true; chips.push(`Longest run: ${fmt(e.run.km)} km`); }
@@ -2152,7 +2153,7 @@ function renderSummary(){
   const kcal = kcalOf(e);
   if(kcalOn() && kcal>0) h += `<p class="kcal">🔥 <span>about <b class="tnum">${fmt(kcal,0)} kcal</b> burned</span><small>Estimate</small></p>`;
   else if(S.settings.showKcal!==false && !(num(S.settings.bodyKg)>0)) h += `<p class="small muted" style="margin:0">🔥 Enter your body weight in <button class="linkbtn" data-act="settings">Settings</button> to see the calories you burned here.</p>`;
-  if(e.run && e.run.mode==="alster"){ const n = S.history.filter(x => x.run && x.run.mode==="alster").length; h += `<p class="alsterc">🌊 Alster loop no. <b class="tnum">${n}</b>${[10,25,50,75,100,150,200].includes(n)?" 🎉 Milestone!":"!"}</p>`; }
+  if(e.run && e.run.mode==="alster"){ const n = S.history.filter(x => x.run && x.run.mode==="alster").length; h += `<p class="alsterc">🔁 ${esc(LN())} no. <b class="tnum">${n}</b>${[10,25,50,75,100,150,200].includes(n)?" 🎉 Milestone!":"!"}</p>`; }
   if(e.capped) h += `<p class="small muted" style="margin:0">The clock stopped automatically after 60 minutes.</p>`;
   if(e.tread) h += `<p class="small muted" style="margin:0">Plus treadmill: ${fmt(e.tread.min,0)} min${e.tread.km?" · "+fmt(e.tread.km)+" km":""}${e.tread.incline?" · "+fmt(e.tread.incline)+" % incline":""}</p>`;
   h += `<p class="small" style="margin:0" data-sync>${syncHtml()}</p></div>`;
@@ -2217,6 +2218,11 @@ function settingsSheet(){
       <div class="seg theme" id="kcalseg">${[["1","On"],["0","Off"]].map(([k,l]) => `<button data-act="kcalshow" data-v="${k}" aria-pressed="${(st.showKcal!==false)===(k==="1")}">${l}</button>`).join("")}</div>
     </div>
     ${stravaSettings()}
+    <div class="card" style="background:var(--bg);border:0">
+      <span class="lbl">Running weather</span>
+      <div class="seg theme" id="wxseg"><button data-act="wxhere" aria-pressed="${st.wxGeo===true}">Where I am</button><button data-act="wxhome" aria-pressed="${st.wxGeo!==true}">${NFRun.WX_HOME.place}</button></div>
+      <p class="small muted" style="margin:6px 0 0">"Where I am" asks your phone for its location, rounded to about 1 km. It is only used for the forecast.</p>
+    </div>
     <div class="card" style="background:var(--bg);border:0">
       <span class="lbl">Photos for reviews <span id="phcount" class="muted" style="text-transform:none;letter-spacing:0"></span></span>
       <p class="small muted" style="margin:0">Shown in the background of your weekly and yearly reviews. They stay on this phone and are never uploaded.</p>
@@ -2389,11 +2395,11 @@ function chartSheet(id){
 }
 function runChartSheet(kind){
   const runs = S.history.filter(e => e.run && num(e.run.km)>0 && num(e.run.min)>0 && (kind!=="alster" || e.run.mode==="alster"));
-  if(!runs.length){ toast(kind==="alster"?"No Alster loop with a time logged yet.":"No run with a time logged yet."); return; }
+  if(!runs.length){ toast(kind==="alster"?`No ${LN()} with a time logged yet.`:"No run with a time logged yet."); return; }
   const vals = runs.map(e => kind==="alster" ? num(e.run.min) : paceOf(num(e.run.km), num(e.run.min)));
   const f = kind==="alster" ? hms : v => mmss(v)+" /km";
   const best = Math.min(...vals), first = vals[0], d = first-best;
-  let h = `<h3>${kind==="alster"?"Your Alster loops":"Your running pace"}</h3><p class="muted small">${kind==="alster"?"Time per loop":"Minutes per kilometre"} · higher is faster</p>`;
+  let h = `<h3>${kind==="alster"?`Your ${esc(LN())} times`:"Your running pace"}</h3><p class="muted small">${kind==="alster"?"Time per loop":"Minutes per kilometre"} · higher is faster</p>`;
   h += `<div class="tiles"><div class="tile run"><small>First run</small><b class="tnum">${f(first)}</b></div><div class="tile run"><small>Best</small><b class="tnum">${f(best)}</b></div><div class="tile run"><small>Faster by</small><b class="tnum">${d>0?mmss(d):"–"}</b></div></div>`;
   h += lineChart(vals, runs.map(e => dTiny(e.start)), {invert:true, color:"var(--run)", fmt:f, label:"Running times"});
   h += `<button class="secondary" data-act="closesheet">Close</button>`;
@@ -2438,8 +2444,8 @@ const BADGES = [
   {id:"km10", l:"10k", t:"10 km", d:"Ran 10 km in total.", ok:f => f.km>=10, run:true},
   {id:"km50", l:"50k", t:"50 km", d:"Ran 50 km in total.", ok:f => f.km>=50, run:true},
   {id:"km100", l:"100k", t:"100 km", d:"Ran 100 km in total.", ok:f => f.km>=100, run:true},
-  {id:"al45", l:"<45", t:"Alster under 45", d:"Alster loop in under 45 minutes.", ok:f => f.bestAlster<45, run:true},
-  {id:"al40", l:"<40", t:"Alster under 40", d:"Alster loop in under 40 minutes.", ok:f => f.bestAlster<40, run:true},
+  {id:"al45", l:"<45", t:"Loop under 45", d:"Your loop in under 45 minutes.", ok:f => f.bestAlster<45, run:true},
+  {id:"al40", l:"<40", t:"Loop under 40", d:"Your loop in under 40 minutes.", ok:f => f.bestAlster<40, run:true},
   {id:"ht50", l:"50kg", t:"Hip Thrust 50 kg", d:"Hip thrust with 50 kg.", ok:f => f.hipMax>=50},
   {id:"ht80", l:"80kg", t:"Hip Thrust 80 kg", d:"Hip thrust with 80 kg.", ok:f => f.hipMax>=80},
   {id:"pr5", l:"PR5", t:"5 records", d:"Set a new best weight 5 times.", ok:f => f.prs>=5},
@@ -2465,7 +2471,7 @@ function badgeProg(b){
     km10:[f.km,10," km"],km50:[f.km,50," km"],km100:[f.km,100," km"],ht50:[f.hipMax,50," kg"],ht80:[f.hipMax,80," kg"],pr5:[f.prs,5],pr20:[f.prs,20],vol10t:[f.vol/1000,10," t"],yoga1:[f.yoga,1],yoga10:[f.yoga,10]};
   if(id==="al45" || id==="al40"){
     const goal = id==="al45" ? 45 : 40, best = isFinite(f.bestAlster) ? f.bestAlster : 0;
-    return best ? {pct:Math.min(1, goal/best), txt:`Best time ${hms(best)}${best>goal?` · ${hms(best-goal)} faster to go`:""}`} : {pct:0, txt:"No Alster loop with a time yet"};
+    return best ? {pct:Math.min(1, goal/best), txt:`Best time ${hms(best)}${best>goal?` · ${hms(best-goal)} faster to go`:""}`} : {pct:0, txt:"No loop with a time yet"};
   }
   if(!T[id]) return {pct:0, txt:""};
   const [c, t, u] = T[id];
@@ -2542,7 +2548,7 @@ function recapSheet(y, m){
   h += `<div class="tiles"><div class="tile"><small>Sessions</small><b class="tnum">${r.n}</b></div><div class="tile run"><small>Run</small><b class="tnum">${fmt(r.km)} km</b></div><div class="tile"><small>Moved</small><b class="tnum">${fmt(Math.round(r.vol),0)} kg</b></div></div>`;
   if(kcalOn() && r.kcal>0) h += `<p class="kcal">🔥 <span>about <b class="tnum">${fmt(r.kcal,0)} kcal</b> burned</span><small>Estimate</small></p>`;
   const tl = ALL_W.filter(t => r.types[t]).map(t => `${W[t].name} ${r.types[t]}×`).join(" · ");
-  if(tl) h += `<p class="small muted" style="margin:0">${tl}${r.bestAl?` · best Alster loop ${hms(r.bestAl)}`:""}</p>`;
+  if(tl) h += `<p class="small muted" style="margin:0">${tl}${r.bestAl?` · best ${esc(LN())} ${hms(r.bestAl)}`:""}</p>`;
   if(r.gains.length) h += `<p class="exn" style="margin:6px 0 0;font-weight:600">Getting stronger</p><div class="ups">${r.gains.slice(0,5).map(g => `<div class="up"><div class="uphead"><b>${esc(g.n)}</b><span class="chip2">+${fmt(g.d)} kg <span>(now ${fmt(g.to)} kg)</span></span></div></div>`).join("")}</div>`;
   if(r.badges.length) h += `<p class="exn" style="margin:6px 0 0;font-weight:600">New badges</p><div class="badges">${r.badges.map(b => badgeEl(b)).join("")}</div>`;
   h += `<button class="secondary" data-act="closesheet">Close</button>`;
@@ -2564,7 +2570,7 @@ function weekSheet(ws){
   h += `<div class="tiles"><div class="tile"><small>Sessions</small><b class="tnum">${r.n}/${g}</b></div><div class="tile run"><small>Run</small><b class="tnum">${fmt(r.km)} km</b></div><div class="tile"><small>Moved</small><b class="tnum">${fmt(Math.round(r.vol),0)} kg</b></div></div>`;
   if(kcalOn() && r.kcal>0) h += `<p class="kcal">🔥 <span>about <b class="tnum">${fmt(r.kcal,0)} kcal</b> burned</span><small>Estimate</small></p>`;
   const tl = ALL_W.filter(t => r.types[t]).map(t => `${W[t].name} ${r.types[t]}×`).join(" · ");
-  if(tl) h += `<p class="small muted" style="margin:0">${tl}${r.bestAl?` · Alster loop ${hms(r.bestAl)}`:""}${st2.streak>1&&cur?` · ${st2.streak} weeks in a row`:""}</p>`;
+  if(tl) h += `<p class="small muted" style="margin:0">${tl}${r.bestAl?` · ${esc(LN())} ${hms(r.bestAl)}`:""}${st2.streak>1&&cur?` · ${st2.streak} weeks in a row`:""}</p>`;
   if(r.gains.length) h += `<p class="exn" style="margin:6px 0 0;font-weight:600">Stronger this week</p><div class="ups">${r.gains.slice(0,5).map(x => `<div class="up"><div class="uphead"><b>${esc(x.n)}</b><span class="chip2">+${fmt(x.d)} kg <span>(now ${fmt(x.to)} kg)</span></span></div></div>`).join("")}</div>`;
   if(r.badges.length) h += `<p class="exn" style="margin:6px 0 0;font-weight:600">New badges</p><div class="badges">${r.badges.map(x => badgeEl(x)).join("")}</div>`;
   h += `<div class="row2"><button class="secondary" data-act="week" data-ws="${ws-WEEK}">‹ Previous week</button>${cur?`<button class="secondary" data-act="closesheet">Close</button>`:`<button class="secondary" data-act="week" data-ws="${ws+WEEK}">Next week ›</button>`}</div>`;
@@ -2589,20 +2595,22 @@ function recapCardHtml(){
 function runGoalsHtml(st){
   const g = S.settings.alsterGoal, kg = S.settings.kmGoal;
   const al = S.history.filter(e => e.run && e.run.mode==="alster" && num(e.run.min)>0).map(e => num(e.run.min));
-  let p1 = 0, t1 = "No Alster loop with a time yet.";
+  let p1 = 0, t1 = "No loop with a time yet.";
   if(al.length){
     const first = al[0], best = Math.min(...al);
     if(best<=g){ p1 = 1; t1 = `Done! Best time ${hms(best)}`; }
     else{ p1 = first>g ? Math.max(0, Math.min(1, (first-best)/(first-g))) : 0; t1 = `Best time ${hms(best)} · ${mmss(best-g)} faster to go`; }
   }
   const p2 = Math.min(1, st.kmMonth/kg);
-  return `<div class="goalbar"><div class="gl"><b>Alster loop under ${hms(g)}</b><span class="tnum">${t1}</span></div><div class="track"><i style="width:${Math.max(p1*100, p1?4:0)}%"></i></div></div>
+  return `<div class="goalbar"><div class="gl"><b>${esc(LN())} under ${hms(g)}</b><span class="tnum">${t1}</span></div><div class="track"><i style="width:${Math.max(p1*100, p1?4:0)}%"></i></div></div>
     <div class="goalbar"><div class="gl"><b>Monthly goal ${fmt(kg,0)} km</b><span class="tnum">${fmt(st.kmMonth)} of ${fmt(kg,0)} km${p2>=1?" · done!":""}</span></div><div class="track"><i style="width:${Math.max(p2*100, p2?4:0)}%"></i></div></div>
     <button class="addset" data-act="rungoals" style="align-self:flex-start">Change goals</button>`;
 }
 function runGoalsSheet(){
   sheet(`<h3>Running goals</h3>
-    <div><label class="lbl" for="g-al">Alster loop under (mm:ss)</label><input class="inp tnum" id="g-al" inputmode="text" value="${mmss(S.settings.alsterGoal)}"></div>
+    <div class="rungrid"><div><label class="lbl" for="g-ln">Your usual loop</label><input class="inp" id="g-ln" maxlength="${NFRun.LOOP_NAME_MAX+6}" autocomplete="off" placeholder="${NFRun.LOOP_DEFAULT}" value="${esc(S.settings.loopName||"")}" aria-describedby="g-ln-err"><p class="err" id="g-ln-err" role="alert" aria-live="polite"></p></div>
+      <div><label class="lbl" for="g-lk">Length</label><div class="field"><input class="tnum" id="g-lk" inputmode="decimal" value="${fmt(alsterKm(),2)}" aria-describedby="g-lk-err"><span class="u">km</span></div><p class="err" id="g-lk-err" role="alert" aria-live="polite"></p></div></div>
+    <div><label class="lbl" for="g-al">Loop under (mm:ss)</label><input class="inp tnum" id="g-al" inputmode="text" value="${mmss(S.settings.alsterGoal)}"></div>
     <div><label class="lbl" for="g-km">Kilometres per month</label><input class="inp tnum" id="g-km" inputmode="decimal" value="${Math.round(num(S.settings.kmGoal))}"></div>
     <button class="primary run" data-act="rungoalsave">Save</button><button class="secondary" data-act="closesheet">Cancel</button>`);
 }
@@ -3132,20 +3140,55 @@ function startMobility(id){
   }});
 }
 
-/* ================= Laufwetter an der Alster ================= */
-const WX_URL = "https://api.open-meteo.com/v1/forecast?latitude=53.566&longitude=10.007&current=temperature_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,is_day&hourly=precipitation_probability&forecast_hours=3&timezone=Europe%2FBerlin";
-let WX = null, wxBusy = false;
-function wxLoad(){
-  if(WX && Date.now()-WX.t < 20*60e3) return;
+/* ================= Weather where you are ================= */
+// Your phone's position if you allowed it, otherwise Nova SBE in Carcavelos.
+// The position is rounded to about 1 km before it is stored or sent.
+let WX = null, wxBusy = false, geoBusy = false;
+function wxPos(){ const p = S.settings.wxPos; return S.settings.wxGeo===true && p && isFinite(p.lat) && isFinite(p.lon) ? p : NFRun.WX_HOME; }
+const wxPlace = () => wxPos().place || "Here";
+function wxLoad(force){
+  if(S.settings.wxGeo===true && !geoBusy && (!S.settings.wxPos || Date.now()-(S.settings.wxPos.t||0) > 2*3600e3)) wxLocate(false);
+  const pos = wxPos(), here = c => c && c.d && NFRun.samePlace(c.pos, pos);
+  if(!force && here(WX) && Date.now()-WX.t < 20*60e3) return;
   try{
     const c = JSON.parse(localStorage.getItem("po-wx")||"null");
-    if(c && c.d && Date.now()-c.t < 3*3600e3){ WX = c; if(Date.now()-c.t < 20*60e3) return; }
+    if(here(c) && Date.now()-c.t < 3*3600e3){ WX = c; if(!force && Date.now()-c.t < 20*60e3) return; }
   }catch(e){}
   if(wxBusy || navigator.onLine===false || !window.fetch) return; wxBusy = true;
-  fetch(WX_URL).then(r => r.ok ? r.json() : null).then(d => {
-    if(d && d.current){ WX = {t:Date.now(), d}; try{ localStorage.setItem("po-wx", JSON.stringify(WX)); }catch(e){} wxPaint(); }
+  fetch(NFRun.wxUrl(pos)).then(r => r.ok ? r.json() : null).then(d => {
+    if(d && d.current){ WX = {t:Date.now(), d, pos:{lat:pos.lat, lon:pos.lon}}; try{ localStorage.setItem("po-wx", JSON.stringify(WX)); }catch(e){} wxPaint(); }
   }).catch(() => {}).finally(() => { wxBusy = false; });
 }
+// ask = the person tapped "use my location" (show what went wrong); otherwise a quiet refresh
+function wxLocate(ask){
+  if(!navigator.geolocation){ if(ask) toast("This browser can't share your location."); return; }
+  geoBusy = true;
+  navigator.geolocation.getCurrentPosition(g => {
+    geoBusy = false;
+    const pos = {lat:Math.round(g.coords.latitude*100)/100, lon:Math.round(g.coords.longitude*100)/100, t:Date.now()}, old = S.settings.wxPos;
+    pos.place = old && old.place && NFRun.samePlace(old, pos) ? old.place : "";
+    S.settings.wxGeo = true; S.settings.wxPos = pos; save();
+    if(!pos.place) wxPlaceLoad(pos);
+    wxLoad(true); wxPaint(); wxSeg();
+    if(ask) toast("Weather now shows where you are 📍");
+  }, e => {
+    geoBusy = false;
+    if(e && e.code===1){
+      S.settings.wxGeo = false; save(); wxLoad(); wxPaint(); wxSeg();
+      if(ask) toast(`Location is blocked, so the weather is for ${NFRun.WX_HOME.place}. You can allow it in your browser's site settings.`);
+    } else if(ask) toast("Couldn't find your location just now. Please try again.");
+  }, {enableHighAccuracy:false, timeout:10000, maximumAge:30*60e3});
+}
+// Town name for the rounded position (free service without a key); "Here" if it fails
+function wxPlaceLoad(pos){
+  if(!window.fetch) return;
+  fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${pos.lat}&longitude=${pos.lon}&localityLanguage=en`)
+    .then(r => r.ok ? r.json() : null).then(d => {
+      const n = NFRun.placeName(d), cur = S.settings.wxPos;
+      if(n && cur && NFRun.samePlace(cur, pos)){ cur.place = n; save(); wxPaint(); }
+    }).catch(() => {});
+}
+function wxSeg(){ document.querySelectorAll("#wxseg button").forEach(x => x.setAttribute("aria-pressed", (x.dataset.act==="wxhere")===(S.settings.wxGeo===true))); }
 function wxCode(c, day){
   if(c===0) return [day?"☀️":"🌙","clear"];
   if(c<=2) return [day?"🌤️":"🌙","partly cloudy"];
@@ -3155,12 +3198,12 @@ function wxCode(c, day){
   if(c>=61 && c<=67) return ["🌧️","rain"];
   if(c>=71 && c<=77) return ["🌨️","snow"];
   if(c>=80 && c<=82) return ["🌦️","showers"];
-  if(c===85 || c===86) return ["🌨️","Schneeschauer"];
+  if(c===85 || c===86) return ["🌨️","snow showers"];
   if(c>=95) return ["⛈️","thunderstorm"];
   return ["🌡️",""];
 }
 function wxInfo(){
-  if(!WX || !WX.d || !WX.d.current) return null;
+  if(!WX || !WX.d || !WX.d.current || !NFRun.samePlace(WX.pos, wxPos())) return null;
   const c = WX.d.current, code = c.weather_code, [emoji, txt] = wxCode(code, c.is_day!==0);
   const probs = ((WX.d.hourly||{}).precipitation_probability||[]).slice(0,3).filter(x => x!=null);
   const prob = probs.length ? Math.max(...probs) : 0, t = c.temperature_2m, wind = c.wind_speed_10m;
@@ -3175,15 +3218,15 @@ function wxInfo(){
   else v = "Perfect running weather 👟";
   return {emoji, txt, t, feels:c.apparent_temperature, wind, prob, v};
 }
-function wxShort(){ const w = wxInfo(); return w ? `${w.emoji} Alster ${Math.round(w.t)}° · ${w.v}` : ""; }
+function wxShort(){ const w = wxInfo(); return w ? `${w.emoji} ${esc(wxPlace())} ${Math.round(w.t)}° · ${w.v}` : ""; }
 function wxLong(){
   const w = wxInfo(); if(!w) return "";
-  return `<b>${w.emoji} At the Alster ${Math.round(w.t)}°${w.txt?" · "+w.txt:""}</b><span>feels like ${Math.round(w.feels)}° · wind ${Math.round(w.wind)} km/h · rain ${Math.round(w.prob)} %</span><span class="v">${w.v}</span>`;
+  return `<b>${w.emoji} ${esc(wxPlace())} ${Math.round(w.t)}°${w.txt?" · "+w.txt:""}</b><span>feels like ${Math.round(w.feels)}° · wind ${Math.round(w.wind)} km/h · rain ${Math.round(w.prob)} %</span><span class="v">${w.v}</span>`;
 }
 function wxPaint(){ document.querySelectorAll("[data-wx]").forEach(el => { el.innerHTML = el.dataset.wx==="long" ? wxLong() : el.dataset.wx==="plain" ? wxPlain() : wxShort(); el.hidden = !wxInfo(); }); }
 
 /* ================= Begrüßungskarte (passt sich Tag & Situation an) ================= */
-const NEXT_TXT = {po:"Lower body with squats, Romanian deadlifts and hip thrusts", oben:"Upper body with lat pulldown, incline press and lateral raises", lauf:"a run, Alster or treadmill", yoga:"30 minutes of vinyasa flow"};
+const NEXT_TXT = {po:"Lower body with squats, Romanian deadlifts and hip thrusts", oben:"Upper body with lat pulldown, incline press and lateral raises", lauf:"a run, outside or on the treadmill", yoga:"30 minutes of vinyasa flow"};
 const TYPE_ICON = {po:"🦵", oben:"💪", lauf:"🏃‍♀️", yoga:"🧘‍♀️"};
 function hiShort(){ const h = new Date().getHours(), n = esc(firstName()); const [t, e] = h<5 ? ["Still awake?","🌙"] : h<11 ? ["Good morning","☀️"] : h<14 ? ["Hello","👋"] : h<18 ? ["Hey","💪"] : h<22 ? ["Good evening","🌙"] : ["Still awake?","🌙"]; return !n ? `${t} ${e}` : t.endsWith("?") ? `${t.slice(0,-1)}, ${n}? ${e}` : `${t}, ${n} ${e}`; }
 function heroCls(t){ const k = kc(W[t]); return k==="run" ? "run" : k==="yoga" ? "yoga" : ""; }
@@ -3316,7 +3359,7 @@ function heroHtml(st){
     const e = today[today.length-1], w = W[e.type];
     const ds = new Date(); ds.setHours(0,0,0,0);
     const gains = rangeData(ds.getTime(), ds.getTime()+864e5).gains || [];
-    let what = e.run ? `${e.run.mode==="alster"?"Alster loop":"Run"} ${fmt(kmOf(e))} km${num(e.run.min)>0?" in "+hms(num(e.run.min)):""}` : e.yoga ? `Yoga ${fmt(num(e.yoga.min),0)} min` : `${w.name}${e.end-e.start>=3*60000?" in "+durTxt(e.end-e.start):""}`;
+    let what = e.run ? `${e.run.mode==="alster"?LN():"Run"} ${fmt(kmOf(e))} km${num(e.run.min)>0?" in "+hms(num(e.run.min)):""}` : e.yoga ? `Yoga ${fmt(num(e.yoga.min),0)} min` : `${w.name}${e.end-e.start>=3*60000?" in "+durTxt(e.end-e.start):""}`;
     if(gains[0]) what += ` · new record: ${esc(gains[0].n)} ${fmt(gains[0].to)} kg`;
     const tail = left===0 ? "Weekly goal reached! 🏆" : `${left} more ${left===1?"session":"sessions"} this week.`;
     prepShare(entryShareSpec(e));
@@ -3329,7 +3372,7 @@ function heroHtml(st){
   // 6) Trainingstag
   if(trainDays()[d]){
     const w = wxInfo();
-    const p = next==="lauf" && w ? `${w.emoji} Alster ${Math.round(w.t)}° · ${w.v}. How about a run?` : `Up next: ${NEXT_TXT[next]}.`;
+    const p = next==="lauf" && w ? `${w.emoji} ${esc(wxPlace())} ${Math.round(w.t)}° · ${w.v}. How about a run?` : `Up next: ${NEXT_TXT[next]}.`;
     return card(heroCls(next), `Today is training day ${TYPE_ICON[next]}`, p, startBtn(next, `${TYPE_ICON[next]} Start ${W[next].name}`), otherLinks(next));
   }
   // 7) Montag: neue Woche
@@ -3375,7 +3418,7 @@ function mountHeroPhotos(hero, ps){
 /* ================= Begrüßung ================= */
 const SAYINGS = ["Every session counts, even the short ones.","Strong is the new beautiful. 💪","Your future self will thank you.","Small steps, big impact.","You don't have to be perfect, just consistent.",
   "Today is a good day to get stronger.","Sweat is just glitter for athletes. ✨","You're stronger than you think.","Recovery is part of training too. 😌","One set at a time.",
-  "Progress over perfection.","The Alster is waiting for you. 🌊","Believe in yourself. 💪","Do it for you, not for anyone else.","Proud of every rep.",
+  "Progress over perfection.","Your loop is waiting for you. 👟","Believe in yourself. 💪","Do it for you, not for anyone else.","Proud of every rep.",
   "Running slowly is still running.","Motivation gets you started, habit keeps you going.","You've already achieved so much.","A little better than yesterday.","Your body can do more than you think."];
 const TRAIN_DAYS_DEFAULT = {3:[18,40], 5:[14,0], 6:[10,0]};
 // Training days (JS getDay(): Sun = 0) – from the chosen plan, otherwise the old fixed days
@@ -3417,7 +3460,7 @@ function summaryShareSpec(s){
   else if(e.run){ stats.push(["Distance", fmt(e.run.km)+" km"]); if(e.run.min) stats.push(["Time", hms(e.run.min)]); if(num(e.run.incline)) stats.push(["Incline", fmt(e.run.incline)+" %"]); else { const p = paceOf(e.run.km, e.run.min); if(p) stats.push(["Pace", mmss(p)]); } }
   else{ if(e.end-e.start>=3*60000) stats.push(["Duration", durTxt(e.end-e.start)]); stats.push(["Sets", String(s.nSets)]); stats.push(["Volume", fmt(Math.round(s.vol),0)+" kg"]); }
   const items = s.ups.slice(0,3).map(u => (u.rec?"🏆 ":"💪 ") + u.n + (u.chips[0] ? ": " + strip(u.chips[0]) : ""));
-  if(e.run && e.run.mode==="alster") items.push(`🌊 ${S.history.filter(x => x.run && x.run.mode==="alster").length}. Alsterrunde`);
+  if(e.run && e.run.mode==="alster") items.push(`🔁 ${LN()} no. ${S.history.filter(x => x.run && x.run.mode==="alster").length}`);
   const name = e.run ? runName(e.run.mode) : w.name;
   return {key:e.id, col:THEME_COL[k], eyebrow:new Date(e.start).toLocaleDateString("en-GB",{weekday:"long", day:"numeric", month:"long"}),
     title:name+" done", sub:"Great job! "+(e.yoga?"🧘‍♀️":e.run?"🏃‍♀️":"💪"), stats, items:items.slice(0,3), kcal:kcalOn() ? kcalOf(e) : 0,
@@ -3529,7 +3572,7 @@ function storySlides(r){
   const bars = ALL_W.filter(t => r.types[t]).map(t => `<div class="sbar2"><span>${W[t].name}</span><span class="tr"><i style="width:${Math.max(6, r.types[t]/r.n*100)}%"></i></span><b class="tnum">${r.types[t]}</b></div>`).join("");
   sl.push({c:"s2", h:`<p class="sy-eb">Sessions</p><h2 class="sy-num pop tnum">${r.n}</h2><p class="sy-p">on ${r.days} ${r.days===1?"day":"days"}. ${r.n>=100?"Incredible!":r.n>=50?"What a year!":"Every single one counts."}</p><div class="sy-bars fadeup"${dl(400)}>${bars}</div>`});
   if(r.favDay>=0) sl.push({c:"s3", h:`<p class="sy-eb">Your rhythm</p><h2 class="sy-big pop">${WDAY[r.favDay]}</h2><p class="sy-p">was your favourite training day (${r.favDayN}×).</p><div class="sy-list fadeup"${dl(400)}><p>📅 Strongest month: <b>${MONTHS[r.bestMonth]}</b> with ${r.bestMonthN} ${r.bestMonthN===1?"session":"sessions"}</p>${r.streak>1?`<p>🔥 Longest streak: <b>${r.streak} weeks</b> in a row</p>`:""}<p>${r.avgH<11?"🌅 You're a true early bird.":r.avgH>=17?"🌙 You like training in the evening.":"☀️ You like training during the day."}</p></div>`});
-  if(r.runs) sl.push({c:"s4", h:`<p class="sy-eb">Running</p><h2 class="sy-num pop tnum">${fmt(r.km,0)} km</h2><p class="sy-p">is how far you ran. ${kmFun(r.km)}</p><div class="sy-list fadeup"${dl(400)}>${r.alster?`<p>🌊 <b>${r.alster}×</b> around the Alster</p>`:""}${r.bestAl?`<p>⏱️ Best Alster loop: <b class="tnum">${hms(r.bestAl)}</b></p>`:""}</div>`});
+  if(r.runs) sl.push({c:"s4", h:`<p class="sy-eb">Running</p><h2 class="sy-num pop tnum">${fmt(r.km,0)} km</h2><p class="sy-p">is how far you ran. ${kmFun(r.km)}</p><div class="sy-list fadeup"${dl(400)}>${r.alster?`<p>🔁 <b>${r.alster}×</b> your ${esc(LN())}</p>`:""}${r.bestAl?`<p>⏱️ Best ${esc(LN())}: <b class="tnum">${hms(r.bestAl)}</b></p>`:""}</div>`});
   if(r.vol>0) sl.push({c:"s5", h:`<p class="sy-eb">Strength</p><h2 class="sy-num pop tnum">${tons(r.vol)}</h2><p class="sy-p">is what you moved in total. ${volumeLine(r.vol)}</p>${r.gains.length?`<div class="sy-list fadeup"${dl(400)}><p class="sy-sm">Biggest strength gains</p>${r.gains.slice(0,3).map(g => `<p>💪 <b>${esc(g.n)}</b> ${fmt(g.from)} → ${fmt(g.to)} kg <span class="sy-pill">+${g.pct} %</span></p>`).join("")}</div>`:""}`});
   if(r.yoga || r.mob || r.kcal) sl.push({c:"s6", h:`<p class="sy-eb">Body and mind</p>${r.yoga?`<h2 class="sy-num pop tnum">${fmt(r.yogaMin,0)} min</h2><p class="sy-p">of yoga in ${r.yoga} ${r.yoga===1?"session":"sessions"}. Namaste 🧘‍♀️</p>`:`<h2 class="sy-big pop">Kind to yourself</h2>`}<div class="sy-list fadeup"${dl(400)}>${r.mob?`<p>🤸‍♀️ ${r.mob}× glute mobility</p>`:""}${r.kcal?`<p>🔥 about <b class="tnum">${fmt(r.kcal,0)} kcal</b> burned</p>`:""}</div>`});
   if(r.badges.length) sl.push({c:"s7", h:`<p class="sy-eb">Badges</p><h2 class="sy-num pop tnum">${r.badges.length}</h2><p class="sy-p">new badges collected.</p><div class="badges sy-badges fadeup"${dl(400)}>${r.badges.map(b => badgeEl(b).replace(/data-act="[^"]*"/g, "")).join("")}</div>`});
@@ -3539,7 +3582,7 @@ function storySlides(r){
 function yearShareSpec(r){
   return {key:"y"+r.y, col:THEME_COL[""], eyebrow:"Year in review", title:`My ${r.y}`, sub:"Your training year ✨",
     stats:[["Sessions", String(r.n)], ["Run", fmt(r.km,0)+" km"], ["Moved", tons(r.vol)]],
-    items:[r.alster?`🌊 ${r.alster}× around the Alster`:"", r.gains[0]?`💪 ${r.gains[0].n} +${r.gains[0].pct} %`:"", r.favDay>=0?`📅 Favourite day: ${WDAY[r.favDay]}`:""].filter(Boolean),
+    items:[r.alster?`🔁 ${r.alster}× ${LN()}`:"", r.gains[0]?`💪 ${r.gains[0].n} +${r.gains[0].pct} %`:"", r.favDay>=0?`📅 Favourite day: ${WDAY[r.favDay]}`:""].filter(Boolean),
     kcal:r.kcal, foot:`${r.days} training days`, text:`My training year ${r.y} ✨`};
 }
 /* ================= Wochenrückblick als Story ================= */
@@ -3569,12 +3612,12 @@ function weekSlides(r){
     sl.push({c:"s2", h:`<p class="sy-eb">Sessions</p><h2 class="sy-num pop tnum">${r.n}<span class="sy-of">/${g}</span></h2><p class="sy-p">${msg}</p><div class="wdstrip fadeup"${dl(400)}>${strip}</div>`});
     const hl = [];
     r.gains.slice(0,3).forEach(x => hl.push(`<p>🏆 <b>${esc(x.n)}</b> new best: ${fmt(x.to)} kg <span class="sy-pill">+${fmt(x.d)} kg</span></p>`));
-    if(r.bestAlW && r.bestAlW<=stats().bestAlster+1e-9) hl.push(`<p>⏱️ Fastest Alster loop ever: <b class="tnum">${hms(r.bestAlW)}</b></p>`);
+    if(r.bestAlW && r.bestAlW<=stats().bestAlster+1e-9) hl.push(`<p>⏱️ Fastest ${esc(LN())} ever: <b class="tnum">${hms(r.bestAlW)}</b></p>`);
     r.badges.slice(0,2).forEach(b => hl.push(`<p>🏅 New badge: <b>${esc(b.t)}</b></p>`));
     if(r.badges.length>2) hl.push(`<p>🏅 … and ${r.badges.length-2} more badges</p>`);
     if(r.vol>0 || hl.length) sl.push({c:"s5", h:`<p class="sy-eb">Highlights</p>${r.vol>0?`<h2 class="sy-num pop tnum"${fmt(Math.round(r.vol),0).length>3?' style="font-size:72px"':""}>${fmt(Math.round(r.vol),0)} kg</h2><p class="sy-p">is what you moved this week.</p>`:`<h2 class="sy-big pop">Your wins</h2>`}${hl.length?`<div class="sy-list fadeup"${dl(400)}>${hl.join("")}</div>`:`<p class="sy-p fadeup"${dl(400)} style="opacity:.85">No new records this time, but showing up is the most important part. 💪</p>`}`});
     const msw = muscleSlide(r.H, "week"); if(msw){ msw.c = "s1"; sl.push(msw); }
-    if(r.runs) sl.push({c:"s4", h:`<p class="sy-eb">Running</p><h2 class="sy-num pop tnum">${fmt(r.km)} km</h2><p class="sy-p">is how far you ran this week.</p><div class="sy-list fadeup"${dl(400)}>${r.alster?`<p>🌊 <b>${r.alster}×</b> around the Alster</p>`:""}${r.bestAlW?`<p>⏱️ Best loop: <b class="tnum">${hms(r.bestAlW)}</b></p>`:""}<p>🗺️ <b class="tnum">${fmt(stats().km,0)} km</b> in total so far</p></div>`});
+    if(r.runs) sl.push({c:"s4", h:`<p class="sy-eb">Running</p><h2 class="sy-num pop tnum">${fmt(r.km)} km</h2><p class="sy-p">is how far you ran this week.</p><div class="sy-list fadeup"${dl(400)}>${r.alster?`<p>🔁 <b>${r.alster}×</b> your ${esc(LN())}</p>`:""}${r.bestAlW?`<p>⏱️ Best loop: <b class="tnum">${hms(r.bestAlW)}</b></p>`:""}<p>🗺️ <b class="tnum">${fmt(stats().km,0)} km</b> in total so far</p></div>`});
     if(r.yoga || r.mob || r.kcal) sl.push({c:"s6", h:`<p class="sy-eb">Body and mind</p>${r.yoga?`<h2 class="sy-num pop tnum">${fmt(r.yogaMin,0)} min</h2><p class="sy-p">of yoga this week. Namaste 🧘‍♀️</p>`:`<h2 class="sy-big pop">Kind to yourself</h2>`}<div class="sy-list fadeup"${dl(400)}>${r.mob?`<p>🤸‍♀️ ${r.mob}× glute mobility</p>`:""}${r.kcal?`<p>🔥 about <b class="tnum">${fmt(r.kcal,0)} kcal</b> burned</p>`:""}</div>`});
     if(r.tips.length || r.streak>1) sl.push({c:"s3", h:`<p class="sy-eb">Next week</p>${r.streak>1?`<h2 class="sy-num pop tnum">${r.streak}</h2><p class="sy-p">weeks in a row you reached your goal. 🔥</p>`:`<h2 class="sy-big pop">${r.n>=g?"Keep it going":"There's more in you"}</h2>`}${r.tips.length?`<div class="sy-list fadeup"${dl(400)}><p class="sy-sm">Try next time</p>${r.tips.map(t => `<p>💪 <b>${esc(t.n)}</b> with <b class="tnum">${fmt(t.kg)} kg</b></p>`).join("")}</div>`:""}`});
   }
@@ -3586,7 +3629,7 @@ function weekSlides(r){
 function weekShareSpec(r){
   const items = [];
   r.gains.slice(0,2).forEach(x => items.push(`🏆 ${x.n}: ${fmt(x.to)} kg`));
-  if(r.alster) items.push(`🌊 ${r.alster}× around the Alster`);
+  if(r.alster) items.push(`🔁 ${r.alster}× ${LN()}`);
   if(r.yoga) items.push(`🧘‍♀️ ${fmt(r.yogaMin,0)} min Yoga`);
   const stats2 = [["Sessions", `${r.n}/${r.goal}`]];
   if(r.km) stats2.push(["Run", fmt(r.km)+" km"]);
@@ -3754,7 +3797,7 @@ function applyRun(r){
   const run = S.active.run;
   run.km = fmt(r.km, 2);
   if(r.min>0) run.min = hms(r.min);
-  if(Math.abs(r.km - ALSTER_KM) <= 0.6) run.mode = "alster";
+  if(Math.abs(r.km - alsterKm()) <= 0.6) run.mode = "alster";
   save(); renderSession();
   toast(`Run added: ${fmt(r.km,2)} km${r.min>0?" in "+hms(r.min):""} 🏃‍♀️`);
 }
@@ -3929,8 +3972,8 @@ function monthSlides(r){
   // 5 Laufen
   if(r.runs){
     const al = r.alT;
-    const chart = al.length>=2 ? `<div class="sy-panel fadeup"${dl(250)}><small class="mcap" style="margin:0 0 4px">Alster loop</small>${lineSvg(al.map(x => ({v:x.min})), {down:true, lab:v => hms(v), x0:dd(al[0].t), x1:dd(al[al.length-1].t)})}${al[al.length-1].min<al[0].min?`<small class="mcap">${mmss(al[0].min-al[al.length-1].min)} faster than at the start of the month</small>`:""}</div>` : `<div class="sy-list fadeup"${dl(300)}>${r.bestAl?`<p>⏱️ Best Alster loop: <b class="tnum">${hms(r.bestAl)}</b></p>`:""}<p>👟 ${r.runs} ${r.runs===1?"run":"runs"}</p></div>`;
-    sl.push({c:"s4", nophoto:true, h:`<p class="sy-eb">Running</p><h2 class="sy-num pop tnum">${fmt(r.km)} km</h2><p class="sy-p">${r.alster?`${r.alster}× around the Alster 🌊`:"is how far you ran this month."}</p>${chart}`});
+    const chart = al.length>=2 ? `<div class="sy-panel fadeup"${dl(250)}><small class="mcap" style="margin:0 0 4px">${esc(LN())}</small>${lineSvg(al.map(x => ({v:x.min})), {down:true, lab:v => hms(v), x0:dd(al[0].t), x1:dd(al[al.length-1].t)})}${al[al.length-1].min<al[0].min?`<small class="mcap">${mmss(al[0].min-al[al.length-1].min)} faster than at the start of the month</small>`:""}</div>` : `<div class="sy-list fadeup"${dl(300)}>${r.bestAl?`<p>⏱️ Best Alster loop: <b class="tnum">${hms(r.bestAl)}</b></p>`:""}<p>👟 ${r.runs} ${r.runs===1?"run":"runs"}</p></div>`;
+    sl.push({c:"s4", nophoto:true, h:`<p class="sy-eb">Running</p><h2 class="sy-num pop tnum">${fmt(r.km)} km</h2><p class="sy-p">${r.alster?`${r.alster}× your ${esc(LN())} 🔁`:"is how far you ran this month."}</p>${chart}`});
   }
   // 6 Muskeln
   const ms = muscleSlide(r.H, M); if(ms) sl.push(ms);
@@ -3955,7 +3998,7 @@ function monthSlides(r){
 function monthShareSpec(r){
   const items = [];
   if(r.curve) items.push(`💪 ${r.curve.n} +${r.curve.pct} %`);
-  if(r.alster) items.push(`🌊 ${r.alster}× around the Alster`);
+  if(r.alster) items.push(`🔁 ${r.alster}× ${LN()}`);
   const M = muscleLoad(r.H); if(M.rank[0] && M.rank[0].k==="glutes") items.push(`🍑 ${M.glutePct} % for the glutes`);
   const st2 = [["Sessions", String(r.n)]]; if(r.km) st2.push(["Run", fmt(r.km)+" km"]); if(r.vol) st2.push(["Moved", tons(r.vol)]);
   return {key:"m"+r.y+"-"+r.m, col:THEME_COL[""], eyebrow:`${MONTHS[r.m]} ${r.y}`, title:`My ${MONTHS[r.m]}`, sub:"Your training month ✨", stats:st2, items:items.slice(0,3), kcal:r.kcal, foot:`${r.days} training days`, text:`My training month: ${MONTHS[r.m]} ✨`};
@@ -4438,7 +4481,10 @@ document.addEventListener("click", async ev => {
     case "recap": if(b.dataset.seen){ S.settings.recapSeen = b.dataset.seen; save(); renderHome(); } closeSheet(); if(STORY) closeStory(); openMonth(+b.dataset.y, +b.dataset.m); break;
     case "rungoals": runGoalsSheet(); break;
     case "rungoalsave": {
-      const g = parseMin($("#g-al").value), k = num($("#g-km").value);
+      const g = parseMin($("#g-al").value), k = num($("#g-km").value), lp = NFRun.validateLoop($("#g-ln").value, $("#g-lk").value);
+      [["g-ln", lp.err.name], ["g-lk", lp.err.km]].forEach(([id, m]) => { $("#"+id+"-err").textContent = m||""; $("#"+id).setAttribute("aria-invalid", m?"true":"false"); });
+      if(!lp.ok){ $(lp.err.name ? "#g-ln" : "#g-lk").focus(); break; }
+      S.settings.loopName = lp.name; S.settings.loopKm = lp.km;
       if(g>0) S.settings.alsterGoal = g; if(k>0) S.settings.kmGoal = k;
       save(); closeSheet(); renderHome(); break;
     }
@@ -4489,6 +4535,8 @@ document.addEventListener("click", async ev => {
     case "nrchelp": nrcHelp(); break;
     case "nrcuse": { const r = parseRunText($("#nrctext").value); if(!r){ toast("No run found in that text."); break; } closeSheet(); applyRun(r); break; }
     case "storyclose": closeStory(); render(); break;
+    case "wxhere": wxLocate(true); break;
+    case "wxhome": S.settings.wxGeo = false; save(); wxSeg(); wxLoad(); wxPaint(); toast(`Weather is for ${NFRun.WX_HOME.place} now.`); break;
     case "kcalshow": S.settings.showKcal = b.dataset.v==="1"; save();
       document.querySelectorAll("#kcalseg button").forEach(x => x.setAttribute("aria-pressed", x.dataset.v===b.dataset.v)); break;
     case "goal": { S.settings.goal = Math.min(7, Math.max(1, S.settings.goal + (+b.dataset.d))); $("#goalv").textContent = S.settings.goal; save(); break; }

@@ -2,6 +2,11 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Weather where you are, your own loop
+
+- Running weather follows your location: tap "📍 Show the weather where I am" on the run screen or pick "Where I am" in Settings. The position is rounded to about 1 km and only used for the forecast (Open-Meteo) and the town name (BigDataCloud). Without permission the weather is for Carcavelos (Nova SBE).
+- The Hamburg leftovers are gone: "Alster loop" is now your own loop with a name and length (Running goals, default "Home loop", 5 km). Old runs keep counting as loop runs.
+- New pure helpers in `run.js` (`wxUrl`, `samePlace`, `placeName`, `loopName`, `validateLoop`) with tests
 ## Unreleased – Readable numbers, safer finish
 
 - Large numbers get thousands separators everywhere they are shown, e.g. “16,440 kg moved” instead of “16440 kg”
