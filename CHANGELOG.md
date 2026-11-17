@@ -2,6 +2,11 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Readable numbers, safer finish
+
+- Large numbers get thousands separators everywhere they are shown, e.g. “16,440 kg moved” instead of “16440 kg”
+- Finishing with sets that aren't ticked off: the dialog now names them (“Triceps Pushdown set 1, 2 and 3”), and the main button saves only the sets you actually did. Saving the untouched sets with last time's numbers is the second, deliberate choice
+
 ## Unreleased – New app icon
 
 - New home screen icon: the white NOVA ring with its bar on Nova blue (`icon-192.png`, `icon-512.png`, `apple-touch-icon.png`); the design keeps to the safe area, so Android's round and squircle masks don't cut it
