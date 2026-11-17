@@ -371,24 +371,44 @@
      Returns {name, method, data}: method 0 = stored, 8 = deflate (unpacked in the browser). */
   function zipEntry(buf) {
     const u8 = buf instanceof Uint8Array ? buf : new Uint8Array(buf);
-    const dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
-    // the central directory lists all files with their real sizes
-    let eocd = -1;
-    for (let i = u8.length - 22; i >= Math.max(0, u8.length - 65557); i--) if (dv.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
-    if (eocd < 0) throw new Error("This ZIP file is damaged.");
-    let p = dv.getUint32(eocd + 16, true);
-    const n = dv.getUint16(eocd + 10, true);
-    for (let i = 0; i < n && dv.getUint32(p, true) === 0x02014b50; i++) {
-      const method = dv.getUint16(p + 10, true), csize = dv.getUint32(p + 20, true);
-      const nl = dv.getUint16(p + 28, true), xl = dv.getUint16(p + 30, true), cl = dv.getUint16(p + 32, true);
-      const lho = dv.getUint32(p + 42, true);
-      const name = new TextDecoder().decode(u8.subarray(p + 46, p + 46 + nl));
-      p += 46 + nl + xl + cl;
-      if (!/\.(fit|gpx|tcx)$/i.test(name) || /(^|\/)\./.test(name)) continue;
-      const start = lho + 30 + dv.getUint16(lho + 26, true) + dv.getUint16(lho + 28, true);
-      return { name, method, data: u8.subarray(start, start + csize) };
+    const end = zipEnd(u8.subarray(Math.max(0, u8.length - 65557)));
+    const list = zipList(u8.subarray(end.cdOffset, end.cdOffset + end.cdSize));
+    const e = list.find(x => /\.(fit|gpx|tcx)(\.gz)?$/i.test(x.name));
+    if (!e) throw new Error("There is no FIT, GPX or TCX file in this ZIP.");
+    const start = e.lho + zipDataOffset(u8.subarray(e.lho, e.lho + 30));
+    return { name: e.name, method: e.method, data: u8.subarray(start, start + e.csize) };
+  }
+
+  /* ZIP in parts, so big archives (Strava sends hundreds of MB) never have to be read completely.
+     zipEnd: the last up to 64 KB of the file → where the list of files (central directory) is. */
+  function zipEnd(tail) {
+    const dv = new DataView(tail.buffer, tail.byteOffset, tail.byteLength);
+    for (let i = tail.length - 22; i >= 0; i--) {
+      if (dv.getUint32(i, true) !== 0x06054b50) continue;
+      const count = dv.getUint16(i + 10, true), cdSize = dv.getUint32(i + 12, true), cdOffset = dv.getUint32(i + 16, true);
+      if (cdOffset === 0xffffffff || count === 0xffff) throw new Error("This archive is too big to open here. Unpack it on a computer and choose activities.csv.");
+      return { count, cdSize, cdOffset };
     }
-    throw new Error("There is no FIT, GPX or TCX file in this ZIP.");
+    throw new Error("This ZIP file is damaged.");
+  }
+  /* zipList: the central directory → all files with name, packing method, size and where they start */
+  function zipList(cd) {
+    const dv = new DataView(cd.buffer, cd.byteOffset, cd.byteLength), out = [];
+    let p = 0;
+    while (p + 46 <= cd.length && dv.getUint32(p, true) === 0x02014b50) {
+      const nl = dv.getUint16(p + 28, true), xl = dv.getUint16(p + 30, true), cl = dv.getUint16(p + 32, true);
+      const name = new TextDecoder().decode(cd.subarray(p + 46, p + 46 + nl));
+      if (!/\/$/.test(name) && !/(^|\/)(\.|__MACOSX)/.test(name))
+        out.push({ name, method: dv.getUint16(p + 10, true), csize: dv.getUint32(p + 20, true), usize: dv.getUint32(p + 24, true), lho: dv.getUint32(p + 42, true) });
+      p += 46 + nl + xl + cl;
+    }
+    return out;
+  }
+  /* zipDataOffset: the 30-byte local header of a file → how many bytes after it the packed data starts */
+  function zipDataOffset(lh) {
+    const dv = new DataView(lh.buffer, lh.byteOffset, lh.byteLength);
+    if (lh.length < 30 || dv.getUint32(0, true) !== 0x04034b50) throw new Error("This ZIP file is damaged.");
+    return 30 + dv.getUint16(26, true) + dv.getUint16(28, true);
   }
 
   /* What kind of file is it? Looks at the content, not only the name. */
@@ -464,9 +484,191 @@
       .sort((x, y) => x.start - y.start);
   }
 
+  /* ================= Training history: many runs at once =================
+     Sources: Garmin Connect activity list (CSV), Strava archive (activities.csv, also inside the ZIP),
+     several GPX/FIT/TCX files, or Strava's API. Every source becomes a list of items {entry, kind},
+     kind = "run" or "walk"; planImport() then decides what is added. */
+
+  /* CSV with quotes, commas or semicolons, line breaks inside quotes and a BOM */
+  function parseCsv(text) {
+    text = String(text || "").replace(/^﻿/, "");
+    const nl = text.indexOf("\n"), first = nl < 0 ? text : text.slice(0, nl);
+    const count = ch => first.split(ch).length - 1;
+    const sep = count(";") > count(",") ? ";" : count("\t") > count(",") ? "\t" : ",";
+    const rows = [];
+    let row = [], cell = "", q = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (q) {
+        if (c === '"') { if (text[i + 1] === '"') { cell += '"'; i++; } else q = false; }
+        else cell += c;
+      } else if (c === '"') q = true;
+      else if (c === sep) { row.push(cell); cell = ""; }
+      else if (c === "\n") { row.push(cell); rows.push(row); row = []; cell = ""; }
+      else if (c !== "\r") cell += c;
+    }
+    if (cell !== "" || row.length) { row.push(cell); rows.push(row); }
+    return rows.filter(r => r.some(x => x.trim() !== ""));
+  }
+
+  /* "7.72", "7,72", "1,234.5", "1.234,5" → number; "--" or empty → 0 */
+  function numLoose(v) {
+    let t = String(v == null ? "" : v).trim().replace(/[^\d.,-]/g, "");
+    if (!t || t === "-") return 0;
+    if (t.includes(",") && t.includes(".")) t = t.lastIndexOf(",") > t.lastIndexOf(".") ? t.replace(/\./g, "").replace(",", ".") : t.replace(/,/g, "");
+    else t = t.replace(",", ".");
+    const n = parseFloat(t);
+    return isFinite(n) ? n : 0;
+  }
+  /* "00:42:38", "42:38", "0:42:38.4" → minutes; a plain number counts as seconds (Strava) */
+  function durMin(v) {
+    const t = String(v == null ? "" : v).trim();
+    if (/^\d+(:\d{1,2}){1,2}([.,]\d+)?$/.test(t)) { const p = t.split(":").map(x => numLoose(x)); return p.length === 3 ? p[0] * 60 + p[1] + p[2] / 60 : p[0] + p[1] / 60; }
+    const n = numLoose(t);
+    return n > 0 ? n / 60 : 0;
+  }
+  /* Dates as Garmin and Strava write them. utc: Strava's archive uses UTC, Garmin local time. */
+  function parseStamp(v, utc) {
+    const t = String(v || "").trim();
+    let y, mo, d, h = 0, mi = 0, se = 0, m;
+    const time = rest => { const x = rest.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(am|pm)?/i); if (!x) return; h = +x[1]; mi = +x[2]; se = +(x[3] || 0); if (x[4]) { const pm = /pm/i.test(x[4]); if (pm && h < 12) h += 12; if (!pm && h === 12) h = 0; } };
+    if ((m = t.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/))) { y = +m[1]; mo = +m[2] - 1; d = +m[3]; }
+    else if ((m = t.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})/))) { d = +m[1]; mo = +m[2] - 1; y = +m[3]; }
+    else if ((m = t.match(/^([A-Za-zäÄ]{3})[a-zä]*\.?\s+(\d{1,2}),?\s+(\d{4})/)) && MONTHS[m[1].toLowerCase()] != null) { mo = MONTHS[m[1].toLowerCase()]; d = +m[2]; y = +m[3]; }
+    else if ((m = t.match(/^(\d{1,2})\.?\s+([A-Za-zäÄ]{3})[a-zä]*\.?,?\s+(\d{4})/)) && MONTHS[m[2].toLowerCase()] != null) { d = +m[1]; mo = MONTHS[m[2].toLowerCase()]; y = +m[3]; }
+    else return 0;
+    time(t.slice(m[0].length));
+    if (mo < 0 || mo > 11 || d < 1 || d > 31 || h > 23 || mi > 59) return 0;
+    return utc ? Date.UTC(y, mo, d, h, mi, se) : new Date(y, mo, d, h, mi, se).getTime();
+  }
+
+  /* What kind of activity is it? run (outdoor or treadmill), walk, or something else */
+  function sportKind(type) {
+    const t = String(type || "").toLowerCase();
+    if (/treadmill|laufband|indoor run|virtual ?run|virtueller lauf/.test(t)) return { kind: "run", band: true };
+    if (/run|lauf|jog/.test(t)) return { kind: "run", band: false };
+    if (/walk|hik|gehen|wander|spazier/.test(t)) return { kind: "walk", band: false };
+    return { kind: "other", band: false };
+  }
+
+  /* One imported activity as a NOVAFit history entry (same shape as a logged run) */
+  function historyEntry(o, alsterKm) {
+    const km = round2(o.km || 0), min = o.min || 0;
+    const mode = o.band ? "band" : km > 0 && alsterKm && Math.abs(km - alsterKm) < 1.2 ? "alster" : "out";
+    const name = String(o.name || "").trim();
+    const note = /^(morning|lunch|afternoon|evening|night) (run|walk|trail run)$|^[\w ]+ (running|laufen|walking|gehen)$/i.test(name) ? "" : name.slice(0, 200);
+    const run = { mode, km, min, note };
+    if (o.strava) run.strava = String(o.strava);
+    const id = o.strava ? "st" + o.strava : "im" + Math.round(o.start / 1000);
+    return { id, type: "lauf", start: o.start, end: o.start + Math.round((o.elapsed || min) * 60000), run };
+  }
+
+  /* Where does a column with one of these names start? (Strava has two "Distance" columns.) */
+  function headerIndex(head) {
+    const idx = {};
+    head.forEach((h, i) => { const k = String(h).trim().toLowerCase(); (idx[k] = idx[k] || []).push(i); });
+    return (names, which) => { for (const n of names) { const a = idx[n]; if (a) return which === "last" ? a[a.length - 1] : a[0]; } return -1; };
+  }
+
+  /* Reads an activity list. Returns {source, items, other, bad}. opts.miles: Garmin distances are in miles. */
+  function readHistoryCsv(text, opts) {
+    opts = opts || {};
+    const rows = parseCsv(text);
+    if (rows.length < 2) throw new Error("This file has no activities in it.");
+    const col = headerIndex(rows[0]);
+    const S = {
+      id: col(["activity id", "aktivitäts-id", "aktivitäts id"]),
+      date: col(["activity date", "datum der aktivität", "aktivitätsdatum"]),
+      name: col(["activity name", "name der aktivität", "aktivitätsname"]),
+      type: col(["activity type", "aktivitätsart", "aktivitätstyp"]),
+      elapsed: col(["elapsed time", "verstrichene zeit"]),
+      moving: col(["moving time", "bewegungszeit"]),
+      distKm: col(["distance", "distanz", "entfernung"]),
+      distM: col(["distance", "distanz", "entfernung"], "last")
+    };
+    const G = {
+      type: col(["activity type", "aktivitätstyp", "aktivitätsart"]),
+      date: col(["date", "datum"]),
+      name: col(["title", "titel"]),
+      dist: col(["distance", "distanz"]),
+      time: col(["time", "zeit"]),
+      moving: col(["moving time", "bewegungszeit"]),
+      elapsed: col(["elapsed time", "verstrichene zeit", "gesamtzeit"])
+    };
+    const source = S.id >= 0 && S.date >= 0 && S.type >= 0 ? "strava" : G.type >= 0 && G.date >= 0 && G.dist >= 0 ? "garmin" : "";
+    if (!source) throw new Error("This doesn't look like an activity list from Garmin Connect or Strava. Choose the CSV file you exported.");
+    const items = [];
+    let other = 0, bad = 0;
+    rows.slice(1).forEach(r => {
+      const get = i => (i >= 0 ? r[i] : "");
+      let o;
+      if (source === "strava") {
+        const sk = sportKind(get(S.type));
+        if (sk.kind === "other") { other++; return; }
+        const m = numLoose(get(S.distM)), k = numLoose(get(S.distKm));
+        // the second "Distance" column is in metres; the first one is rounded km
+        const km = S.distM !== S.distKm && m > 0 ? m / 1000 : k;
+        const elapsed = durMin(get(S.elapsed));
+        o = Object.assign(sk, { start: parseStamp(get(S.date), true), km, min: durMin(get(S.moving)) || elapsed, elapsed, name: get(S.name), strava: String(get(S.id)).trim() || "" });
+      } else {
+        const sk = sportKind(get(G.type));
+        if (sk.kind === "other") { other++; return; }
+        const km = numLoose(get(G.dist)) * (opts.miles ? KM_PER_MI : 1);
+        const elapsed = durMin(get(G.elapsed)) || durMin(get(G.time));
+        o = Object.assign(sk, { start: parseStamp(get(G.date), false), km, min: durMin(get(G.moving)) || durMin(get(G.time)) || elapsed, elapsed, name: get(G.name) });
+      }
+      if (!o.start || !(o.min > 0 || o.km > 0) || o.km > 300 || o.min > MAX_RUN) { bad++; return; }
+      items.push({ kind: o.kind, entry: historyEntry(o, opts.alsterKm) });
+    });
+    return { source, items, other, bad };
+  }
+
+  /* A file from a watch (result of parseActivity) as an import item */
+  function fileItem(r, alsterKm) {
+    const sk = sportKind(r.sport);
+    return { kind: sk.kind === "walk" ? "walk" : "run", entry: historyEntry({ start: r.at, km: r.km, min: r.min, band: sk.band, name: r.name }, alsterKm) };
+  }
+
+  /* Start of the chosen time range: "year" = 1 January, "12m" = one year back, "all" = everything */
+  function rangeStart(range, now) {
+    now = now || Date.now();
+    if (range === "year") return new Date(new Date(now).getFullYear(), 0, 1).getTime();
+    if (range === "12m") return now - 365 * 864e5;
+    return 0;
+  }
+
+  /* Decides what is added: only the time range, walks only if wanted, nothing twice. */
+  function planImport(history, items, opts) {
+    opts = opts || {};
+    const now = opts.now || Date.now(), from = rangeStart(opts.range || "year", now);
+    const ids = new Set((history || []).map(e => e && e.id));
+    const seen = (history || []).filter(e => e && e.run).slice();
+    const add = [];
+    let dup = 0, outside = 0, walks = 0, noDate = 0;
+    (items || []).slice().sort((a, b) => a.entry.start - b.entry.start).forEach(it => {
+      const e = it.entry;
+      if (!e.start) { noDate++; return; }
+      if (e.start < from || e.start > now + 36e5) { outside++; return; }
+      if (it.kind === "walk") { walks++; if (!opts.walks) return; }
+      if (ids.has(e.id) || findDuplicate(seen, e.start, e.run.km)) { dup++; return; }
+      ids.add(e.id); seen.push(e); add.push(e);
+    });
+    const km = add.reduce((a, e) => a + (e.run.km || 0), 0);
+    return { add, dup, outside, walks, noDate, km: round2(km),
+      first: add.length ? add[0].start : 0, last: add.length ? add[add.length - 1].start : 0 };
+  }
+
+  /* Activities from Strava's API as import items (walks marked, so the runner can leave them out) */
+  function stravaItems(acts, alsterKm) {
+    return (acts || []).filter(a => a && STRAVA_RUN_TYPES.includes(a.sport_type || a.type) && (a.distance > 0 || a.moving_time > 0))
+      .map(a => ({ kind: (a.sport_type || a.type) === "Walk" ? "walk" : "run", entry: stravaEntry(a, alsterKm) }));
+  }
+
   const api = { KM_PER_MI, MAX_FILE_MB, cleanText, timeTokens, parseDate, parseShot, validateRun,
+    parseCsv, numLoose, durMin, parseStamp, sportKind, historyEntry, readHistoryCsv, fileItem, rangeStart, planImport,
+    zipEnd, zipList, zipDataOffset,
     gpsDist, parseGpx, parseTcx, parseFit, zipEntry, fileKind, parseActivity, findDuplicate, isRunSport,
-    STRAVA_SCOPE, stravaAuthUrl, stravaScopeOk, stravaEntry, stravaNew };
+    STRAVA_SCOPE, stravaAuthUrl, stravaScopeOk, stravaEntry, stravaNew, stravaItems };
   if (typeof module === "object" && module.exports) module.exports = api;
   else root.NFRun = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);

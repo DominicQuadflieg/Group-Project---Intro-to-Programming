@@ -52,6 +52,7 @@ The app needs no build step:
 | `tests/exercises.test.js` | Tests for `app/exercises.js` |
 | `tests/run.test.js` | Tests for `app/run.js` (screenshots) |
 | `tests/run-files.test.js` | Tests for `app/run.js` (GPX, TCX, FIT, ZIP) |
+| `tests/history.test.js` | Tests for importing a training history (Garmin CSV, Strava archive, files) |
 | `tests/strava.test.js` | Tests for the Strava connection (app side and function) |
 
 ## Run
@@ -60,6 +61,19 @@ The app needs no build step:
 - **Ready-made download:** `releases/NOVAFit 2.8.2.zip` contains the current app. Unzip it and use the `novafit` folder like the `app` folder below.
 - **On a phone:** drag the `app` folder onto https://app.netlify.com/drop, open the address on the phone and choose “Add to Home Screen” (details in `app/INSTALL.txt`). Everything works this way except Strava.
 - **With Strava:** see below. The Strava connection needs the Netlify function, which Netlify Drop can't run.
+
+## Bring your training history
+
+New users can bring their runs from other apps right after choosing a plan (“Bring your training history”), and everyone can do it later under *Settings → Your data → Import runs from other apps*:
+
+| Source | What to choose | How to get it |
+|---|---|---|
+| Garmin Connect | the activity list (CSV) | connect.garmin.com → *Activities → All Activities* → scroll until the year is loaded → *Export CSV* |
+| Strava | the archive (ZIP) or `activities.csv` from it | strava.com → *Settings → My Account → Download or Delete Your Account → Request Your Archive* |
+| Strava (connected) | nothing, NOVAFit gets the runs since 1 January | needs the Strava connection below |
+| Polar, Coros, Suunto, Apple Watch … | several GPX, FIT or TCX files at once | export from the app of the watch |
+
+A preview shows the number of runs and kilometres, with the time range (this year, last 12 months, everything), walks on or off, and kilometres or miles for Garmin files. Rides and other sports are left out, runs that are already in NOVAFit are skipped, and an import can be undone right away. Everything is read on the phone; big Strava archives are not loaded completely, only the activity list inside.
 
 ## Strava connection
 
