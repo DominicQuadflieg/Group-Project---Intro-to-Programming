@@ -2,6 +2,10 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Compact workout page
+
+- Compact workout page: each exercise shows its drawing, name and target in one line; "How to", swap, add set, move and remove sit behind ⋯. Instructions only show for the first 3 times, finished exercises fold into one line (tap to open), and new exercises get a short hint for choosing a weight.
+
 ## Unreleased – Screen stays on, sound when rest is over
 
 - The screen stays on from Start to Finish of every workout, not only in the warm-up and yoga timers; it comes back on after switching apps
