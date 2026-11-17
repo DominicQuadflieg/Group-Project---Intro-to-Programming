@@ -2035,7 +2035,6 @@ function tick(exId, i){
   if(document.activeElement) document.activeElement.blur();
   rest = {end:Date.now() + ex.rest*1000, total:ex.rest*1000};
   updateBottom(); save();
-  if(allDone(exId) && !(a.unfold||{})[exId]) setTimeout(() => { if(screen==="session" && S.active===a) renderSession(); }, 700);
 }
 
 /* ================= Beenden & Zusammenfassung ================= */
@@ -4372,7 +4371,13 @@ document.addEventListener("click", async ev => {
     }
     case "resume": closeSheet(); screen = "session"; render(); window.scrollTo(0,0); break;
     case "home": closeSheet(); screen = "home"; summary = null; render(); window.scrollTo(0,0); break;
-    case "tick": tick(b.dataset.ex, +b.dataset.i); updProg(); break;
+    case "tick": {
+      tick(b.dataset.ex, +b.dataset.i); updProg();
+      // last set of an exercise ticked → fold it into one line shortly after
+      const id = b.dataset.ex, a = S.active;
+      if(allDone(id) && !(a.unfold||{})[id]) setTimeout(() => { if(screen==="session" && S.active===a && allDone(id)) renderSession(); }, 700);
+      break;
+    }
     case "rmset": { const arr = S.active.sets[b.dataset.ex]; if(arr && +b.dataset.i < arr.length){ arr.splice(+b.dataset.i, 1); rest = null; save(); renderSession(); } break; }
     case "addset": { const ex = EXN[b.dataset.ex], arr = (S.active.sets[ex.id] = S.active.sets[ex.id]||[]); arr.push(prefill(ex.id, arr.length, arr[arr.length-1])); save(); renderSession(); break; }
     case "openopt": { const base = exIn(S.active.type, b.dataset.ex), x = eff(base); S.active.open[base.id] = true; if(!S.active.sets[x.id]) S.active.sets[x.id] = prefilledSets(x); save(); renderSession(); break; }
