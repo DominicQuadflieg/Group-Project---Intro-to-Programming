@@ -11,7 +11,7 @@ self.addEventListener("push", e => {
   }catch(_){}
 });
 
-const CACHE = "novafit-v3";
+const CACHE = "novafit-v4";
 const FILES = ["./", "./index.html", "./plan.js", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png", "./OneSignalSDKWorker.js", "./img/campus-1.svg", "./img/campus-2.svg", "./img/gym.svg", "./img/run.svg", "./img/yoga.svg"];
 
 self.addEventListener("install", e => {

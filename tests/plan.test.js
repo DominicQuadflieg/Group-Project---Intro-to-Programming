@@ -39,6 +39,31 @@ test("sign-up rejects markup in the name and over-long names", () => {
   assert.equal(P.validateSignup({ name: "x".repeat(40), email: "j@nova.pt", password: "secret123" }).ok, true);
 });
 
+/* ---------- about you ---------- */
+test("body data accepts realistic values, also with a decimal comma", () => {
+  const r = P.validateBody({ sex: "female", age: "21", kg: "62,5" });
+  assert.equal(r.ok, true);
+  assert.deepEqual(r.value, { sex: "female", age: 21, kg: 62.5 });
+  assert.equal(P.validateBody({ sex: "na", age: 16, kg: 30 }).ok, true);   // lower limits
+  assert.equal(P.validateBody({ sex: "male", age: 99, kg: 250 }).ok, true); // upper limits
+});
+
+test("body data rejects missing, out-of-range and non-numeric input", () => {
+  const e = x => P.validateBody(Object.assign({ sex: "male", age: 25, kg: 75 }, x)).errors;
+  assert.ok(e({ sex: "" }).sex);
+  assert.ok(e({ sex: "robot" }).sex);
+  assert.ok(e({ age: "" }).age);
+  assert.ok(e({ age: 15 }).age);
+  assert.ok(e({ age: 100 }).age);
+  assert.ok(e({ age: "21.5" }).age);
+  assert.ok(e({ age: "abc" }).age);
+  assert.ok(e({ kg: "" }).kg);
+  assert.ok(e({ kg: 29.9 }).kg);
+  assert.ok(e({ kg: 251 }).kg);
+  assert.ok(e({ kg: "-70" }).kg);
+  assert.ok(e({ kg: "70kg" }).kg);
+});
+
 /* ---------- questionnaire ---------- */
 test("days per week must be a whole number from 2 to 6", () => {
   for (const d of [2, 3, 6]) assert.equal(P.validateDays(d).ok, true, d);
@@ -63,11 +88,14 @@ test("the mix must add up exactly", () => {
   assert.equal(P.validateMix({ s: 1.5, r: 1.5, y: 0 }, 3).ok, false);
 });
 
-test("goals: between 1 and 3, known, unique and matching the mix", () => {
+test("goals: between 1 and 6, at most 2 per type, known, unique and matching the mix", () => {
   const mix = { s: 1, r: 1, y: 1 };
   assert.equal(P.validateGoals(["hip20", "run5k", "exam"], mix).ok, true);
+  assert.equal(P.validateGoals(["hip20", "pullup", "run5k", "half", "exam", "toes"], mix).ok, true); // 6 = 2 per type
   assert.equal(P.validateGoals([], mix).ok, false);
-  assert.equal(P.validateGoals(["hip20", "run5k", "exam", "toes"], mix).ok, false);
+  assert.equal(P.validateGoals(["hip20", "pullup", "muscle"], mix).ok, false);   // 3 strength goals
+  assert.equal(P.validateGoals(["run5k", "run10k", "half"], mix).ok, false);      // 3 running goals
+  assert.equal(P.validateGoals(["hip20", "pullup", "run5k", "half", "exam", "toes", "sleep"], mix).ok, false); // 7
   assert.equal(P.validateGoals(["hip20", "hip20"], mix).ok, false);
   assert.equal(P.validateGoals(["fly"], mix).ok, false);
   assert.equal(P.validateGoals(["half"], { s: 3, r: 0, y: 0 }).ok, false); // running goal without a run
@@ -130,6 +158,7 @@ test("sessions map to workouts the app can start", () => {
   const p = P.suggestPlans(answers({ days: 6, mix: { s: 2, r: 2, y: 2 }, goals: ["pullup", "half"], level: "advanced", min: 60 }))[0];
   for (const s of p.sessions) assert.ok(["po", "oben", "lauf", "yoga"].includes(s.workout));
   assert.equal(p.sessions.find(s => s.kind === "s").workout, "oben"); // pull-up goal starts with upper body
+  assert.deepEqual(p.sessions.filter(s => s.kind === "s").map(s => s.title), ["Upper Body", "Lower Body"]);
   assert.ok(p.sessions.filter(s => s.kind === "y").every(s => s.min <= 30));
 });
 

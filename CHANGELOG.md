@@ -2,6 +2,15 @@
 
 Alle Versionen der App, die neueste oben.
 
+## v2.4 – Goals per type, body data, lower body, reset
+
+- Goals: up to 6 in total and at most 2 per type (strength, running, yoga); the counter per type shows how many are picked
+- New first questionnaire step “A bit about you”: sex, age (16–99) and body weight (30–250 kg, decimal comma or point), checked with clear errors; the weight is used for the calorie estimate, everything is shown in Settings → Account
+- “Glute Day” is now **Lower Body**: back squats, Romanian deadlift, Bulgarian split squats and hip thrusts, optional lying leg curls, standing calf raises and hip adduction; new alternatives (leg press, goblet squats, Smith machine squats, seated leg curls), guides with drawings, new warm-up (bodyweight squats, walking lunges)
+- Older sessions keep their history; kickbacks stay available for old records; saved plans are renamed automatically
+- Every running session (strength, run, yoga) has **Reset** at the top right: “Start over” clears everything logged and restarts the clock, “Delete session” removes it completely
+- Tests extended to 21 (body data, goal limits, lower body)
+
 ## v2.3 – English, account and personal plans
 
 - The whole app is now in English: all screens, workouts, yoga flows, exercise guides, badges, reviews, share images, calendar files and notification settings; dates and numbers in English format
