@@ -2,6 +2,13 @@
 
 Alle Versionen der App, die neueste oben.
 
+## v2.8.2 – Only exercises with a drawing
+
+- 22 exercises without a drawing were taken out of the library (e.g. Turkish Get-up, Olympic lifts, Box Jump, Sit-up); 124 exercises remain, all with drawings
+- Swap only suggests exercises with a drawing; all workout templates already use them only
+- Older sessions keep the names and progress curves of the removed exercises, and they can be added again as your own exercise
+- 2 new tests (90 in total)
+
 ## v2.8.1 – Drawings for 124 exercises
 
 - 52 more exercises have drawings, from Workout Guide by Bryl Lim (based on Everkinetic, CC BY-SA 4.0): e.g. Hip Thrust, Plank, Overhead Press, Lat Pulldown, Bulgarian Split Squat, Kettlebell Swing, Face Pull and all cardio machines

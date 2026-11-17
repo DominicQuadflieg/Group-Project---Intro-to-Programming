@@ -268,6 +268,11 @@
     jumprope: ["Small jumps"]
   };
   const DRAWING_WG = new Set(["pecdeck", "incpushup", "bbrow", "pendlay", "rackpull", "csrow", "mrow", "lat", "chinup", "apullup", "ohp", "pushpress", "landmine", "dbsp", "arnold", "msp", "lracable", "lram", "frontplate", "revflym", "facepull", "revcurl", "ohcable", "gobletsq", "sumo", "bulgarian", "split", "pistol", "hip", "smithhip", "dbhip", "nordic", "wallsit", "plank", "hollow", "climber", "vup", "deadbug", "hlr", "hkr", "rtwist", "pallof", "kbswing", "burpee", "farmer", "ropes", "rowing", "bike", "cycling", "elliptical", "stairs", "jumprope"]);
+  // Exercises without a drawing were taken out of the library in v2.8.2. They stay hidden here
+  // (like ohtri) so older sessions keep their names and progress curves.
+  const RETIRED = ["inclm", "lowfly", "latone", "bayes", "sldl", "glutebridge", "dbcalf", "boxjump", "situp", "woodchop",
+    "powerclean", "clean", "cleanjerk", "snatch", "thruster", "tgu", "wallball", "sled", "atridip", "bwsplit", "kickm", "cablecrunch"];
+  LIBRARY.forEach(e => { if (RETIRED.includes(e.id)) e.hidden = true; });
   LIBRARY.forEach(e => { if (DRAWINGS[e.id]) { e.img = DRAWINGS[e.id].slice(); e.imgSrc = DRAWING_WG.has(e.id) ? "wg" : "ek"; } });
   const BY_ID = {};
   LIBRARY.forEach(e => { BY_ID[e.id] = e; });
@@ -314,7 +319,7 @@
     if (!TYPES[type]) errors.type = "Choose how you log it";
     if (!errors.name && !errors.eq) {
       const full = norm(customName(name, eq));
-      const taken = LIBRARY.concat(existing || []).some(e => norm(e.n) === full);
+      const taken = LIBRARY.filter(e => !e.hidden).concat(existing || []).some(e => norm(e.n) === full);
       if (taken) errors.name = "This exercise already exists. Search for it in the library.";
     }
     const ok = Object.keys(errors).length === 0;
@@ -370,7 +375,7 @@
     return Object.entries(ex.m).filter(([, w]) => w >= .5).sort((a, b) => b[1] - a[1]).map(([k]) => MUSCLE_NAMES[k]).join(", ");
   }
 
-  const api = { TYPES, PARTS, EQUIP, PATTERNS, LIBRARY, BY_ID, DRAWINGS, TEMPLATES, TEMPLATE_ORDER, MUSCLE_NAMES,
+  const api = { RETIRED, TYPES, PARTS, EQUIP, PATTERNS, LIBRARY, BY_ID, DRAWINGS, TEMPLATES, TEMPLATE_ORDER, MUSCLE_NAMES,
     unitOf, search, alternatives, validateCustom, makeCustom, templateExercises, focusOf };
   if (typeof module === "object" && module.exports) module.exports = api;
   else root.NFEx = api;
