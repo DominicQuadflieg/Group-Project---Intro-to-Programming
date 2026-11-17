@@ -133,6 +133,26 @@ h2.sec{font:700 15px var(--display);letter-spacing:.08em;text-transform:uppercas
 .txtbtn{background:none;border:0;color:var(--accent);font-weight:600;cursor:pointer;padding:8px 4px;min-width:64px;text-align:left}
 .txtbtn.r{text-align:right;color:var(--muted);font-weight:500}
 .exhead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+/* Compact exercise card: picture, name and target in one line, everything else behind ⋯ */
+.exh2{display:flex;align-items:center;gap:10px}
+.exh2 .pic{width:44px;height:44px;flex:none;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.exh2 .pic img{width:100%;height:100%;object-fit:contain}
+.exh2 .pic.lt{background:var(--bg);font:900 20px var(--display);color:var(--ink)}
+.exh2 .nm{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.exh2 .nm b{font-size:16px;font-weight:600;line-height:1.25}
+.exh2 .nm small{font-size:12px;color:var(--muted)}
+.exh2 .more{width:44px;height:44px;flex:none;border:0;background:none;color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:0}
+.exh2 .more:focus-visible,.exfold:focus-visible{outline:3px solid var(--run);outline-offset:2px}
+.firsthint{font-size:13px;color:var(--muted);background:var(--bg);padding:6px 10px}
+.exfold{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);text-align:left;cursor:pointer;font-family:inherit;border-radius:calc(var(--rs) * 10px)}
+.exfold .pic{width:36px;height:36px;flex:none;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#fff}
+.exfold .pic img{width:100%;height:100%;object-fit:contain}
+.exfold .pic.lt{background:var(--bg);font:900 17px var(--display)}
+.exfold span.t{flex:1;min-width:0;font-size:14px}
+.exfold .ok{color:var(--good);font-size:12px;font-weight:800;letter-spacing:.08em}
+.exmenu button{display:flex;justify-content:space-between;align-items:center;gap:10px;text-align:left;padding-left:16px;padding-right:16px}
+.exmenu button span{font-weight:400}
+.exmenu .rm{color:var(--muted)}
 .exhead h3{margin:0;font-size:17px;font-weight:600;line-height:1.25}
 .exhead h3 small{display:block;font-weight:400;font-size:13px;color:var(--muted)}
 .target{flex-shrink:0;text-align:right}
@@ -1376,8 +1396,23 @@ function setRows(ex){
   }).join("");
 }
 
+const MORE_ICO = '<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/></svg>';
+// Small drawing of an exercise (end position), else its first letter
+function cardPic(e){
+  return e && Array.isArray(e.img) && e.img.length && !e.custom
+    ? `<span class="pic"><img src="img/ex/${e.id}-${e.img.length}.svg" alt="" loading="lazy"></span>`
+    : `<span class="pic lt" aria-hidden="true">${esc(((e && e.n) || "?").charAt(0).toUpperCase())}</span>`;
+}
+// How often an exercise was done before: the instructions show for the first 3 times, later behind ⋯ › How to
+const timesDone = id => S.history.reduce((n, e) => n + (e.sets && e.sets[id] && e.sets[id].length ? 1 : 0), 0);
+const allDone = id => { const a = (S.active.sets||{})[id] || []; return a.length>0 && a.every(isDone); };
 function exCard(ex, base, pos){
   base = base || ex; pos = pos || {};
+  // finished exercises fold into one line (tap to open again)
+  if(allDone(ex.id) && !(S.active.unfold||{})[ex.id]){
+    const a = S.active.sets[ex.id], top = Math.max(...a.map(x => num(x.kg)));
+    return `<button class="exfold" data-act="exunfold" data-ex="${ex.id}" aria-label="${esc(ex.n)}: all sets done, tap to open">${cardPic(ex)}<span class="t"><b>${esc(ex.n.replace(/ \(.*\)$/, ""))}</b> · ${a.length} ${a.length===1?"set":"sets"}${top>0 ? ` · ${fmt(top)} kg` : ""}</span><span class="ok">✓ DONE</span></button>`;
+  }
   const last = lastSets(ex.id);
   let ll = "", hint = "";
   if(last){
@@ -1388,20 +1423,30 @@ function exCard(ex, base, pos){
       hint = `<div class="hint">💪 You completed all sets last time. Try <b>${fmt(up)} kg</b> today (+${fmt(stepOf(ex.id))} kg).${applied?` <span>✓ applied</span>`:` <button class="linkbtn" data-act="applyup" data-ex="${ex.id}" data-kg="${up}">Apply</button>`}</div>`;
     }
   }
-  const opt = ex.opt;
+  if(!last && (ex.type||"w")==="w") hint = `<div class="firsthint">First time? Pick a weight you can lift ${String(rangeTxt(ex)).split(/[–-]/).pop()}× cleanly.</div>`;
+  const opt = ex.opt, rest = ex.rest>=120 ? "2 min" : ex.rest+" s";
+  const menu = `data-act="exmenu" data-ex="${ex.id}" data-base="${base.id}" data-first="${pos.first?1:""}" data-last="${pos.last?1:""}" data-added="${pos.added?1:""}" data-opt="${opt?1:""}"`;
   return `<article class="card ${opt?"opt":""}">
-    <div class="exhead"><h3>${ex.n}<button class="infobtn" data-act="guide" data-ex="${ex.id}" aria-label="How to do ${esc(ex.n)}">i</button>${ex.de?`<small>${ex.de}</small>`:""}</h3>
-      <div class="target"><b>${ex.s} × ${rangeTxt(ex)}</b><span>Rest ${ex.rest>=120?"2 min":ex.rest+" s"}</span></div></div>
-    ${ex.cue?`<p class="cue">${ex.cue}</p>`:""}${ll}${hint}
+    <div class="exh2">${cardPic(ex)}<span class="nm"><b>${ex.n}</b><small>${ex.s} × ${rangeTxt(ex)} · rest ${rest}${ex.de?` · ${ex.de}`:""}</small></span>
+      <button class="more" ${menu} aria-haspopup="dialog" aria-label="Options for ${esc(ex.n)}">${MORE_ICO}</button></div>
+    ${ex.cue && timesDone(ex.id) < 3 ? `<p class="cue">${ex.cue}</p>` : ""}${ll}${hint}
     <div class="colhead"><span>Set</span><span>${COLS[ex.type||"w"][0]}</span><span>${COLS[ex.type||"w"][1]}</span><span></span></div>
     <div class="sets">${setRows(ex)}</div>
-    <div class="exfoot">
-      <button class="addset" data-act="addset" data-ex="${ex.id}">+ Set</button>
-      ${pos.first&&pos.last?"":`<span class="mv">${pos.first?"":`<button data-act="move" data-base="${base.id}" data-d="-1" aria-label="Move ${esc(ex.n)} up">↑</button>`}${pos.last?"":`<button data-act="move" data-base="${base.id}" data-d="1" aria-label="Move ${esc(ex.n)} down">↓</button>`}</span>`}
-      ${!pos.added && altsOf(base.id).length?`<button class="addset" data-act="swap" data-base="${base.id}">⇄ Swap</button>`:""}
-      ${opt?`<button class="addset" data-act="closeopt" data-ex="${base.id}">Skip</button>`:`<button class="addset rmex" data-act="rmex" data-base="${base.id}" data-added="${pos.added?1:""}" aria-label="Remove ${esc(ex.n)} from this session">✕ Remove</button>`}
-    </div>
   </article>`;
+}
+// ⋯ per exercise: everything that used to sit under each card
+function exMenu(d){
+  const ex = EXN[d.ex] || {n:"Exercise"}, it = (act, label, attrs, sub) => `<button class="secondary" data-act="exm" data-go="${act}" ${attrs}>${label}${sub ? `<span class="muted small">${sub}</span>` : ""}</button>`;
+  const base = `data-base="${d.base}"`, exa = `data-ex="${d.ex}"`;
+  sheet(`<div class="exh2" style="margin-bottom:6px">${cardPic(ex)}<span class="nm"><b>${esc(ex.n)}</b><small>${esc(ex.part || "")}${ex.eq ? " · " + esc(ex.eq) : ""}</small></span></div>
+    <div class="exmenu" style="display:flex;flex-direction:column;gap:8px">
+    ${it("guide", "How to do it", exa, "pictures and tips")}
+    ${it("addset", "Add a set", exa)}
+    ${!d.added && altsOf(d.base).length ? it("swap", "Swap exercise", base, "e.g. machine instead") : ""}
+    ${d.first ? "" : it("move", "Move up", `${base} data-d="-1"`)}
+    ${d.last ? "" : it("move", "Move down", `${base} data-d="1"`)}
+    ${d.opt ? it("closeopt", "Skip this exercise", `data-ex="${d.base}"`) : it("rmex", "Remove from today", `${base} data-added="${d.added||""}"`).replace('class="secondary"', 'class="secondary rm"')}
+    </div><button class="secondary" data-act="closesheet">Close</button>`);
 }
 
 function treadBlock(){
@@ -1990,6 +2035,7 @@ function tick(exId, i){
   if(document.activeElement) document.activeElement.blur();
   rest = {end:Date.now() + ex.rest*1000, total:ex.rest*1000};
   updateBottom(); save();
+  if(allDone(exId) && !(a.unfold||{})[exId]) setTimeout(() => { if(screen==="session" && S.active===a) renderSession(); }, 700);
 }
 
 /* ================= Beenden & Zusammenfassung ================= */
@@ -4466,6 +4512,17 @@ document.addEventListener("click", async ev => {
     }
     case "rmexok": removeEx(b.dataset.base, !!b.dataset.added); break;
     case "guide": guideSheet(b.dataset.ex); break;
+    case "exmenu": exMenu(b.dataset); break;
+    case "exunfold": S.active.unfold = Object.assign(S.active.unfold||{}, {[b.dataset.ex]:true}); save(); renderSession(); break;
+    case "exm": {
+      // run the same action the old buttons under each card did
+      const go = b.dataset.go, f = document.createElement("button");
+      Object.keys(b.dataset).forEach(k => { if(k!=="go" && k!=="act") f.dataset[k] = b.dataset[k]; });
+      f.dataset.act = go; f.hidden = true; closeSheet();
+      if(go!=="guide" && go!=="swap") { document.body.appendChild(f); f.click(); f.remove(); }
+      else setTimeout(() => { document.body.appendChild(f); f.click(); f.remove(); }, 0);
+      break;
+    }
     case "applyup": { const id = b.dataset.ex, kg = +b.dataset.kg; (S.active && S.active.sets[id]||[]).forEach(x => { if(!isDone(x)) x.kg = fmt(kg); }); save(); renderSession(); toast(`${fmt(kg)} kg entered. You've got this!`); break; }
     case "share": doShare(); break;
     case "year": closeSheet(); if(b.dataset.seen) { S.settings.yearSeen = +b.dataset.seen; save(); } openYear(+b.dataset.y); break;
