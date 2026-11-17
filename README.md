@@ -23,7 +23,7 @@ On first start, new users create an account (name, email, password) and answer a
 
 NOVAFit then suggests three plans (balanced, focused on the main goal, easy start). Each week combines the strength split with running and yoga, avoids a run the day after a heavy leg session and suggests a short mobility routine after each session. The chosen plan sets the weekly goal and shows the next session on the home screen.
 
-The exercise library has 146 exercises (named like in the Strong app, e.g. “Bench Press (Barbell)”), searchable by name, body part and equipment. In a session, exercises can be added, removed or swapped, and users can create their own exercises. Sets are logged as weight × reps, reps only, assisted (kg of help) or time.
+The exercise library has 124 exercises, each with a drawing (named like in the Strong app, e.g. “Bench Press (Barbell)”), searchable by name, body part and equipment. In a session, exercises can be added, removed or swapped, and users can create their own exercises. Sets are logged as weight × reps, reps only, assisted (kg of help) or time.
 
 A session that has been started can be reset at any time (Reset → Start over or Delete session).
 

@@ -8,7 +8,7 @@ const visible = X.LIBRARY.filter(e => !e.hidden);
 
 /* ---------- library ---------- */
 test("the library has well over 100 exercises with unique ids", () => {
-  assert.ok(visible.length >= 140, `only ${visible.length}`);
+  assert.ok(visible.length >= 120, `only ${visible.length}`);
   assert.equal(new Set(X.LIBRARY.map(e => e.id)).size, X.LIBRARY.length);
   assert.equal(new Set(visible.map(e => e.n.toLowerCase())).size, visible.length); // no duplicate names
 });
@@ -154,4 +154,16 @@ test("every drawing frame exists, has a caption and a credited source", () => {
     assert.ok(!fs.existsSync(path.join(dir, `${id}-${e.img.length + 1}.svg`)), `${id}: extra frame`);
   }
   assert.ok(fs.existsSync(path.join(__dirname, "..", "app", "img", "ex", "SOURCES.md"))); // licence credit
+});
+
+test("every exercise in the library has a drawing, retired ones stay hidden", () => {
+  for (const e of visible) assert.ok(e.img, `${e.id} has no drawing`);
+  for (const id of X.RETIRED) assert.ok(X.BY_ID[id] && X.BY_ID[id].hidden && !X.search("").some(e => e.id === id), id);
+  assert.ok(!X.alternatives("squat").some(e => e.hidden));
+  // a retired name can be created as your own exercise
+  assert.equal(X.validateCustom({ name: "Turkish Get-up", part: "Full body", eq: "Kettlebell", type: "w" }).ok, true);
+});
+
+test("every workout template only uses exercises with a drawing", () => {
+  for (const k of X.TEMPLATE_ORDER) for (const e of X.templateExercises(k)) assert.ok(e.img && !e.hidden, `${k}: ${e.id}`);
 });
