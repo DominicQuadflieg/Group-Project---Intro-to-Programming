@@ -387,12 +387,63 @@
     return Object.assign({ inDays: (s.day - d + 7) % 7 }, s);
   }
 
+  /* ---------- Own program ("Build my own") ---------- */
+  // Each strength day is either "rec" (a ready-made template, exercises can still be added in the
+  // workout) or "own" (the user picks every exercise, no suggestions). A custom split has only
+  // own days with names the user gives them.
+  const OWN_MAX_EX = 15, OWN_NAME_MAX = 30;
+  const STRENGTH_MODES = ["rec", "own"];
+
+  function ownDaysFor(splitId, n) {
+    if (splitId === "custom") return Array.from({ length: n }, (_, i) => ({ name: `Day ${i + 1}`, tpl: null, mode: "own", ex: [] }));
+    const sp = splitById(splitId);
+    if (!sp) return [];
+    return sp.workouts.map(k => ({ name: WORKOUTS[k].title, tpl: k, mode: "rec", ex: [] }));
+  }
+
+  function validateOwnDays(days, n) {
+    if (!Array.isArray(days) || !days.length) return { ok: false, error: "Choose a split first", day: -1 };
+    if (Number.isInteger(n) && days.length !== n) return { ok: false, error: `Set up ${n} strength ${n === 1 ? "day" : "days"}`, day: -1 };
+    for (let i = 0; i < days.length; i++) {
+      const d = days[i] || {}, name = String(d.name || "").trim(), label = name || `Day ${i + 1}`;
+      if (!name) return { ok: false, error: `Give day ${i + 1} a name`, day: i };
+      if (name.length > OWN_NAME_MAX) return { ok: false, error: `Use ${OWN_NAME_MAX} characters or fewer for “${label.slice(0, 12)}…”`, day: i };
+      if (/[<>{}]/.test(name)) return { ok: false, error: `Use letters, numbers and spaces for “${label}”`, day: i };
+      if (!STRENGTH_MODES.includes(d.mode)) return { ok: false, error: `Choose Recommended or Choose my own for ${label}`, day: i };
+      if (d.mode === "rec" && !WORKOUTS[d.tpl]) return { ok: false, error: `${label} has no template, choose your own exercises`, day: i };
+      if (d.mode === "own") {
+        const ex = Array.isArray(d.ex) ? d.ex : [];
+        if (!ex.length) return { ok: false, error: `Add at least one exercise to ${label}`, day: i };
+        if (ex.length > OWN_MAX_EX) return { ok: false, error: `Use ${OWN_MAX_EX} exercises or fewer on ${label}`, day: i };
+        if (new Set(ex).size !== ex.length) return { ok: false, error: `${label} has an exercise twice`, day: i };
+      }
+    }
+    return { ok: true };
+  }
+
+  // The workout key and title each own day stands for: a template key, or own1, own2, … for own days
+  function ownDayKeys(days) {
+    return (days || []).map((d, i) => ({ workout: d.mode === "own" ? `own${i + 1}` : d.tpl, title: String(d.name || "").trim() || `Day ${i + 1}` }));
+  }
+
+  // Puts the own days into a suggested plan: the strength sessions, in week order, take them in turn
+  // name (optional) replaces the split's name in the plan, e.g. "Custom split"
+  function applyOwnDays(plan, keys, name) {
+    if (!plan || !Array.isArray(plan.sessions) || !keys || !keys.length) return plan;
+    const out = JSON.parse(JSON.stringify(plan));
+    out.sessions.filter(x => x.kind === "s").sort((x, y) => x.day - y.day)
+      .forEach((x, i) => { const k = keys[i % keys.length]; x.workout = k.workout; x.title = k.title; });
+    if (out.split) out.split = Object.assign({}, out.split, { own: true }, name ? { name } : {});
+    return out;
+  }
+
   const api = {
     KINDS, KIND_LABEL, DAY_NAMES, GOALS, LEVELS, MINUTES, MIN_DAYS, MAX_DAYS, MAX_GOALS, MAX_PER_KIND,
     SEXES, MIN_AGE, MAX_AGE, MIN_KG, MAX_KG, MIN_CM, MAX_CM,
     goalById, validateSignup, validateBody, toNumber, restingKcalPerDay, kcalFactor, validateDays, validateMix, validateGoals, validateAnswers,
     rebalanceMix, mixTotal, scheduleWeek, suggestPlans, weekdayIndex, sessionOn, nextSession,
-    WORKOUTS, HEAVY_LEGS, ADDONS, ADDON_FOR, SPLITS, splitsFor, splitById, recommendSplit, splitFor, validateSplit
+    WORKOUTS, HEAVY_LEGS, ADDONS, ADDON_FOR, SPLITS, splitsFor, splitById, recommendSplit, splitFor, validateSplit,
+    OWN_MAX_EX, OWN_NAME_MAX, STRENGTH_MODES, ownDaysFor, validateOwnDays, ownDayKeys, applyOwnDays
   };
   if (typeof module === "object" && module.exports) module.exports = api;
   else root.NFPlan = api;

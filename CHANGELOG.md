@@ -2,6 +2,14 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Build my own strength plan
+
+- New step after the questionnaire: “Recommended for you” (the ready plan as before) or “Build my own”
+- Build my own: pick a split (or a custom split with your own day names, e.g. “Chest & Back”), then for each day choose “Recommended” (our template, you can still add exercises during the workout) or “Choose my own” (no suggestions, you pick every exercise, up to 15)
+- Your own days show up by name in the plan, on the home screen and in the history, and start with exactly your exercises
+- Exercise list redone in the style of Strong: a small drawing next to every exercise, A–Z sections, search, body part and equipment filters, an ⓘ button for the how-to with “Back to the list”, and checkboxes to pick several exercises at once
+- 4 new tests for the own-day logic in `app/plan.js`
+
 ## Unreleased – Calories by sex, age, weight and height
 
 - Calorie estimates for strength, yoga and timed runs now use your personal resting burn (Mifflin-St Jeor) from sex, age, weight and height instead of the same value for everyone: women and older people get a more honest, slightly lower number (e.g. 45 min strength at 70 kg: about 265 kcal for a 21-year-old man, about 240 kcal for a 21-year-old woman)
