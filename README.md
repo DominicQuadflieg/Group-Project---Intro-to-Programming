@@ -34,19 +34,43 @@ The app needs no build step:
 |---|---|
 | `app/index.html` | The app: layout, design (CSS) and logic (JavaScript) |
 | `app/plan.js` | Sign-up validation, questionnaire checks and plan suggestions (pure functions, tested) |
-| `app/run.js` | Running logic: reading runs from screenshots and checking the values (pure functions, tested) |
+| `app/run.js` | Running logic: reading runs from screenshots and from GPX, TCX and FIT files, checking the values, turning Strava activities into runs (pure functions, tested) |
 | `app/manifest.webmanifest` | Name, colours and icon for the home screen |
 | `app/OneSignalSDKWorker.js` | Service worker: offline use and push reminders |
 | `app/img/` | Pictures for the home screen and training cards (placeholders) |
 | `app/icon-*.png`, `app/apple-touch-icon.png` | App icons |
+| `netlify/functions/strava.mjs` | Server part of the Strava connection (keeps the client secret) |
+| `netlify.toml` | Netlify settings: publishes `app`, runs the Strava function |
 | `app/INSTALL.txt` | How to install the app on a phone |
 | `tests/plan.test.js` | Tests for `app/plan.js` |
-| `tests/run.test.js` | Tests for `app/run.js` |
+| `tests/run.test.js` | Tests for `app/run.js` (screenshots) |
+| `tests/run-files.test.js` | Tests for `app/run.js` (GPX, TCX, FIT, ZIP) |
+| `tests/strava.test.js` | Tests for the Strava connection (app side and function) |
 
 ## Run
 
 - **Locally:** `python3 -m http.server 8000 --directory app`, then open http://localhost:8000 (opening `app/index.html` directly also works in most browsers).
-- **On a phone:** drag the `app` folder onto https://app.netlify.com/drop, open the address on the phone and choose “Add to Home Screen” (details in `app/INSTALL.txt`).
+- **On a phone:** drag the `app` folder onto https://app.netlify.com/drop, open the address on the phone and choose “Add to Home Screen” (details in `app/INSTALL.txt`). Everything works this way except Strava.
+- **With Strava:** see below. The Strava connection needs the Netlify function, which Netlify Drop can't run.
+
+## Strava connection
+
+Garmin, Polar, Coros, Suunto and Apple Watch can send runs to Strava automatically. Connected to Strava, NOVAFit picks up those runs whenever the app is opened.
+
+Strava gives each app a public client ID and a secret. The secret must never be in the app or in this repository, so a small Netlify Function (`netlify/functions/strava.mjs`) talks to Strava for the app.
+
+One-time setup:
+
+1. **Connect Netlify to GitHub:** on Netlify, *Add new site → Import an existing project → GitHub* and pick this repository. `netlify.toml` already says what to publish (`app`) and where the function is. Every merge into `main` then deploys automatically.
+2. **Create a Strava API app:** https://www.strava.com/settings/api. Use the site address as *Website* and its domain (e.g. `novafit.netlify.app`, without `https://`) as *Authorization Callback Domain*.
+3. **Add the keys to Netlify:** *Site configuration → Environment variables*: `STRAVA_CLIENT_ID` and `STRAVA_CLIENT_SECRET` from the Strava page, then deploy again.
+4. Open the app: *Run → Connect Strava*. The Strava button only shows up once the function answers, so the app looks as before without this setup.
+
+Notes:
+
+- New Strava API apps can only be used by a few athletes at first. If more people want to connect, ask Strava for more capacity on the API settings page.
+- NOVAFit only asks for read access to activities. The login stays on the phone under its own storage key, so it isn't part of backups or the cloud sync. *Settings → Strava → Disconnect* removes it and the access on Strava.
+- Strava allows 100 requests per 15 minutes per app. NOVAFit checks at most every 15 minutes per phone.
 
 ## Test
 

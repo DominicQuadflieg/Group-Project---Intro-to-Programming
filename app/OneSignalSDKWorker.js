@@ -11,7 +11,7 @@ self.addEventListener("push", e => {
   }catch(_){}
 });
 
-const CACHE = "novafit-v5";
+const CACHE = "novafit-v7";
 // Text recognition for run screenshots (a few MB, fixed version): own cache, so app updates don't download it again
 const OCR_CACHE = "novafit-ocr-v1";
 const FILES = ["./", "./index.html", "./plan.js", "./run.js", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png", "./OneSignalSDKWorker.js", "./img/campus-1.svg", "./img/campus-2.svg", "./img/gym.svg", "./img/run.svg", "./img/yoga.svg"];
@@ -25,6 +25,8 @@ self.addEventListener("activate", e => {
 self.addEventListener("fetch", e => {
   if (e.request.method !== "GET") return;
   const url = new URL(e.request.url);
+  // Strava connection (Netlify Function): always live, never cached
+  if (url.origin === location.origin && url.pathname.startsWith("/.netlify/")) return;
   // Own pages: network first (for updates), otherwise cache
   if (url.origin === location.origin) {
     e.respondWith(
