@@ -138,3 +138,15 @@ test("focusOf names the main muscles", () => {
   assert.ok(X.focusOf(X.BY_ID.bench).startsWith("Chest"));
   assert.equal(X.focusOf(null), "");
 });
+
+test("every drawing exists as start and end image with two captions", () => {
+  const fs = require("node:fs"), path = require("node:path");
+  const ids = Object.keys(X.DRAWINGS);
+  assert.ok(ids.length >= 10);
+  for (const id of ids) {
+    assert.ok(X.BY_ID[id], id);
+    assert.equal(X.BY_ID[id].img.length, 2, id);
+    for (const k of ["start", "end"]) assert.ok(fs.existsSync(path.join(__dirname, "..", "app", "img", "ex", `${id}-${k}.svg`)), `${id}-${k}.svg`);
+  }
+  assert.ok(fs.existsSync(path.join(__dirname, "..", "app", "img", "ex", "SOURCES.md"))); // licence credit
+});

@@ -13,6 +13,7 @@ Alle Versionen der App, die neueste oben.
 - The week combines the split with running and yoga: no run the day after a heavy leg session where possible, and each session suggests a short mobility routine afterwards (hip mobility, shoulder mobility, full-body stretch, runner's stretch)
 - Three new mobility routines; the cool-down shows up after a session, in the plan and in the yoga menu
 - Home screen: start buttons follow your split, “More workouts” and the exercise library; tap a day in the plan to see that session
+- Drawings of the start and end position for 10 exercises (Squat, Deadlift, Pull-up, Bench Press, Incline Bench Press, Lateral Raise, Seated Row, Leg Press, Romanian Deadlift, Lying Leg Curl) from Everkinetic, CC BY-SA 4.0, with step-by-step instructions
 - Older sessions keep their exercise names and progress curves
 - 22 new tests for the library, custom exercises, splits and the week schedule (87 in total)
 

@@ -219,6 +219,15 @@
     return Object.assign({ id, n, eq, part, type, pat, cue: cue || p.cue, m: p.m, s: p.s, r: p.r.slice(), rest: p.rest }, extra || {});
   }
   const LIBRARY = ROWS.map(fromRow);
+
+  // Drawings of the start and end position in app/img/ex/<id>-start.svg and <id>-end.svg
+  // (Everkinetic, CC BY-SA 4.0, see app/img/ex/SOURCES.md) with a caption for each
+  const DRAWINGS = {
+    squat: ["Stand tall", "Sit down"], deadlift: ["Set up", "Stand up"], pullup: ["Hang", "Pull up"],
+    bench: ["Arms straight", "Bar to chest"], incl: ["Arms straight", "Lower to chest"], lra: ["Arms down", "Raise"],
+    crow: ["Arms long", "Pull"], legpress: ["Legs straight", "Lower"], rdl: ["Stand tall", "Hips back"], legcurl: ["Legs long", "Curl"]
+  };
+  LIBRARY.forEach(e => { if (DRAWINGS[e.id]) e.img = DRAWINGS[e.id].slice(); });
   const BY_ID = {};
   LIBRARY.forEach(e => { BY_ID[e.id] = e; });
 
@@ -320,7 +329,7 @@
     return Object.entries(ex.m).filter(([, w]) => w >= .5).sort((a, b) => b[1] - a[1]).map(([k]) => MUSCLE_NAMES[k]).join(", ");
   }
 
-  const api = { TYPES, PARTS, EQUIP, PATTERNS, LIBRARY, BY_ID, TEMPLATES, TEMPLATE_ORDER, MUSCLE_NAMES,
+  const api = { TYPES, PARTS, EQUIP, PATTERNS, LIBRARY, BY_ID, DRAWINGS, TEMPLATES, TEMPLATE_ORDER, MUSCLE_NAMES,
     unitOf, search, alternatives, validateCustom, makeCustom, templateExercises, focusOf };
   if (typeof module === "object" && module.exports) module.exports = api;
   else root.NFEx = api;

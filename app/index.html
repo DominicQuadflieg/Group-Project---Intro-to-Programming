@@ -859,6 +859,13 @@ section[id]{scroll-margin-top:calc(var(--nf-hmin) + 14px)}
 .ob .split small{font-size:13px;opacity:.8}
 .ob .plan .ses .st{display:flex;flex-direction:column}
 .ob .plan .ses small.addon{font-size:12px;color:var(--muted)}
+.exdraw{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line)}
+.exdraw figure{margin:0;background:#fff;display:flex;flex-direction:column;align-items:center;padding:10px 8px 8px}
+.exdraw img{width:100%;height:170px;object-fit:contain}
+.exdraw figcaption{font-size:12px;color:#4a4a4a;margin-top:6px;align-self:flex-start}
+.exdraw figcaption b{display:inline-grid;place-items:center;width:18px;height:18px;background:#000;color:#fff;font-size:11px;margin-right:4px}
+.sheet .credit{font-size:11px;color:var(--muted);margin-top:-6px}
+.sheet .credit a{color:inherit}
 .dayex{margin:0;padding-left:18px;font-size:14px;display:grid;gap:3px}
 .dayex small{color:var(--muted)}
 </style>
@@ -2971,6 +2978,16 @@ const EXPOSE = {squat:"xsquat", smithsq:"xsquat", gobletsq:"xsquat", legpress:"x
   lat:"xlat", latclose:"xlat", latone:"xlat", incl:"xincl", inclm:"xincl", flatdb:"xincl", lra:"xlra", lracable:"xlra", lram:"xlra",
   bic:"xbic", hammer:"xbic", cablecurl:"xbic", tri:"xtri", pushdown:"xtri", ohtri:"xtri"};
 const GUIDE = {
+  bench:{f:"Chest, front shoulders and triceps", s:["Lie with your eyes under the bar, feet flat on the floor.","Grip slightly wider than shoulder-width, pull your shoulder blades together and down.","Unrack and lower the bar with control to your mid chest.","Press up and slightly back until your arms are straight."],
+    x:["Don't bounce the bar off your chest.","Keep your glutes on the bench. Use a spotter or safety bars for heavy sets."]},
+  deadlift:{f:"Glutes, hamstrings, back", s:["Feet hip-width, the bar over the middle of your feet.","Hinge down and grip the bar just outside your legs, shins touch the bar.","Chest up, back flat, take the slack out of the bar.","Push the floor away and stand up tall, then lower the bar the same way."],
+    x:["Never round your lower back. Lower the weight instead.","Keep the bar close to your legs the whole way."]},
+  pullup:{f:"Lats, upper back and biceps", s:["Grip the bar slightly wider than shoulder-width, palms facing away.","Hang with straight arms, core tight.","Pull your elbows down toward your ribs until your chin is over the bar.","Lower slowly until your arms are straight again."],
+    x:["No swinging or kicking.","Can't do one yet? Use the assisted machine or a band."]},
+  crow:{f:"Middle back and lats", s:["Sit tall, feet on the platform, knees slightly bent.","Hold the handle with straight arms, chest up.","Pull the handle to your belly, elbows close, squeeze your shoulder blades.","Let the weight forward slowly until your arms are long."],
+    x:["Don't rock back and forth with your upper body.","Keep your shoulders down, away from your ears."]},
+  legpress:{f:"Quads and glutes", s:["Sit with your back flat on the pad, feet hip-width in the middle of the platform.","Release the safety handles, legs almost straight.","Lower the platform until your knees are at about 90°.","Press back up through your heels without locking your knees."],
+    x:["Don't let your lower back lift off the pad at the bottom.","Knees follow your toes, don't let them cave in."]},
   squat:{f:"Quads, glutes and inner thighs", s:["Bar on your upper back, not on your neck. Feet about shoulder-width, toes slightly out.","Brace your core, chest up.","Sit back and down until your thighs are at least parallel to the floor.","Push up through your whole foot, knees following your toes."],
     x:["Don't let your knees cave in.","Keep your heels on the floor; if they lift, widen your stance or go less deep."]},
   legcurl:{f:"Hamstrings (back of the thigh)", s:["Lie face down, the pad just above your heels, knees just off the bench.","Hold the handles, press your hips into the pad.","Curl your heels toward your glutes.","Lower slowly until your legs are almost straight."],
@@ -3005,7 +3022,9 @@ function guideSheet(id){
   const g = GUIDE[id] || {}, focus = g.f || NFEx.focusOf(ex);
   const steps = g.s || [ex.cue].filter(Boolean);
   sheet(`<p class="eyebrow">How to · ${esc(ex.part||"")} · ${esc(NFEx.TYPES[ex.type]||"")}</p><h3 style="margin:-6px 0 0">${esc(ex.n)}</h3>${focus?`<p class="muted small" style="margin:-4px 0 0">🎯 ${esc(focus)}</p>`:""}
-    ${poseSvg(EXPOSE[id] || PAT_POSE[ex.pat], "expose")}
+    ${ex.img ? `<div class="exdraw">${["start","end"].map((k,i) => `<figure><img src="img/ex/${id}-${k}.svg" alt="${esc(ex.n)}: ${esc(ex.img[i].toLowerCase())}" loading="lazy"><figcaption><b>${i+1}</b> ${esc(ex.img[i])}</figcaption></figure>`).join("")}</div>
+      <p class="credit">Drawings: <a href="https://github.com/everkinetic/data" target="_blank" rel="noopener">Everkinetic</a>, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a></p>`
+      : poseSvg(EXPOSE[id] || PAT_POSE[ex.pat], "expose")}
     ${steps.length?`<p class="exn" style="margin:0;font-weight:600">How to do it</p><ol class="guide">${steps.map(t => `<li>${esc(t)}</li>`).join("")}</ol>`:""}
     ${(g.x||[]).length?`<p class="exn" style="margin:0;font-weight:600">Watch out for</p><ul class="guide">${g.x.map(t => `<li>${esc(t)}</li>`).join("")}</ul>`:""}
     <button class="secondary" data-act="closesheet">Close</button>`);
