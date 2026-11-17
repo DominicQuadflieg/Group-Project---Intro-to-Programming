@@ -4580,7 +4580,7 @@ function applyTheme(){
 try{ new MutationObserver(() => { if(!applying && (S.settings.theme==="dark"||S.settings.theme==="light") && root.getAttribute("data-theme")!==S.settings.theme) applyTheme(); }).observe(root, {attributes:true, attributeFilter:["data-theme"]}); }catch(e){}
 try{ matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { applyTheme(); if(screen==="home" && !isTyping()) renderHome(); }); }catch(e){}
 /* ================= Push-Benachrichtigungen (OneSignal, nur installierte Version) ================= */
-const ONESIGNAL_APP_ID = "f0a37ca9-7204-4f04-8fd6-77255734ccc8";
+const ONESIGNAL_APP_ID = "94f5491b-178a-43d6-8176-bd21491da60d";   // OneSignal app "NOVAFit"
 const inClaude = !!window.claude;
 const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform==="MacIntel" && navigator.maxTouchPoints>1);
 const standalone = (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone===true;
