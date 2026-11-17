@@ -47,6 +47,7 @@ The app needs no build step:
 | `netlify/functions/strava.mjs` | Server part of the Strava connection (keeps the client secret) |
 | `netlify.toml` | Netlify settings: publishes `app`, runs the Strava function |
 | `app/INSTALL.txt` | How to install the app on a phone |
+| `releases/` | Zipped versions of the app, ready to install |
 | `tests/plan.test.js` | Tests for `app/plan.js` |
 | `tests/exercises.test.js` | Tests for `app/exercises.js` |
 | `tests/run.test.js` | Tests for `app/run.js` (screenshots) |
@@ -56,6 +57,7 @@ The app needs no build step:
 ## Run
 
 - **Locally:** `python3 -m http.server 8000 --directory app`, then open http://localhost:8000 (opening `app/index.html` directly also works in most browsers).
+- **Ready-made download:** `releases/NOVAFit 2.8.2.zip` contains the current app. Unzip it and use the `novafit` folder like the `app` folder below.
 - **On a phone:** drag the `app` folder onto https://app.netlify.com/drop, open the address on the phone and choose “Add to Home Screen” (details in `app/INSTALL.txt`). Everything works this way except Strava.
 - **With Strava:** see below. The Strava connection needs the Netlify function, which Netlify Drop can't run.
 
