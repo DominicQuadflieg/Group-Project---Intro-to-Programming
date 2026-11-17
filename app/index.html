@@ -4480,6 +4480,8 @@ document.addEventListener("click", async ev => {
     case "week": if(b.dataset.seen){ S.settings.weekSeen = +b.dataset.seen; save(); renderHome(); } closeSheet(); openWeek(+b.dataset.ws); break;
     case "recap": if(b.dataset.seen){ S.settings.recapSeen = b.dataset.seen; save(); renderHome(); } closeSheet(); if(STORY) closeStory(); openMonth(+b.dataset.y, +b.dataset.m); break;
     case "rungoals": runGoalsSheet(); break;
+    case "wxhere": wxLocate(true); break;
+    case "wxhome": S.settings.wxGeo = false; save(); wxSeg(); wxLoad(); wxPaint(); toast(`Weather is for ${NFRun.WX_HOME.place} now.`); break;
     case "rungoalsave": {
       const g = parseMin($("#g-al").value), k = num($("#g-km").value), lp = NFRun.validateLoop($("#g-ln").value, $("#g-lk").value);
       [["g-ln", lp.err.name], ["g-lk", lp.err.km]].forEach(([id, m]) => { $("#"+id+"-err").textContent = m||""; $("#"+id).setAttribute("aria-invalid", m?"true":"false"); });
@@ -4535,8 +4537,6 @@ document.addEventListener("click", async ev => {
     case "nrchelp": nrcHelp(); break;
     case "nrcuse": { const r = parseRunText($("#nrctext").value); if(!r){ toast("No run found in that text."); break; } closeSheet(); applyRun(r); break; }
     case "storyclose": closeStory(); render(); break;
-    case "wxhere": wxLocate(true); break;
-    case "wxhome": S.settings.wxGeo = false; save(); wxSeg(); wxLoad(); wxPaint(); toast(`Weather is for ${NFRun.WX_HOME.place} now.`); break;
     case "kcalshow": S.settings.showKcal = b.dataset.v==="1"; save();
       document.querySelectorAll("#kcalseg button").forEach(x => x.setAttribute("aria-pressed", x.dataset.v===b.dataset.v)); break;
     case "goal": { S.settings.goal = Math.min(7, Math.max(1, S.settings.goal + (+b.dataset.d))); $("#goalv").textContent = S.settings.goal; save(); break; }
