@@ -303,6 +303,15 @@ textarea{width:100%;min-height:64px;border:1px solid var(--line);border-radius:c
 .primary.yoga{background:#6a52c9;color:#fff}
 .tile.yoga b{color:var(--yoga)}
 .yogacard{border-left:4px solid var(--yoga)}
+.ymeta{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;font-weight:600;color:var(--muted)}
+.ylvl{display:inline-flex;align-items:center;gap:5px}
+.ybars{display:inline-flex;align-items:flex-end;gap:2px}.ybars i{width:4px;background:var(--line)}.ybars i:nth-child(1){height:6px}.ybars i:nth-child(2){height:9px}.ybars i:nth-child(3){height:12px}.ybars i.on{background:var(--ink)}
+.ylist{display:flex;flex-direction:column;gap:8px}
+.yrow{display:flex;align-items:center;gap:12px;width:100%;padding:10px 12px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);text-align:left;font-family:inherit;cursor:pointer;border-radius:calc(var(--rs) * 10px)}
+.yrow:focus-visible{outline:3px solid var(--yoga);outline-offset:2px}
+.yrow .thumb{flex:none}
+.ytxt{display:flex;flex-direction:column;gap:2px;min-width:0}.ytxt b{font-size:15px}.ytxt small{font-size:12px;color:var(--muted);line-height:1.35}
+.ysug{align-self:flex-start;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#fff;background:var(--yoga);padding:2px 6px}
 .intro.yoga{background:var(--yoga-soft)}
 .yogaup{background:var(--yoga-soft)}
 
@@ -881,6 +890,7 @@ section[id]{scroll-margin-top:calc(var(--nf-hmin) + 14px)}
 <script src="exercises.js"></script>
 <script src="plan.js"></script>
 <script src="run.js"></script>
+<script src="yoga.js"></script>
 <script>
 /* ================= Plan ================= */
 /* Strength workouts come from the templates in exercises.js (NFEx), exercises from its library */
@@ -902,8 +912,8 @@ NFEx.TEMPLATE_ORDER.forEach(k => {
     desc:ex.filter(e => !e.opt).slice(0, 4).map(e => e.n.replace(/ \(.*\)$/, "")).join(" · ") || "Build your own session"};
 });
 W.lauf = {name:"Run", kind:"run", desc:"Alster loop or treadmill"};
-W.yoga = {name:"Yoga", kind:"yoga", desc:"Vinyasa flow or mobility",
-  intro:"Guided vinyasa flow. A different sequence every time, you choose the length below. A bell counts down the last 3 seconds and rings at each change. Get your mat ready and keep the sound on."};
+W.yoga = {name:"Yoga", kind:"yoga", desc:"Study break, wind down, flow and more",
+  intro:"Pick a session below: a 5-minute study break on your chair, a calm wind-down, beginner basics or a sweaty flow. A bell counts down the last 3 seconds and rings at each change, so keep the sound on."};
 // Home screen order without a plan; ALL_W lists every workout (history, weekly review)
 const ORDER = ["po","lauf","oben","yoga"];
 const ALL_W = ["po","oben","loB","upB","fbA","fbB","fbC","push","pull","legs","empty","lauf","yoga"];
@@ -1068,7 +1078,7 @@ function kcalOf(e){
   const kg = num(S.settings.bodyKg); if(!(kg>0)) return 0;
   let k = 0;
   if(e.run){ const km = num(e.run.km), mn = num(e.run.min); k += e.run.mode==="band" && km>0 && mn>0 ? treadKcal(km, mn, e.run.incline, kg) : km>0 ? distKcal(km, mn, kg) : mn*kg*9.8/60; }
-  if(e.yoga) k += num(e.yoga.min)*kg*(e.yoga.flow ? 3.5 : 3.0)/60;
+  if(e.yoga) k += num(e.yoga.min)*kg*yogaMet(e.yoga)/60;
   if(isGym(e.type)){
     const nSets = Object.values(e.sets||{}).reduce((x,a) => x+a.length, 0);
     const tot = Math.min(60, Math.max(((e.end||e.start)-e.start)/60000, nSets*3)), tm = e.tread ? num(e.tread.min) : 0;
@@ -1324,7 +1334,7 @@ function renderHome(){
   const recent = S.history.slice(-8).reverse();
   h += `<section><h2 class="sec">History</h2><div class="card hist">${recent.length ? recent.map(e => {
     const w = W[e.type]; let m = "";
-    if(e.yoga) m = `${fmt(num(e.yoga.min),0)} min${e.yoga.flow?" Vinyasa Flow":""}`;
+    if(e.yoga) m = `${fmt(num(e.yoga.min),0)} min${yogaLabel(e.yoga) ? " " + yogaLabel(e.yoga) : ""}`;
     else if(e.run) m = `${fmt(num(e.run.km))} km · ${hms(num(e.run.min))}`;
     else m = `${fmt(Math.round(volOf(e)),0)} kg volume`;
     if(e.tread) m += ` · Treadmill ${fmt(num(e.tread.min),0)} min${num(e.tread.incline)?" · "+fmt(num(e.tread.incline))+" %":""}`;
@@ -1890,29 +1900,63 @@ function shotUse(){
   toast(`Added: ${x.km>0 ? fmt(x.km,2)+" km in " : ""}${hms(x.min)} 🏃‍♀️`);
 }
 
+/* ================= Yoga: pick a session (sessions in yoga.js) ================= */
+const YLEVEL = ["", "Calm", "Medium", "Strong"];
+// Label for a logged yoga session: the session's name, "Vinyasa Flow" for older guided flows, else ""
+function yogaLabel(y){
+  if(!y) return "";
+  const s = y.sid && NFYoga.byId(y.sid);
+  return s ? s.n : y.flow ? "Vinyasa Flow" : "";
+}
+// MET values for calories: calm sessions burn less than a flow
+function yogaMet(y){ const s = y && y.sid && NFYoga.byId(y.sid); return s ? [3, 2.5, 3, 3.5][s.level] : y && y.flow ? 3.5 : 3.0; }
+const ranToday = () => { const d = new Date().toDateString(); return S.history.some(e => e.run && new Date(e.start).toDateString()===d); };
+const ySuggest = () => NFYoga.suggest(Date.now(), ranToday());
+function ySid(){ const a = S.active && S.active.yoga; return (a && a.sid) || S.settings.yogaSid || ySuggest() || "vinyasa"; }
+function yLen(id){ return id==="vinyasa" ? yogaLen() : NFYoga.lengthFor(id, (S.settings.yogaLens||{})[id]); }
+// The steps of a session at its chosen length (vinyasa: the flows taking turns)
+function ySteps(id){ return id==="vinyasa" ? flowSteps(curFlow()) : NFYoga.stepsFor(id, yLen(id)); }
+const yPose = id => { const s = NFYoga.byId(id); return id==="vinyasa" ? "dog" : s.steps[Math.min(2, s.steps.length-1)].pose; };
+function yMeta(s, min){
+  const bars = [1,2,3].map(i => `<i class="${i<=s.level?"on":""}"></i>`).join("");
+  return `<span class="ymeta"><span>${min} min</span><span>${esc(s.where)}</span><span class="ylvl"><span class="ybars" aria-hidden="true">${bars}</span>${YLEVEL[s.level]}</span></span>`;
+}
 function yogaBlock(){
-  const y = S.active.yoga, fl = curFlow(), FS = flowSteps(fl), FM = stepsMin(FS);
+  const y = S.active.yoga, sid = ySid(), s = NFYoga.byId(sid), FS = ySteps(sid), FM = stepsMin(FS), sug = ySuggest();
   const n = S.history.filter(e => e.yoga).length;
+  const sub = sid==="vinyasa" ? `Today: ${esc(curFlow().n)} · ${FS.length} poses` : `${FS.length} poses`;
+  const others = NFYoga.SESSIONS.filter(x => x.id!==sid).map(x => `<button class="yrow" data-act="yogapick" data-id="${x.id}">${poseSvg(yPose(x.id),"thumb")}<span class="ytxt">${x.id===sug?`<span class="ysug">Suggested now</span>`:""}<b>${esc(x.n)}</b><small>${esc(x.desc)}</small>${yMeta(x, x.id==="vinyasa" ? yogaLen() : yLen(x.id))}</span></button>`).join("");
   return `<article class="card yogacard">
-    <div class="exhead"><h3>Vinyasa Flow<small>${esc(fl.n)} · ${FS.length} poses · ${FM} minutes</small></h3>
-      ${y.flow?`<span class="pill yoga">✓ done</span>`:""}</div>
-    <button class="primary yoga" data-act="yogago">${y.flow?"Start flow again":"Start flow"}</button>
-    <div class="lenseg" role="group" aria-label="Length">${[15,30,45].map(m => `<button data-act="yogalen" data-m="${m}" class="${yogaLen()===m?"on":""}">${m} min</button>`).join("")}</div>
-    <details class="flowlist"><summary>View sequence</summary><ol>${FS.map((x,i) => `<li>${poseSvg(x.pose,"thumb")}<span>${esc(x.n)}<small>${esc(x.s)}</small></span><b class="tnum">${x.d>=60?mmss(x.d/60)+" min":x.d+" s"}</b></li>`).join("")}</ol></details>
+    <div class="exhead"><h3>${esc(s.n)}<small>${sid===sug?"Suggested now · ":""}${esc(s.desc)}</small></h3>
+      ${y.flow && y.sid===sid?`<span class="pill yoga">✓ done</span>`:""}</div>
+    ${yMeta(s, FM)}<p class="small muted" style="margin:0">${sub}</p>
+    <button class="primary yoga" data-act="yogago">${y.flow && y.sid===sid?"Start again":"Start"}</button>
+    ${s.lens.length>1?`<div class="lenseg" role="group" aria-label="Length">${s.lens.slice().sort((a,b) => a-b).map(m => `<button data-act="yogalen" data-m="${m}" aria-pressed="${yLen(sid)===m}" class="${yLen(sid)===m?"on":""}">${m} min</button>`).join("")}</div>`:""}
+    <details class="flowlist"><summary>View sequence</summary><ol>${FS.map((x,i) => `<li>${poseSvg(x.pose,"thumb")}<span>${esc(x.n)}<small>${esc(x.s||"")}</small></span><b class="tnum">${x.d>=60?mmss(x.d/60)+" min":x.d+" s"}</b></li>`).join("")}</ol></details>
   </article>
+  <section class="ylist" aria-label="Other yoga sessions"><p class="exn" style="margin:0">Or choose another session</p>${others}</section>
   <article class="card">
     <div class="rungrid"><div><label class="lbl" for="yo-min">Duration</label><div class="field"><input inputmode="decimal" id="yo-min" data-in="yoga" data-f="min" value="${esc(y.min)}" placeholder="${FM}"><span class="u">min</span></div></div>
       <div class="pace" style="background:var(--yoga-soft)"><span>Yoga total</span><b class="tnum" style="color:var(--yoga)">${n}×</b></div></div>
-    <p class="small muted" style="margin:0">After the flow, the app logs the minutes for you. If you went to a class, enter the duration yourself.</p>
+    <p class="small muted" style="margin:0">After the session, the app logs the minutes for you. If you went to a class, enter the duration yourself.</p>
     <div><label class="lbl" for="yo-note">How did you feel?</label><textarea id="yo-note" data-in="yoga" data-f="note" placeholder="e.g. open hips, relaxed, pigeon was tough …">${esc(y.note)}</textarea></div>
   </article>`;
 }
 function startYoga(){
-  const startedAt = Date.now();
-  const FS = flowSteps(curFlow()), FM = stepsMin(FS);
-  startTimer({title:"Yoga", flow:curFlow().n, calm:true, prep:true, steps:FS.map(x => Object.assign({c:"yoga"}, x)),
-    onDone:() => { S.settings.yogaFlow = ((S.settings.yogaFlow||0) + 1) % YOGA_FLOWS.length; if(S.active && S.active.yoga){ S.active.yoga.flow = true; S.active.yoga.min = String(FM); } save(); if(S.active && S.active.yoga) renderSession(); toast("Namaste. Flow done."); },
+  const startedAt = Date.now(), sid = ySid(), s = NFYoga.byId(sid), FS = ySteps(sid), FM = stepsMin(FS);
+  startTimer({title:s.n, flow:sid==="vinyasa" ? curFlow().n : `${FM} min`, calm:true, prep:true, steps:FS.map(x => Object.assign({c:"yoga"}, x)),
+    onDone:() => {
+      if(sid==="vinyasa") S.settings.yogaFlow = ((S.settings.yogaFlow||0) + 1) % YOGA_FLOWS.length;
+      if(S.active && S.active.yoga){ Object.assign(S.active.yoga, {flow:true, sid, min:String(FM)}); }
+      save(); if(S.active && S.active.yoga) renderSession(); toast(sid==="study" ? "Done. Back to the books." : "Namaste. Session done.");
+    },
     onStop:() => { const m = Math.round((Date.now()-startedAt)/60000); if(S.active && S.active.yoga && m>0 && !String(S.active.yoga.min).trim()){ S.active.yoga.min = String(m); save(); renderSession(); } }});
+}
+// Study break from the home screen or a push message: no session clock, doesn't count as a workout
+function startStudyBreak(){
+  const FS = NFYoga.stepsFor("study", yLen("study"));
+  startTimer({title:"Study break", flow:`${stepsMin(FS)} min at your desk`, calm:true, prep:true, steps:FS.map(x => Object.assign({c:"yoga"}, x)),
+    onDone:() => { S.settings.breaks = (S.settings.breaks||[]).concat(Date.now()).slice(-300); save(); if(screen==="home") renderHome(); toast("Done. Back to the books."); }});
 }
 
 function restBar(){
@@ -2003,7 +2047,7 @@ function buildEntry(withPending){
   });
   if(Object.keys(sets).length) e.sets = sets;
   if(a.tread && (parseMin(a.tread.min)>0 || num(a.tread.km)>0)){ e.tread = {min:parseMin(a.tread.min), km:num(a.tread.km)}; if(num(a.tread.incline)>0) e.tread.incline = num(a.tread.incline); }
-  if(a.yoga && num(a.yoga.min)>0) e.yoga = {min:num(a.yoga.min), flow:!!a.yoga.flow, note:String(a.yoga.note||"").trim()};
+  if(a.yoga && num(a.yoga.min)>0){ e.yoga = {min:num(a.yoga.min), flow:!!a.yoga.flow, note:String(a.yoga.note||"").trim()}; if(a.yoga.flow && a.yoga.sid) e.yoga.sid = a.yoga.sid; }
   if(a.run && (num(a.run.km)>0 || parseMin(a.run.min)>0)){
     let md = a.run.mode; if(md==="out" || md==="alster") md = num(a.run.km)>0 && Math.abs(num(a.run.km) - alsterKm()) < 1.2 ? "alster" : "out";
     e.run = {mode:md, km:num(a.run.km), min:parseMin(a.run.min), note:String(a.run.note||"").trim()};
@@ -2186,7 +2230,7 @@ function histSheet(id){
   const e = S.history.find(x => x.id===id); if(!e) return;
   const w = W[e.type];
   let h = `<h3>${w.name}</h3><p class="muted small">${new Date(e.start).toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"})} · ${durTxt((e.end||e.start)-e.start)}${kcalOn() && kcalOf(e)>0 ? ` · about ${fmt(kcalOf(e),0)} kcal` : ""}</p><div class="detail">`;
-  if(e.yoga) h += `<p class="exn">${e.yoga.flow?"Vinyasa Flow":"Yoga"}</p><p class="sets tnum">${fmt(num(e.yoga.min),0)} min</p>${e.yoga.note?`<p class="sets">${esc(e.yoga.note)}</p>`:""}`;
+  if(e.yoga) h += `<p class="exn">${esc(yogaLabel(e.yoga) || "Yoga")}</p><p class="sets tnum">${fmt(num(e.yoga.min),0)} min</p>${e.yoga.note?`<p class="sets">${esc(e.yoga.note)}</p>`:""}`;
   if(e.run) h += `<p class="exn">${runName(e.run.mode)}</p><p class="sets tnum">${fmt(num(e.run.km))} km in ${hms(num(e.run.min))} · ${mmss(paceOf(num(e.run.km),num(e.run.min)))} /km${num(e.run.incline)?" · "+fmt(num(e.run.incline))+" % incline":""}</p>${e.run.note?`<p class="sets">${esc(e.run.note)}</p>`:""}`;
   Object.keys(e.sets||{}).forEach(k => h += `<p class="exn">${EXN[k]?esc(EXN[k].n):esc(k)}</p><p class="sets tnum">${e.sets[k].map(s => setTxt(k, s)).join(" · ")}</p>`);
   if(e.tread) h += `<p class="exn">Treadmill</p><p class="sets tnum">${fmt(num(e.tread.min),0)} min${num(e.tread.km)?" · "+fmt(num(e.tread.km))+" km":""}${num(e.tread.incline)?" · "+fmt(num(e.tread.incline))+" % incline":""}</p>`;
@@ -2930,7 +2974,18 @@ const P2 = {
   paschim:{head:[82,100], sh:[100,98], hip:[146,116], bend:[128,92], nel:[82,112], nwr:[64,120], fel:[84,114], fwr:[66,122], nkn:[106,125], nan:[58,127], fkn:[106,126], fan:[58,128], nofoot:1, glow:1},
   lizard:{head:[56,110], sh:[74,108], hip:[114,100], nel:[70,118], nwr:[66,127], fel:[76,118], fwr:[72,127], nkn:[86,94], nan:[86,128], fkn:[148,127], fan:[182,128], toe:-1, glow:1},
   kick:{head:[46,90], sh:[64,86], hip:[136,84], nel:[63,107], nwr:[62,127], fel:[70,107], fwr:[70,127], nkn:[164,82], nan:[166,52], fkn:[134,128], fan:[170,129], toe:1, glow:1},
-  sbridge:{head:[30,122], sh:[50,120], hip:[112,80], nel:[74,126], nwr:[98,128], fel:[78,124], fwr:[102,126], nkn:[142,68], nan:[172,56], fkn:[146,80], fan:[150,127], toe:1, glow:1}
+  sbridge:{head:[30,122], sh:[50,120], hip:[112,80], nel:[74,126], nwr:[98,128], fel:[78,124], fwr:[102,126], nkn:[142,68], nan:[172,56], fkn:[146,80], fan:[150,127], toe:1, glow:1},
+  // on a chair, seen from the front (study break)
+  cseat:{head:[100,32], sh:[100,52], hip:[100,90], nel:[118,72], nwr:[112,92], fel:[82,72], fwr:[88,92], nkn:[88,100], nan:[86,127], fkn:[112,100], fan:[114,127], nofoot:1, prop:"chair"},
+  cneck:{head:[112,34], sh:[100,52], hip:[100,90], nel:[124,38], nwr:[114,24], fel:[82,72], fwr:[78,92], nkn:[88,100], nan:[86,127], fkn:[112,100], fan:[114,127], nofoot:1, prop:"chair"},
+  cside:{head:[84,40], sh:[90,56], hip:[100,90], nel:[102,30], nwr:[82,14], fel:[80,72], fwr:[78,92], nkn:[88,100], nan:[86,127], fkn:[112,100], fan:[114,127], nofoot:1, prop:"chair"},
+  creach:{head:[100,34], sh:[100,52], hip:[100,90], nel:[110,30], nwr:[106,8], fel:[90,30], fwr:[94,8], nkn:[88,100], nan:[86,127], fkn:[112,100], fan:[114,127], nofoot:1, prop:"chair"},
+  // on the back, legs resting up a wall (wind down)
+  legsup:{head:[34,120], sh:[52,121], hip:[118,122], nel:[70,126], nwr:[88,127], fel:[66,124], fwr:[84,126], nkn:[124,90], nan:[130,56], fkn:[128,90], fan:[134,56], nofoot:1, prop:"wall", glow:1}
+};
+const PROPS = {
+  chair:`<g stroke-width="5" opacity=".35"><line x1="68" y1="98" x2="132" y2="98"/><line x1="72" y1="98" x2="72" y2="130"/><line x1="128" y1="98" x2="128" y2="130"/><line x1="74" y1="98" x2="74" y2="58"/><line x1="126" y1="98" x2="126" y2="58"/><line x1="74" y1="60" x2="126" y2="60"/></g>`,
+  wall:`<rect x="142" y="8" width="10" height="122" fill="currentColor" stroke="none" opacity=".18"/>`
 };
 function poseSvg(key, cls){
   if(!key) return "";
@@ -2946,7 +3001,7 @@ function poseSvg(key, cls){
   const near = `${L(p.hip,p.nkn,14)}${L(p.nkn,p.nan,11)}${foot(p.nan)}${L(p.sh,p.nel,10)}${L(p.nel,p.nwr,8)}<circle cx="${p.nwr[0]}" cy="${p.nwr[1]}" r="4.6" fill="currentColor" stroke="none"/>${L(p.sh,nk,8.5)}`;
   return `<svg class="${cls||"pose"} p2" viewBox="0 0 200 140" aria-hidden="true"><defs><radialGradient id="pglow"><stop offset="0" stop-color="#ffffff" stop-opacity=".95"/><stop offset=".55" stop-color="#ffffff" stop-opacity=".42"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></radialGradient></defs>
     <rect x="10" y="130" width="180" height="6" rx="3" fill="currentColor" opacity=".16"/>
-    <g ${mir?'transform="translate(200,0) scale(-1,1)"':""} stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" fill="none">${far}${torso}${glow}${near}<circle cx="${p.head[0]}" cy="${p.head[1]}" r="11.5" fill="currentColor" stroke="none"/></g></svg>`;
+    <g ${mir?'transform="translate(200,0) scale(-1,1)"':""} stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" fill="none">${PROPS[p.prop]||""}${far}${torso}${glow}${near}<circle cx="${p.head[0]}" cy="${p.head[1]}" r="11.5" fill="currentColor" stroke="none"/></g></svg>`;
 }
 
 /* ================= Steigerungs-Tipp ================= */
@@ -3105,11 +3160,11 @@ function addonFor(e){
 function yogaSheet(){
   const ml = S.settings.mob || [], last = ml.length ? ml[ml.length-1] : 0, ly = S.history.filter(e => e.yoga).slice(-1)[0];
   sheet(`<h3>Yoga</h3>
-    <button class="start" data-kind="yoga" data-act="yogaflow"><span class="stripe"></span><span><b>Vinyasa Flow</b><small>${stepsMin(flowSteps(curFlow()))} min · today: ${esc(curFlow().n)} · counts as a session</small><small>${ly?"Last done "+ago(ly.start):"Not done yet"}</small></span><span class="arrow">›</span></button>
+    <button class="start" data-kind="yoga" data-act="yogaflow"><span class="stripe"></span><span><b>Yoga session</b><small>7 sessions to choose from, 5 to 45 min · counts as a session</small><small>${ly?"Last done "+ago(ly.start):"Not done yet"}</small></span><span class="arrow">›</span></button>
     <button class="start" data-kind="yoga" data-act="mobility"><span class="stripe"></span><span><b>Glute Mobility</b><small>${stepsMin(curMob().steps)} min · today: ${esc(curMob().n)} · no session clock</small><small>${last?"Last done "+ago(last):"Not done yet"}</small></span><span class="arrow">›</span></button>
     <p class="small muted" style="margin:0">Glute mobility doesn't count as a session. It helps with sore muscles and keeps your hips mobile.</p>
     <p class="exn" style="margin:4px 0 0;font-weight:600">Short routines</p>
-    <div class="alts">${["hips","shoulders","runner","stretch"].map(id => `<button class="altrow" data-act="mob" data-id="${id}"><b>${esc(MOB[id].n)} · ${stepsMin(MOB[id].steps)} min</b><small>${esc(MOB[id].why)}</small></button>`).join("")}</div>
+    <div class="alts"><button class="altrow" data-act="study"><b>Study break · 5 min</b><small>Neck, shoulders and breathing on your chair. No mat needed.</small></button>${["hips","shoulders","runner","stretch"].map(id => `<button class="altrow" data-act="mob" data-id="${id}"><b>${esc(MOB[id].n)} · ${stepsMin(MOB[id].steps)} min</b><small>${esc(MOB[id].why)}</small></button>`).join("")}</div>
     <button class="secondary" data-act="closesheet">Cancel</button>`);
 }
 // id: one of MOB; without an id the glute routines take turns
@@ -4432,6 +4487,8 @@ document.addEventListener("click", async ev => {
     }
     case "warmup": startWarmup(); break;
     case "yogago": startYoga(); break;
+    case "yogapick": { const id = b.dataset.id; if(!NFYoga.byId(id)) break; S.active.yoga.sid = id; S.settings.yogaSid = id; save(); renderSession(); window.scrollTo({top:0, behavior:"smooth"}); break; }
+    case "study": closeSheet(); startStudyBreak(); break;
     case "warmskip": S.active.warm = true; save(); renderSession(); break;
     case "interval": intervalSheet(b.dataset.target); break;
     case "ivgo": startIntervals(b.dataset.target); break;
@@ -4446,7 +4503,7 @@ document.addEventListener("click", async ev => {
     case "theme": S.settings.theme = b.dataset.v; applyTheme(); save();
       document.querySelectorAll("#themeseg button").forEach(x => x.setAttribute("aria-pressed", x.dataset.v===S.settings.theme)); break;
     case "yogaflow": closeSheet(); startSession("yoga"); break;
-    case "yogalen": S.settings.yogaLen = +b.dataset.m; save(); renderSession(); break;
+    case "yogalen": { const sid = ySid(), m = +b.dataset.m; if(sid==="vinyasa") S.settings.yogaLen = m; else S.settings.yogaLens = Object.assign({}, S.settings.yogaLens, {[sid]:m}); save(); renderSession(); break; }
     case "mobility": closeSheet(); startMobility(); break;
     case "mob": closeSheet(); startMobility(b.dataset.id); break;
     case "workouts": workoutsSheet(); break;
@@ -4642,7 +4699,7 @@ async function enablePush(){
   if(push==="on") toast("Notifications are on.");
 }
 
-/* Direktlinks aus Push-Nachrichten: #woche öffnet den Wochenrückblick, #yoga startet Yoga */
+/* Direktlinks aus Push-Nachrichten: #woche öffnet den Wochenrückblick, #yoga startet Yoga, #studybreak die Lernpause */
 function handleHash(){
   const h = location.hash.replace("#","");
   if(!h) return;
@@ -4650,6 +4707,7 @@ function handleHash(){
   if(h==="woche"){ screen = "home"; render(); openWeek(defaultWeek()); }
   else if(h==="monat"){ screen = "home"; render(); const [y, m] = monthRef(); openMonth(y, m); }
   else if(h==="yoga" && !S.active){ screen = "home"; render(); yogaSheet(); }
+  else if(h==="studybreak" && !TM){ screen = S.active ? "session" : "home"; render(); startStudyBreak(); }
   else if(W[h] && Object.prototype.hasOwnProperty.call(W, h)){
     if(S.active){ screen = "session"; render(); }
     else startSession(h);

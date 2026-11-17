@@ -2,6 +2,14 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Yoga sessions to choose from
+
+- Yoga now has 7 sessions instead of one rotating flow: Study break (5–10 min on a chair), Wind down, Beginner basics, Morning wake-up, After your run, Back and neck, and the existing Vinyasa flow. Each shows its length, what you need (chair, mat, floor) and how calm or strong it is
+- The app suggests one: wind down after 21:00, after-run stretches on days you ran, the morning session before 10:00, and the study break during the December exam weeks
+- The study break is also under Short routines on the home screen and opens straight from `#studybreak` (for push messages); started from there it doesn't count as a workout
+- New drawings for the chair poses and legs up the wall; history and reviews show the session's name; calm sessions count fewer calories
+- Sessions and their timing live in the new `app/yoga.js`, with tests in `tests/yoga.test.js`
+
 ## Unreleased – New app icon
 
 - New home screen icon: the white NOVA ring with its bar on Nova blue (`icon-192.png`, `icon-512.png`, `apple-touch-icon.png`); the design keeps to the safe area, so Android's round and squircle masks don't cut it
