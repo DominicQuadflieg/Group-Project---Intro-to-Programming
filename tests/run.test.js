@@ -9,6 +9,27 @@ const close = (a, b, eps = 0.02) => assert.ok(Math.abs(a - b) < eps, `${a} ≉ $
 const mmss = (m, s) => m + s / 60;
 
 /* ---------- screenshot layouts of different apps ---------- */
+/* ---------- Strava app in German (real screenshot, text as Tesseract reads it) ---------- */
+test("Strava German activity page: Distanz, Durchschn. Tempo, Bewegungszeit; date line not taken as the time", () => {
+  const r = shot(`22:08 4 ull > €
+Vv Laufen Lose
+&B Am 14. November 2026 um 09:39 - Lissabon
+Lauf am Morgen
+Distanz Durchschn. Tempo
+8,23 km 5:29 /km
+Bewegungszeit Hohenzunahme
+45:10 3m
+Kalorien Max. Hohe
+847 Kcal 32m
+{QW ASICS Superblast 3
+‘ey Strava App`);
+  assert.equal(r.km, 8.23);
+  close(r.min, mmss(45, 10));
+  close(r.pace, mmss(5, 29));
+  assert.equal(new Date(r.at).getDate(), 14);
+  assert.equal(new Date(r.at).getHours(), 9);
+});
+
 test("Strava: distance, pace and time in one row under a header", () => {
   const r = shot("9:41\nMorning Run\n17.11.2026 - 07:12\nDistance  Pace  Time\n7.72 km  5:31 /km  42:38\nElevation 34 m");
   assert.equal(r.km, 7.72);
@@ -137,25 +158,4 @@ test("invalid values get clear errors", () => {
   assert.ok(r.errors.km && r.errors.time && r.errors.date);
   assert.ok(R.validateRun({ km: "10", time: "12:00" }, NOW).errors.km, "faster than a world record");
   assert.ok(R.validateRun({ km: "", time: "1:00" }, NOW).errors.time, "too short");
-});
-
-/* ---------- Strava app in German (real screenshot, text as Tesseract reads it) ---------- */
-test("Strava German activity page: Distanz, Durchschn. Tempo, Bewegungszeit; date line not taken as the time", () => {
-  const r = shot(`22:08 4 ull > €
-Vv Laufen Lose
-&B Am 14. November 2026 um 09:39 - Lissabon
-Lauf am Morgen
-Distanz Durchschn. Tempo
-8,23 km 5:29 /km
-Bewegungszeit Hohenzunahme
-45:10 3m
-Kalorien Max. Hohe
-847 Kcal 32m
-{QW ASICS Superblast 3
-‘ey Strava App`);
-  assert.equal(r.km, 8.23);
-  close(r.min, mmss(45, 10));
-  close(r.pace, mmss(5, 29));
-  assert.equal(new Date(r.at).getDate(), 14);
-  assert.equal(new Date(r.at).getHours(), 9);
 });
