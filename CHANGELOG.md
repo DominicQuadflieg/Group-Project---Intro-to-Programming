@@ -2,6 +2,10 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Own OneSignal app for NOVAFit
+
+- Push notifications now go through NOVAFit's own OneSignal app instead of the one the app was copied from, so NOVAFit users only get NOVAFit messages
+
 ## v2.8.2 – Only exercises with a drawing
 
 - 22 exercises without a drawing were taken out of the library (e.g. Turkish Get-up, Olympic lifts, Box Jump, Sit-up); 124 exercises remain, all with drawings
