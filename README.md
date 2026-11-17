@@ -19,8 +19,11 @@ On first start, new users create an account (name, email, password) and answer a
 3. How to split them across strength, running and yoga
 4. Predefined goals, up to 2 per type and 6 in total (e.g. “10 km under 60 minutes”, “Your first pull-up”, “Exam-week stress relief”)
 5. Level and time per session
+6. How to split the strength sessions, e.g. for three a week: 3× Full Body, Push / Pull / Legs, 2× Upper + 1× Lower or 1× Upper + 2× Lower (the best match for the goal and level is marked)
 
-NOVAFit then suggests three plans (balanced, focused on the main goal, easy start). The chosen plan sets the weekly goal and shows the next session on the home screen.
+NOVAFit then suggests three plans (balanced, focused on the main goal, easy start). Each week combines the strength split with running and yoga, avoids a run the day after a heavy leg session and suggests a short mobility routine after each session. The chosen plan sets the weekly goal and shows the next session on the home screen.
+
+The exercise library has 146 exercises (named like in the Strong app, e.g. “Bench Press (Barbell)”), searchable by name, body part and equipment. In a session, exercises can be added, removed or swapped, and users can create their own exercises. Sets are logged as weight × reps, reps only, assisted (kg of help) or time.
 
 A session that has been started can be reset at any time (Reset → Start over or Delete session).
 
@@ -33,7 +36,8 @@ The app needs no build step:
 | File | Content |
 |---|---|
 | `app/index.html` | The app: layout, design (CSS) and logic (JavaScript) |
-| `app/plan.js` | Sign-up validation, questionnaire checks and plan suggestions (pure functions, tested) |
+| `app/plan.js` | Sign-up validation, questionnaire checks, strength splits and plan suggestions (pure functions, tested) |
+| `app/exercises.js` | Exercise library, workout templates, search and checks for custom exercises (pure functions, tested) |
 | `app/run.js` | Running logic: reading runs from screenshots and from GPX, TCX and FIT files, checking the values, turning Strava activities into runs (pure functions, tested) |
 | `app/manifest.webmanifest` | Name, colours and icon for the home screen |
 | `app/OneSignalSDKWorker.js` | Service worker: offline use and push reminders |
@@ -43,6 +47,7 @@ The app needs no build step:
 | `netlify.toml` | Netlify settings: publishes `app`, runs the Strava function |
 | `app/INSTALL.txt` | How to install the app on a phone |
 | `tests/plan.test.js` | Tests for `app/plan.js` |
+| `tests/exercises.test.js` | Tests for `app/exercises.js` |
 | `tests/run.test.js` | Tests for `app/run.js` (screenshots) |
 | `tests/run-files.test.js` | Tests for `app/run.js` (GPX, TCX, FIT, ZIP) |
 | `tests/strava.test.js` | Tests for the Strava connection (app side and function) |
@@ -80,7 +85,7 @@ Requires Node.js 18 or newer, no packages to install:
 node --test
 ```
 
-or `npm test`. The tests cover valid and rejected sign-up input (empty fields, invalid email, weak or too long passwords, markup in names), body data (age and weight limits, non-numeric input), questionnaire limits (days, mix, goals per type, level, session length) and the plan suggestions (session counts, rest days, edge cases). GitHub runs them automatically on every push and pull request.
+or `npm test`. The tests cover valid and rejected sign-up input (empty fields, invalid email, weak or too long passwords, markup in names), body data (age and weight limits, non-numeric input), questionnaire limits (days, mix, goals per type, level, session length), the plan suggestions (session counts, rest days, splits, no run after leg day, mobility add-ons, edge cases), the exercise library (search, filters, alternatives, templates) and custom exercises (empty, too short or long, markup, duplicates). GitHub runs them automatically on every push and pull request.
 
 ## Replacing the pictures
 

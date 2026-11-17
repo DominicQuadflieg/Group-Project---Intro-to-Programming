@@ -2,6 +2,20 @@
 
 Alle Versionen der App, die neueste oben.
 
+## v2.8 – Exercise library, splits and mobility
+
+- Exercise library with 146 exercises named like in the Strong app (“Bench Press (Barbell)”, “Lat Pulldown (Cable)”), searchable and filtered by body part and equipment; tap one to see how it's done and which muscles it trains
+- Four ways to log a set: weight × reps, reps only (bodyweight), assisted (kg of help, less is better) and time (seconds, minutes for cardio)
+- Your own exercises: name, body part, equipment and log type, checked for missing fields, length, markup and duplicates
+- In a session: “+ Add exercise” from the library, “✕ Remove” for any exercise (asks first if sets are already checked off), “Swap” now offers every exercise with the same movement
+- New workout templates: Full Body A/B/C, Upper Body A/B, Lower Body A/B, Push, Pull, Legs and an empty session; Upper Body and Lower Body were updated to match
+- New questionnaire step “How do you want to split your strength days?”: three or four options for every number of strength sessions (e.g. for 3: 3× Full Body, Push/Pull/Legs, 2× Upper + 1× Lower, 1× Upper + 2× Lower), the best match for your goal and level is marked
+- The week combines the split with running and yoga: no run the day after a heavy leg session where possible, and each session suggests a short mobility routine afterwards (hip mobility, shoulder mobility, full-body stretch, runner's stretch)
+- Three new mobility routines; the cool-down shows up after a session, in the plan and in the yoga menu
+- Home screen: start buttons follow your split, “More workouts” and the exercise library; tap a day in the plan to see that session
+- Older sessions keep their exercise names and progress curves
+- 22 new tests for the library, custom exercises, splits and the week schedule (87 in total)
+
 ## v2.7 – Strava: runs from your watch come in by themselves
 
 - New “Connect Strava” in the run menu and in Settings. Runs from Garmin, Polar, Coros, Suunto and Apple Watch that reach Strava are added automatically when NOVAFit is opened (can be turned off)

@@ -156,7 +156,7 @@ test("sessions never repeat the same kind back to back when avoidable", () => {
 
 test("sessions map to workouts the app can start", () => {
   const p = P.suggestPlans(answers({ days: 6, mix: { s: 2, r: 2, y: 2 }, goals: ["pullup", "half"], level: "advanced", min: 60 }))[0];
-  for (const s of p.sessions) assert.ok(["po", "oben", "lauf", "yoga"].includes(s.workout));
+  for (const s of p.sessions) assert.ok(["lauf", "yoga"].concat(Object.keys(P.WORKOUTS)).includes(s.workout));
   assert.equal(p.sessions.find(s => s.kind === "s").workout, "oben"); // pull-up goal starts with upper body
   assert.deepEqual(p.sessions.filter(s => s.kind === "s").map(s => s.title), ["Upper Body", "Lower Body"]);
   assert.ok(p.sessions.filter(s => s.kind === "y").every(s => s.min <= 30));
@@ -178,4 +178,68 @@ test("nextSession and sessionOn find the right day", () => {
   assert.equal(P.nextSession(plan, sun).day, 0);            // wraps to Monday
   assert.equal(P.nextSession(plan, sun).inDays, 1);
   assert.equal(P.nextSession(null, sun), null);
+});
+
+/* ---------- strength splits (v2.8) ---------- */
+test("every number of strength sessions offers at least three splits", () => {
+  for (let n = 1; n <= 6; n++) {
+    const list = P.splitsFor(n);
+    assert.ok(list.length >= 3, `n=${n}`);
+    for (const sp of list) assert.equal(sp.workouts.length, n, sp.id);
+  }
+  assert.deepEqual(P.splitsFor(0), []);
+  assert.deepEqual(P.splitsFor(3).map(s => s.name), ["3× Full Body", "Push / Pull / Legs", "2× Upper + 1× Lower", "1× Upper + 2× Lower"]);
+});
+
+test("the recommended split follows the strength goal, then the level", () => {
+  assert.equal(P.recommendSplit(3, ["hip20"], "advanced").split.id, "u1l2");
+  assert.equal(P.recommendSplit(3, ["run5k", "pullup"], "advanced").split.id, "u2l1");
+  assert.equal(P.recommendSplit(3, ["muscle"], "beginner").split.id, "ppl3");
+  assert.equal(P.recommendSplit(3, ["toes"], "beginner").split.id, "full3");
+  assert.equal(P.recommendSplit(3, ["toes"], "beginner").reason, "beginner");
+  assert.equal(P.recommendSplit(4, ["toes"], "advanced").split.id, "ul4");
+  assert.equal(P.recommendSplit(0, [], "beginner"), null);
+});
+
+test("a chosen split is used, and only if it fits the number of strength sessions", () => {
+  const a = answers({ days: 4, mix: { s: 3, r: 1, y: 0 }, goals: ["muscle"], split: "full3" });
+  assert.equal(P.validateAnswers(a).ok, true);
+  const plan = P.suggestPlans(a)[0];
+  assert.deepEqual(plan.split, { id: "full3", name: "3× Full Body" });
+  assert.deepEqual(plan.sessions.filter(s => s.kind === "s").map(s => s.title), ["Full Body A", "Full Body B", "Full Body C"]);
+  assert.equal(P.validateAnswers(answers({ split: "ppl6" })).ok, false);   // 6-day split for 2 strength sessions
+  assert.equal(P.validateAnswers(answers({ split: "nope" })).ok, false);
+  assert.equal(P.validateAnswers(answers({ mix: { s: 0, r: 3, y: 0 }, goals: ["run5k"], split: "ppl3" })).ok, true); // no strength: ignored
+});
+
+test("plans with another number of strength sessions keep the same kind of split", () => {
+  // Push/Pull/Legs for 3 → PPL + Full Body when the focus plan adds a strength session
+  const plans = P.suggestPlans(answers({ days: 5, mix: { s: 3, r: 2, y: 0 }, goals: ["muscle", "run5k"], split: "ppl3" }));
+  assert.equal(plans[0].split.id, "ppl3");
+  assert.equal(plans[1].split.id, "pplf");
+  assert.equal(P.splitFor(2, "ppl3", answers({ goals: ["muscle"] })).id, "ul2"); // no PPL for 2 → recommendation
+});
+
+test("no run the day after a heavy leg session when it can be avoided", () => {
+  const heavy = s => s.kind === "s" && P.HEAVY_LEGS.includes(P.WORKOUTS[s.workout].group);
+  for (const split of ["u1l2", "full3", "ppl3", "u2l1"]) {
+    const p = P.suggestPlans(answers({ days: 6, mix: { s: 3, r: 2, y: 1 }, goals: ["hip20"], split }))[0];
+    for (let i = 1; i < p.sessions.length; i++) {
+      const prev = p.sessions[i - 1], cur = p.sessions[i];
+      assert.notEqual(cur.kind, prev.kind, split);
+      if (split !== "full3") assert.ok(!(cur.kind === "r" && heavy(prev) && cur.day === prev.day + 1), `${split}: run after ${prev.title}`);
+    }
+  }
+});
+
+test("each strength session and run gets a matching mobility add-on", () => {
+  const p = P.suggestPlans(answers({ days: 6, mix: { s: 3, r: 2, y: 1 }, goals: ["muscle"], split: "ppl3" }))[0];
+  const by = t => p.sessions.find(s => s.title === t).addon.id;
+  assert.equal(by("Push"), "shoulders");
+  assert.equal(by("Pull"), "shoulders");
+  assert.equal(by("Legs"), "hips");
+  assert.ok(p.sessions.filter(s => s.kind === "r").every(s => s.addon.id === "runner"));
+  assert.ok(p.sessions.filter(s => s.kind === "y").every(s => !s.addon));
+  const f = P.suggestPlans(answers({ days: 3, mix: { s: 3, r: 0, y: 0 }, goals: ["muscle"], split: "full3" }))[0];
+  assert.ok(f.sessions.every(s => s.addon.id === "stretch"));
 });
