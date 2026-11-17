@@ -44,8 +44,33 @@ test("stepsFor scales holds to the chosen length, never below 15 s", () => {
 });
 
 test("stepsFor changes the number of Sun Salutation rounds with the length", () => {
-  assert.match(Y.stepsFor("morning", 10).find(x => /Sun/.test(x.n)).n, /2 rounds/);
-  assert.match(Y.stepsFor("morning", 15).find(x => /Sun/.test(x.n)).n, /3 rounds/);
+  const rounds = st => new Set(st.filter(x => x.fix && /round \d+ of/.test(x.s)).map(x => x.s.match(/of (\d+)/)[1]));
+  assert.deepEqual([...rounds(Y.stepsFor("morning", 10))], ["2"]);
+  assert.deepEqual([...rounds(Y.stepsFor("morning", 15))], ["3"]);
+});
+
+test("expandSun: one step per breath, in order, with inhale/exhale", () => {
+  const st = Y.expandSun([{ n: "Arrive", i: "x", d: 60, pose: "seat" }, { n: "Sun Salutation A, 2 rounds", i: "y", d: 120, pose: "up" }, { n: "Child", i: "z", d: 30, pose: "child" }]);
+  assert.equal(st[0].n, "Arrive"); assert.equal(st[st.length - 1].n, "Child");
+  const sun = st.slice(1, -1);
+  assert.equal(sun.length, 2 * (Y.SUN.A.length + 1));
+  assert.deepEqual(sun.slice(0, 4).map(x => x.pose), ["up", "fold", "half", "plank"]);
+  assert.match(sun[0].s, /round 1 of 2 · Inhale/);
+  assert.match(sun[1].s, /Exhale/);
+  assert.ok(sun.every(x => x.fix && x.d >= 5));
+  assert.match(sun[sun.length - 1].n, /hands to your heart/);
+});
+
+test("expandSun handles Sun Salutation B and a single round", () => {
+  const st = Y.expandSun([{ n: "Sun Salutation B, 1 round", i: "", d: 60, pose: "up" }]);
+  assert.equal(st.length, Y.SUN.B.length + 1);
+  assert.ok(st.some(x => x.pose === "w1-"));
+});
+
+test("steps without a Sun Salutation stay as they are", () => {
+  const st = [{ n: "Tree", i: "", d: 30, pose: "tree" }];
+  assert.deepEqual(Y.expandSun(st), st);
+  assert.deepEqual(Y.expandSun(null), []);
 });
 
 test("a length the session doesn't offer falls back to its default", () => {

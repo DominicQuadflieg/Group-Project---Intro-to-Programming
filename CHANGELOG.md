@@ -2,6 +2,13 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Sun Salutations breath by breath, new pose drawings
+
+- Sun Salutations are no longer one 2–3 minute step under a single picture: each movement is its own step with its own drawing and "Inhale"/"Exhale" (arms up, fold, half lift, plank, lower down, cobra, downward dog …), in the new sessions and in the vinyasa flows
+- New drawings for the half lift and lowering down
+- All pose drawings now use a dark outline around a light body, like the exercise drawings; in the timer they are white lines on the timer color. A dot marks where you should feel the stretch
+- `expandSun` in `app/yoga.js` with tests
+
 ## Unreleased – Yoga sessions to choose from
 
 - Yoga now has 7 sessions instead of one rotating flow: Study break (5–10 min on a chair), Wind down, Beginner basics, Morning wake-up, After your run, Back and neck, and the existing Vinyasa flow. Each shows its length, what you need (chair, mat, floor) and how calm or strong it is
