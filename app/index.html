@@ -307,6 +307,9 @@ textarea{width:100%;min-height:64px;border:1px solid var(--line);border-radius:c
 .ylvl{display:inline-flex;align-items:center;gap:5px}
 .ybars{display:inline-flex;align-items:flex-end;gap:2px}.ybars i{width:4px;background:var(--line)}.ybars i:nth-child(1){height:6px}.ybars i:nth-child(2){height:9px}.ybars i:nth-child(3){height:12px}.ybars i.on{background:var(--ink)}
 .ylist{display:flex;flex-direction:column;gap:8px}
+.yvoice{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:8px 12px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);font:600 14px var(--body);text-align:left;cursor:pointer;border-radius:calc(var(--rs) * 10px)}
+.yvoice svg{color:var(--yoga);flex:none}.yvoice span{flex:1}.yvoice b{font-size:13px;color:var(--muted)}.yvoice[aria-pressed="true"] b{color:var(--yoga)}
+.tmeasy{opacity:.92;font-size:.92em}
 .yrow{display:flex;align-items:center;gap:12px;width:100%;padding:10px 12px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);text-align:left;font-family:inherit;cursor:pointer;border-radius:calc(var(--rs) * 10px)}
 .yrow:focus-visible{outline:3px solid var(--yoga);outline-offset:2px}
 .yrow .thumb{flex:none}
@@ -1923,6 +1926,25 @@ function yLen(id){ return id==="vinyasa" ? yogaLen() : NFYoga.lengthFor(id, (S.s
 // The steps of a session at its chosen length (vinyasa: the flows taking turns)
 function ySteps(id){ return id==="vinyasa" ? NFYoga.expandSun(flowSteps(curFlow())) : NFYoga.stepsFor(id, yLen(id)); }
 const yPose = id => { const s = NFYoga.byId(id); return id==="vinyasa" ? "dog" : s.steps[Math.min(2, s.steps.length-1)].pose; };
+// "new": instructions and an easier option per pose; "known": just the pose names. Default: new until 5 yoga sessions
+const yLevel = () => S.settings.yogaLevel || (S.history.filter(e => e.yoga).length >= 5 ? "known" : "new");
+const canSpeak = () => "speechSynthesis" in window && typeof SpeechSynthesisUtterance === "function";
+const yVoice = () => S.settings.yogaVoice===true && canSpeak();
+// Reads a cue aloud and lowers the music while it speaks
+function say(text){
+  try{
+    if(!text || !canSpeak()) return;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text), vs = speechSynthesis.getVoices();
+    u.lang = "en-GB"; u.rate = .95;
+    const v = vs.find(x => /^en[-_]GB/i.test(x.lang)) || vs.find(x => /^en/i.test(x.lang)); if(v) u.voice = v;
+    duck(true); u.onend = u.onerror = () => duck(false);
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+// iPhones only allow speech that starts from a tap: speak an empty line right when Start is tapped
+function primeVoice(){ if(yVoice()) try{ speechSynthesis.speak(new SpeechSynthesisUtterance("")); }catch(e){} }
+const VOICE_ICO = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg>';
 function yMeta(s, min){
   const bars = [1,2,3].map(i => `<i class="${i<=s.level?"on":""}"></i>`).join("");
   return `<span class="ymeta"><span>${min} min</span><span>${esc(s.where)}</span><span class="ylvl"><span class="ybars" aria-hidden="true">${bars}</span>${YLEVEL[s.level]}</span></span>`;
@@ -1939,7 +1961,10 @@ function yogaBlock(){
       ${y.flow && y.sid===sid?`<span class="pill yoga">✓ done</span>`:""}</div>
     ${yMeta(s, FM)}<p class="small muted" style="margin:0">${sub}</p>
     <button class="primary yoga" data-act="yogago">${y.flow && y.sid===sid?"Start again":"Start"}</button>
-    ${s.lens.length>1?`<div class="lenseg" role="group" aria-label="Length">${s.lens.slice().sort((a,b) => a-b).map(m => `<button data-act="yogalen" data-m="${m}" aria-pressed="${yLen(sid)===m}" class="${yLen(sid)===m?"on":""}">${m} min</button>`).join("")}</div>`:""}
+    ${s.lens.length>1?`<div class="lenseg" role="group" aria-label="Length" style="grid-template-columns:repeat(${s.lens.length},1fr)">${s.lens.slice().sort((a,b) => a-b).map(m => `<button data-act="yogalen" data-m="${m}" aria-pressed="${yLen(sid)===m}" class="${yLen(sid)===m?"on":""}">${m} min</button>`).join("")}</div>`:""}
+    <div><span class="lbl">Level</span><div class="lenseg" role="group" aria-label="Level" style="grid-template-columns:1fr 1fr">${[["new","New to yoga"],["known","I know the poses"]].map(([k,l]) => `<button data-act="yogalevel" data-v="${k}" aria-pressed="${yLevel()===k}" class="${yLevel()===k?"on":""}">${l}</button>`).join("")}</div>
+      <p class="small muted" style="margin:6px 0 0">${yLevel()==="new" ? "Every pose explained, with an easier option." : "Just the pose names, less to read."}</p></div>
+    ${canSpeak() ? `<button class="yvoice" data-act="yogavoice" aria-pressed="${yVoice()}">${VOICE_ICO}<span>Read the poses aloud</span><b>${yVoice() ? "On" : "Off"}</b></button>` : ""}
     <details class="flowlist"><summary>View sequence</summary><ol>${FS.map((x,i) => `<li>${poseSvg(x.pose,"thumb")}<span>${esc(x.n)}<small>${esc(x.s||"")}</small></span><b class="tnum">${x.d>=60?mmss(x.d/60)+" min":x.d+" s"}</b></li>`).join("")}</ol></details>
   </article>
   <section class="ylist" aria-label="Other yoga sessions"><p class="exn" style="margin:0">Or choose another session</p>${others}</section>
@@ -2747,14 +2772,15 @@ function drawTimer(){
   let el = document.getElementById("timerlayer");
   if(!TM){ if(el) el.remove(); return; }
   if(!el){ el = document.createElement("div"); el.id = "timerlayer"; el.setAttribute("role","dialog"); el.setAttribute("aria-modal","true"); document.body.appendChild(el); }
-  const st = TM.steps[TM.i], nx = TM.steps[TM.i+1];
+  const st = TM.steps[TM.i], nx = TM.steps[TM.i+1], cu = NFYoga.cue(TM.prep && TM.i===0 ? Object.assign({}, st, {pose:""}) : st, yLevel());  // "Get ready" has no easier option
   const left = TM.paused ? TM.left : TM.end - Date.now();
+  if(TM.calm && yVoice() && TM.spokenI !== TM.i && !TM.paused){ TM.spokenI = TM.i; say(cu.say); }
   el.className = "tm " + (st.c||"");
   el.innerHTML = `<div class="tmin">
-    <div class="tmtop"><span>${esc(TM.title)}</span><span class="tmr">${TM.calm?`<button class="tmsnd" data-act="tmmusic" aria-label="${S.settings.yogaMusic===false?"Music on":"Music off"}">${S.settings.yogaMusic===false?"🔇":"🎵"}</button>`:""}<span class="tnum">${st.prep ? "Get ready" : (TM.i + (TM.steps[0].prep?0:1)) + " / " + (TM.steps.length - (TM.steps[0].prep?1:0))}</span></span></div>
+    <div class="tmtop"><span>${esc(TM.title)}</span><span class="tmr">${TM.calm && canSpeak()?`<button class="tmsnd" data-act="tmvoice" aria-pressed="${yVoice()}" aria-label="${yVoice()?"Voice off":"Voice on"}" style="${yVoice()?"":"opacity:.55"}">${VOICE_ICO}</button>`:""}${TM.calm?`<button class="tmsnd" data-act="tmmusic" aria-label="${S.settings.yogaMusic===false?"Music on":"Music off"}">${S.settings.yogaMusic===false?"🔇":"🎵"}</button>`:""}<span class="tnum">${st.prep ? "Get ready" : (TM.i + (TM.steps[0].prep?0:1)) + " / " + (TM.steps.length - (TM.steps[0].prep?1:0))}</span></span></div>
     <div class="tmmain">${st.pose?poseSvg(st.pose,"tmpose"):""}<p class="tmphase">${esc(st.n)}</p>${st.s?`<p class="tmsub">${esc(st.s)}</p>`:""}<p class="tmtime tnum" id="tmT">${clock(Math.max(0,left)+999)}</p>
       <div class="track"><i id="tmI" style="width:${Math.max(0,left)/(st.d*1000)*100}%"></i></div>
-      ${st.i?`<p class="tminfo">${esc(st.i)}</p>`:""}</div>
+      ${TM.calm ? `${cu.text?`<p class="tminfo">${esc(cu.text)}</p>`:""}${cu.easy?`<p class="tminfo tmeasy"><b>Easier:</b> ${esc(cu.easy)}</p>`:""}` : st.i?`<p class="tminfo">${esc(st.i)}</p>`:""}</div>
     <p class="tmnext">${nx?`Up next: <b>${esc(nx.n)}</b> · ${nx.d>=60?mmss(nx.d/60)+" min":nx.d+" s"}`:"Last section"}</p>
     <div class="tmbtns"><button class="secondary" data-act="tmpause">${TM.paused?"Resume":"Pause"}</button><button class="secondary" data-act="tmskip">Skip ›</button></div>
     <button class="txtbtn" data-act="tmstop" style="align-self:center;color:inherit;opacity:.8">Stop</button></div>`;
@@ -2782,6 +2808,7 @@ function tickTimer(){
 function finishTimer(done){
   const cb = TM && TM.onDone, stopCb = TM && TM.onStop, ac = TM && TM.ac, hadMus = !!(TM && TM.mus);
   medStop(true);
+  try{ canSpeak() && speechSynthesis.cancel(); }catch(e){}
   setTimeout(() => { try{ ac && ac.close(); }catch(e){} }, hadMus ? 2300 : 0);
   TM = null; drawTimer();
   try{ wakeLock && wakeLock.release(); }catch(e){} wakeLock = null;
@@ -4506,13 +4533,16 @@ document.addEventListener("click", async ev => {
       save(); closeSheet(); renderHome(); break;
     }
     case "warmup": startWarmup(); break;
-    case "yogago": startYoga(); break;
+    case "yogago": primeVoice(); startYoga(); break;
+    case "yogalevel": S.settings.yogaLevel = b.dataset.v==="known" ? "known" : "new"; save(); renderSession(); break;
+    case "yogavoice": S.settings.yogaVoice = !yVoice(); save(); if(S.settings.yogaVoice){ primeVoice(); say("Voice on. I'll read each pose."); } renderSession(); break;
+    case "tmvoice": if(TM){ S.settings.yogaVoice = !yVoice(); save(); TM.spokenI = -1; if(!S.settings.yogaVoice) try{ speechSynthesis.cancel(); }catch(e){} drawTimer(); } break;
     case "yogapick": { const id = b.dataset.id; if(!NFYoga.byId(id)) break; S.active.yoga.sid = id; S.settings.yogaSid = id; save(); renderSession(); window.scrollTo({top:0, behavior:"smooth"}); break; }
-    case "study": closeSheet(); startStudyBreak(); break;
+    case "study": closeSheet(); primeVoice(); startStudyBreak(); break;
     case "warmskip": S.active.warm = true; save(); renderSession(); break;
     case "interval": intervalSheet(b.dataset.target); break;
     case "ivgo": startIntervals(b.dataset.target); break;
-    case "tmpause": if(TM){ if(TM.paused){ TM.end = Date.now() + TM.left; TM.paused = false; try{ TM.ac && TM.ac.resume(); }catch(e){} } else { TM.left = TM.end - Date.now(); TM.paused = true; try{ TM.mus && TM.ac && TM.ac.suspend(); }catch(e){} } drawTimer(); } break;
+    case "tmpause": if(TM){ try{ canSpeak() && speechSynthesis.cancel(); }catch(e){} if(TM.paused){ TM.end = Date.now() + TM.left; TM.paused = false; try{ TM.ac && TM.ac.resume(); }catch(e){} } else { TM.left = TM.end - Date.now(); TM.paused = true; try{ TM.mus && TM.ac && TM.ac.suspend(); }catch(e){} } drawTimer(); } break;
     case "tmmusic": if(TM){ S.settings.yogaMusic = S.settings.yogaMusic===false; save(); if(S.settings.yogaMusic===false) medStop(false); else { try{ TM.ac && TM.ac.resume(); }catch(e){} medStart(); } drawTimer(); } break;
     case "tmskip": if(TM){ TM.end = Date.now(); if(TM.paused){ TM.paused = false; } tickTimer(); } break;
     case "tmstop": finishTimer(false); break;

@@ -128,6 +128,31 @@
     return out;
   }
 
+  /* An easier option per pose, shown (and read aloud) on the "New to yoga" level. Keys without "-". */
+  const EASIER = {
+    dog: "Bend your knees a lot, or put your hands on a chair.", plank: "Knees down.", low: "Knees down and lower only half way.",
+    cobra: "Stay low on your forearms (sphinx).", updog: "Keep your knees on the floor.", lunge: "Hands on the front knee, a cushion under the back knee.",
+    lizard: "Stay on your hands, not your forearms.", pigeon: "Lie on your back and cross one ankle over the other knee.",
+    w1: "Shorter stance, hands on your hips.", w2: "Shorter stance, bend the front knee less.", side: "Forearm on your thigh.",
+    tri: "Hand higher on your shin, or on a block.", tree: "Toes stay on the floor, heel on your ankle, or hold a wall.",
+    chair: "Bend less, hands on your thighs.", fold: "Bend your knees a lot, hands on your shins.", half: "Hands on your thighs.",
+    paschim: "Bend your knees and sit on a cushion.", butterfly: "Sit on a cushion, feet further away.", seat: "Sit on a cushion or against a wall.",
+    bridge: "Lift your hips only a little.", baby: "Hold the back of your knees instead of your feet.", child: "A pillow under your hips or forehead.",
+    cat: "Smaller movements, a towel under your knees.", legsup: "Put a pillow under your hips, or rest your calves on a chair.",
+    cneck: "Leave the hand off and just tilt your head.", cside: "Keep the lower hand on the chair."
+  };
+  const easier = pose => EASIER[String(pose || "").replace(/-$/, "")] || "";
+
+  /* What the timer shows and says for a step. level "new": instruction plus an easier option;
+     "known": just the name, so the timer is quiet and quick to read. Breath steps: always short. */
+  function cue(step, level) {
+    if (!step) return { text: "", easy: "", say: "" };
+    const easy = level === "new" && !step.fix ? easier(step.pose) : "";
+    if (step.fix) return { text: step.i || "", easy: "", say: step.n + (step.breath ? ", " + (step.breath === "in" ? "inhale" : "exhale") : "") };
+    if (level === "known") return { text: "", easy: "", say: step.n };
+    return { text: step.i || "", easy, say: [step.n, step.i, easy && "Easier: " + easy].filter(Boolean).join(". ").replace(/\.\./g, ".") };
+  }
+
   const byId = id => SESSIONS.find(s => s.id === id) || null;
   const total = steps => (steps || []).reduce((a, x) => a + x.d, 0);
   const minutes = steps => Math.round(total(steps) / 60);
@@ -165,7 +190,7 @@
     return "";
   }
 
-  const api = { SESSIONS, EXAM_WEEKS, MIN_STEP, SUN, expandSun, byId, total, minutes, lengthFor, stepsFor, examWeek, suggest };
+  const api = { SESSIONS, EXAM_WEEKS, MIN_STEP, SUN, EASIER, expandSun, easier, cue, byId, total, minutes, lengthFor, stepsFor, examWeek, suggest };
   if (typeof module === "object" && module.exports) module.exports = api;
   else root.NFYoga = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);

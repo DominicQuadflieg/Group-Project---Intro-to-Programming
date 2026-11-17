@@ -2,6 +2,12 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Yoga level and spoken guidance
+
+- Level on the yoga screen: "New to yoga" explains every pose and shows an easier option (knees down in plank, hands on a chair in downward dog …); "I know the poses" shows only the names. New users start on "New to yoga" until their 5th yoga session
+- "Read the poses aloud": the phone reads each pose (and the easier option) with its built-in voice and lowers the music meanwhile; also a speaker button in the timer. Sun Salutation steps are read short ("Plank, exhale")
+- `easier` and `cue` in `app/yoga.js` with tests
+
 ## Unreleased – Sun Salutations breath by breath, new pose drawings
 
 - Sun Salutations are no longer one 2–3 minute step under a single picture: each movement is its own step with its own drawing and "Inhale"/"Exhale" (arms up, fold, half lift, plank, lower down, cobra, downward dog …), in the new sessions and in the vinyasa flows

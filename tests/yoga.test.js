@@ -103,3 +103,34 @@ test("examWeek includes the first and last day", () => {
   assert.equal(Y.examWeek(at(2026, 12, 6, 23)), false);
   assert.equal(Y.examWeek(at(2027, 1, 5, 12), [["2027-01-04", "2027-01-15"]]), true);
 });
+
+test("easier: one option per pose, mirrored poses too", () => {
+  assert.match(Y.easier("dog"), /knees/);
+  assert.equal(Y.easier("lunge-"), Y.easier("lunge"));
+  assert.equal(Y.easier("sava"), "");
+  assert.equal(Y.easier(undefined), "");
+});
+
+test("every pose in the sessions that is hard for beginners has an easier option", () => {
+  for (const id of ["basics", "afterrun", "morning"])
+    for (const x of Y.stepsFor(id, Y.byId(id).lens[0]).filter(x => !x.fix && ["dog", "lunge", "pigeon", "w2", "tree", "chair"].includes(x.pose.replace(/-$/, ""))))
+      assert.ok(Y.easier(x.pose), `${id}: ${x.n}`);
+});
+
+test("cue: new shows instruction and easier option, known only the name", () => {
+  const st = { n: "Downward Dog", i: "Hips up and back.", d: 45, pose: "dog" };
+  const a = Y.cue(st, "new");
+  assert.equal(a.text, "Hips up and back.");
+  assert.match(a.easy, /knees/);
+  assert.match(a.say, /^Downward Dog\. Hips up and back\. Easier: /);
+  assert.doesNotMatch(a.say, /\.\./);
+  assert.deepEqual(Y.cue(st, "known"), { text: "", easy: "", say: "Downward Dog" });
+});
+
+test("cue: breath steps stay short on every level", () => {
+  const st = Y.expandSun([{ n: "Sun Salutation A, 1 round", i: "", d: 60, pose: "up" }]);
+  assert.equal(Y.cue(st[0], "new").say, "Arms up, inhale");
+  assert.equal(Y.cue(st[1], "known").say, "Forward fold, exhale");
+  assert.equal(Y.cue(st[1], "new").easy, "");
+  assert.deepEqual(Y.cue(null, "new"), { text: "", easy: "", say: "" });
+});
