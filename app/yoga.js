@@ -153,6 +153,24 @@
     return { text: step.i || "", easy, say: [step.n, step.i, easy && "Easier: " + easy].filter(Boolean).join(". ").replace(/\.\./g, ".") };
   }
 
+  /* Tension check: "How tense do you feel?" from 1 (relaxed) to 5 (very tense), before and after. */
+  const validTension = v => Number.isInteger(v) && v >= 1 && v <= 5;
+  /* Averages over checks with both answers: {n, before, after, diff}, or null without any. */
+  function tension(list) {
+    const ok = (list || []).filter(x => x && validTension(x.b) && validTension(x.a));
+    if (!ok.length) return null;
+    const avg = k => Math.round(ok.reduce((s, x) => s + x[k], 0) / ok.length * 10) / 10;
+    const before = avg("b"), after = avg("a");
+    return { n: ok.length, before, after, diff: Math.round((before - after) * 10) / 10 };
+  }
+  /* The line shown after one check. */
+  function tensionText(b, a) {
+    if (!validTension(b) || !validTension(a)) return "";
+    if (a < b) return `From ${b} down to ${a}. Nice.`;
+    if (a === b) return `Still ${b}. That's okay, the break still counts.`;
+    return `Up from ${b} to ${a}. Maybe try Wind down later.`;
+  }
+
   const byId = id => SESSIONS.find(s => s.id === id) || null;
   const total = steps => (steps || []).reduce((a, x) => a + x.d, 0);
   const minutes = steps => Math.round(total(steps) / 60);
@@ -190,7 +208,7 @@
     return "";
   }
 
-  const api = { SESSIONS, EXAM_WEEKS, MIN_STEP, SUN, EASIER, expandSun, easier, cue, byId, total, minutes, lengthFor, stepsFor, examWeek, suggest };
+  const api = { SESSIONS, EXAM_WEEKS, MIN_STEP, SUN, EASIER, expandSun, easier, cue, validTension, tension, tensionText, byId, total, minutes, lengthFor, stepsFor, examWeek, suggest };
   if (typeof module === "object" && module.exports) module.exports = api;
   else root.NFYoga = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);

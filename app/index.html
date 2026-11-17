@@ -310,6 +310,14 @@ textarea{width:100%;min-height:64px;border:1px solid var(--line);border-radius:c
 .yvoice{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:8px 12px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);font:600 14px var(--body);text-align:left;cursor:pointer;border-radius:calc(var(--rs) * 10px)}
 .yvoice svg{color:var(--yoga);flex:none}.yvoice span{flex:1}.yvoice b{font-size:13px;color:var(--muted)}.yvoice[aria-pressed="true"] b{color:var(--yoga)}
 .tmeasy{opacity:.92;font-size:.92em}
+.calmscale{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:14px}
+.calmscale button{position:relative;height:54px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);font:800 18px var(--body);cursor:pointer;border-radius:calc(var(--rs) * 10px)}
+.calmscale button:hover,.calmscale button:focus-visible{border-color:var(--yoga);outline:none}
+.calmscale button.was{outline:2px dashed var(--muted);outline-offset:2px}
+.calmscale small{position:absolute;top:-17px;left:0;right:0;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.calmends{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+.calmstat{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px;background:var(--yoga-soft);border-radius:calc(var(--rs) * 10px)}
+.calmstat span{display:flex;flex-direction:column}.calmstat b{font-size:22px}.calmstat small{font-size:12px;color:var(--muted)}
 .yrow{display:flex;align-items:center;gap:12px;width:100%;padding:10px 12px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);text-align:left;font-family:inherit;cursor:pointer;border-radius:calc(var(--rs) * 10px)}
 .yrow:focus-visible{outline:3px solid var(--yoga);outline-offset:2px}
 .yrow .thumb{flex:none}
@@ -1965,6 +1973,7 @@ function yogaBlock(){
     <div><span class="lbl">Level</span><div class="lenseg" role="group" aria-label="Level" style="grid-template-columns:1fr 1fr">${[["new","New to yoga"],["known","I know the poses"]].map(([k,l]) => `<button data-act="yogalevel" data-v="${k}" aria-pressed="${yLevel()===k}" class="${yLevel()===k?"on":""}">${l}</button>`).join("")}</div>
       <p class="small muted" style="margin:6px 0 0">${yLevel()==="new" ? "Every pose explained, with an easier option." : "Just the pose names, less to read."}</p></div>
     ${canSpeak() ? `<button class="yvoice" data-act="yogavoice" aria-pressed="${yVoice()}">${VOICE_ICO}<span>Read the poses aloud</span><b>${yVoice() ? "On" : "Off"}</b></button>` : ""}
+    <button class="yvoice" data-act="calmtoggle" aria-pressed="${calmOn()}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg><span>Ask how tense I feel, before and after</span><b>${calmOn() ? "On" : "Off"}</b></button>
     <details class="flowlist"><summary>View sequence</summary><ol>${FS.map((x,i) => `<li>${poseSvg(x.pose,"thumb")}<span>${esc(x.n)}<small>${esc(x.s||"")}</small></span><b class="tnum">${x.d>=60?mmss(x.d/60)+" min":x.d+" s"}</b></li>`).join("")}</ol></details>
   </article>
   <section class="ylist" aria-label="Other yoga sessions"><p class="exn" style="margin:0">Or choose another session</p>${others}</section>
@@ -1975,21 +1984,63 @@ function yogaBlock(){
     <div><label class="lbl" for="yo-note">How did you feel?</label><textarea id="yo-note" data-in="yoga" data-f="note" placeholder="e.g. open hips, relaxed, pigeon was tough …">${esc(y.note)}</textarea></div>
   </article>`;
 }
-function startYoga(){
+/* ---- Tension check: "How tense do you feel?" 1–5 before and after a yoga session or study break ---- */
+let CALM = null;
+const calmOn = () => S.settings.calmCheck !== false;
+// every check with an answer: yoga sessions in the history and study breaks from the home screen
+function calmEntries(){
+  return S.history.filter(e => e.yoga && e.yoga.calm).map(e => Object.assign({t:e.start}, e.yoga.calm))
+    .concat((S.settings.breaks||[]).filter(x => x && typeof x==="object"));
+}
+function calmScale(was){
+  return `<div class="calmscale" role="group" aria-label="1 relaxed, 5 very tense">${[1,2,3,4,5].map(v => `<button data-act="calmpick" data-v="${v}" class="${v===was?"was":""}" aria-label="${v}${v===was?", before":""}">${v===was?`<small>before</small>`:""}${v}</button>`).join("")}</div>
+    <div class="calmends"><span>1 · relaxed</span><span>5 · very tense</span></div>`;
+}
+// before: asks, then cb(answer or null). Skipped right away when the check is turned off.
+function askBefore(cb){
+  if(!calmOn()){ cb(null); return; }
+  CALM = {stage:"before", cb};
+  sheet(`<h3>Before you start</h3><p style="margin:0">How tense do you feel right now?</p>${calmScale(0)}
+    <button class="secondary" data-act="calmskip">Skip</button><button class="txtbtn" data-act="calmoff" style="align-self:center">Don't ask me again</button>`);
+}
+// after: only when there was an answer before; cb(answer) then shows the result
+function askAfter(b, cb){
+  if(!NFYoga.validTension(b)){ cb(null); return; }
+  CALM = {stage:"after", cb, b};
+  sheet(`<h3>Done. How tense do you feel now?</h3>${calmScale(b)}<button class="secondary" data-act="calmskip">Skip</button>`);
+}
+// pending: the answer of a yoga session that isn't saved to the history yet
+function calmResult(b, a, pending){
+  const st = NFYoga.tension(calmEntries().concat(pending ? [{t:Date.now(), b, a}] : []).filter(x => x.t > Date.now() - 60*864e5));
+  sheet(`<h3>${esc(NFYoga.tensionText(b, a))}</h3>
+    ${st && st.n>=2 ? `<div class="calmstat"><span><b class="tnum">${st.n}</b><small>checks in the last 60 days</small></span><span><b class="tnum">${fmt(st.before)} → ${fmt(st.after)}</b><small>average tension, before → after</small></span></div>` : `<p class="small muted" style="margin:0">After a few sessions you'll see your average here and in your monthly review.</p>`}
+    <button class="primary yoga" data-act="closesheet">Done</button>`);
+}
+function startYoga(){ askBefore(b => runYoga(b)); }
+function runYoga(before){
   const startedAt = Date.now(), sid = ySid(), s = NFYoga.byId(sid), FS = ySteps(sid), FM = stepsMin(FS);
   startTimer({title:s.n, flow:sid==="vinyasa" ? curFlow().n : `${FM} min`, calm:true, prep:true, steps:FS.map(x => Object.assign({c:"yoga"}, x)),
     onDone:() => {
       if(sid==="vinyasa") S.settings.yogaFlow = ((S.settings.yogaFlow||0) + 1) % YOGA_FLOWS.length;
       if(S.active && S.active.yoga){ Object.assign(S.active.yoga, {flow:true, sid, min:String(FM)}); }
-      save(); if(S.active && S.active.yoga) renderSession(); toast(sid==="study" ? "Done. Back to the books." : "Namaste. Session done.");
+      save(); if(S.active && S.active.yoga) renderSession();
+      askAfter(before, a => {
+        if(a==null){ toast(sid==="study" ? "Done. Back to the books." : "Namaste. Session done."); return; }
+        if(S.active && S.active.yoga){ S.active.yoga.calm = {b:before, a}; save(); }
+        calmResult(before, a, true);
+      });
     },
     onStop:() => { const m = Math.round((Date.now()-startedAt)/60000); if(S.active && S.active.yoga && m>0 && !String(S.active.yoga.min).trim()){ S.active.yoga.min = String(m); save(); renderSession(); } }});
 }
 // Study break from the home screen or a push message: no session clock, doesn't count as a workout
-function startStudyBreak(){
+function startStudyBreak(){ askBefore(b => runStudyBreak(b)); }
+function runStudyBreak(before){
   const FS = NFYoga.stepsFor("study", yLen("study"));
   startTimer({title:"Study break", flow:`${stepsMin(FS)} min at your desk`, calm:true, prep:true, steps:FS.map(x => Object.assign({c:"yoga"}, x)),
-    onDone:() => { S.settings.breaks = (S.settings.breaks||[]).concat(Date.now()).slice(-300); save(); if(screen==="home") renderHome(); toast("Done. Back to the books."); }});
+    onDone:() => {
+      const log = a => { S.settings.breaks = (S.settings.breaks||[]).concat([a==null ? {t:Date.now()} : {t:Date.now(), b:before, a}]).slice(-300); save(); if(screen==="home") renderHome(); };
+      askAfter(before, a => { log(a); if(a==null) toast("Done. Back to the books."); else calmResult(before, a); });
+    }});
 }
 
 function restBar(){
@@ -2080,7 +2131,7 @@ function buildEntry(withPending){
   });
   if(Object.keys(sets).length) e.sets = sets;
   if(a.tread && (parseMin(a.tread.min)>0 || num(a.tread.km)>0)){ e.tread = {min:parseMin(a.tread.min), km:num(a.tread.km)}; if(num(a.tread.incline)>0) e.tread.incline = num(a.tread.incline); }
-  if(a.yoga && num(a.yoga.min)>0){ e.yoga = {min:num(a.yoga.min), flow:!!a.yoga.flow, note:String(a.yoga.note||"").trim()}; if(a.yoga.flow && a.yoga.sid) e.yoga.sid = a.yoga.sid; }
+  if(a.yoga && num(a.yoga.min)>0){ e.yoga = {min:num(a.yoga.min), flow:!!a.yoga.flow, note:String(a.yoga.note||"").trim()}; if(a.yoga.flow && a.yoga.sid) e.yoga.sid = a.yoga.sid; if(a.yoga.calm && NFYoga.validTension(a.yoga.calm.b) && NFYoga.validTension(a.yoga.calm.a)) e.yoga.calm = {b:a.yoga.calm.b, a:a.yoga.calm.a}; }
   if(a.run && (num(a.run.km)>0 || parseMin(a.run.min)>0)){
     let md = a.run.mode; if(md==="out" || md==="alster") md = num(a.run.km)>0 && Math.abs(num(a.run.km) - alsterKm()) < 1.2 ? "alster" : "out";
     e.run = {mode:md, km:num(a.run.km), min:parseMin(a.run.min), note:String(a.run.note||"").trim()};
@@ -3580,6 +3631,7 @@ function yearData(y){
   r.runs = H.filter(e => e.run).length;
   const yo = H.filter(e => e.yoga); r.yoga = yo.length; r.yogaMin = yo.reduce((x,e) => x+num(e.yoga.min), 0);
   r.mob = (S.settings.mob||[]).filter(t => t>=a && t<b).length;
+  r.calm = NFYoga.tension(calmEntries().filter(x => x.t>=a && x.t<b));
   const wd = [0,0,0,0,0,0,0]; H.forEach(e => wd[new Date(e.start).getDay()]++);
   r.favDayN = Math.max(...wd); r.favDay = r.n ? wd.indexOf(r.favDayN) : -1;
   const mo = Array(12).fill(0); H.forEach(e => mo[new Date(e.start).getMonth()]++);
@@ -3623,7 +3675,7 @@ function storySlides(r){
   if(r.favDay>=0) sl.push({c:"s3", h:`<p class="sy-eb">Your rhythm</p><h2 class="sy-big pop">${WDAY[r.favDay]}</h2><p class="sy-p">was your favourite training day (${r.favDayN}×).</p><div class="sy-list fadeup"${dl(400)}><p>📅 Strongest month: <b>${MONTHS[r.bestMonth]}</b> with ${r.bestMonthN} ${r.bestMonthN===1?"session":"sessions"}</p>${r.streak>1?`<p>🔥 Longest streak: <b>${r.streak} weeks</b> in a row</p>`:""}<p>${r.avgH<11?"🌅 You're a true early bird.":r.avgH>=17?"🌙 You like training in the evening.":"☀️ You like training during the day."}</p></div>`});
   if(r.runs) sl.push({c:"s4", h:`<p class="sy-eb">Running</p><h2 class="sy-num pop tnum">${fmt(r.km,0)} km</h2><p class="sy-p">is how far you ran. ${kmFun(r.km)}</p><div class="sy-list fadeup"${dl(400)}>${r.alster?`<p>🌊 <b>${r.alster}×</b> around the Alster</p>`:""}${r.bestAl?`<p>⏱️ Best Alster loop: <b class="tnum">${hms(r.bestAl)}</b></p>`:""}</div>`});
   if(r.vol>0) sl.push({c:"s5", h:`<p class="sy-eb">Strength</p><h2 class="sy-num pop tnum">${tons(r.vol)}</h2><p class="sy-p">is what you moved in total. ${volumeLine(r.vol)}</p>${r.gains.length?`<div class="sy-list fadeup"${dl(400)}><p class="sy-sm">Biggest strength gains</p>${r.gains.slice(0,3).map(g => `<p>💪 <b>${esc(g.n)}</b> ${fmt(g.from)} → ${fmt(g.to)} kg <span class="sy-pill">+${g.pct} %</span></p>`).join("")}</div>`:""}`});
-  if(r.yoga || r.mob || r.kcal) sl.push({c:"s6", h:`<p class="sy-eb">Body and mind</p>${r.yoga?`<h2 class="sy-num pop tnum">${fmt(r.yogaMin,0)} min</h2><p class="sy-p">of yoga in ${r.yoga} ${r.yoga===1?"session":"sessions"}. Namaste 🧘‍♀️</p>`:`<h2 class="sy-big pop">Kind to yourself</h2>`}<div class="sy-list fadeup"${dl(400)}>${r.mob?`<p>🤸‍♀️ ${r.mob}× glute mobility</p>`:""}${r.kcal?`<p>🔥 about <b class="tnum">${fmt(r.kcal,0)} kcal</b> burned</p>`:""}</div>`});
+  if(r.yoga || r.mob || r.kcal) sl.push({c:"s6", h:`<p class="sy-eb">Body and mind</p>${r.yoga?`<h2 class="sy-num pop tnum">${fmt(r.yogaMin,0)} min</h2><p class="sy-p">of yoga in ${r.yoga} ${r.yoga===1?"session":"sessions"}. Namaste 🧘‍♀️</p>`:`<h2 class="sy-big pop">Kind to yourself</h2>`}<div class="sy-list fadeup"${dl(400)}>${r.mob?`<p>🤸‍♀️ ${r.mob}× glute mobility</p>`:""}${r.calm && r.calm.n>=2 && r.calm.diff>0?`<p>😌 tension <b class="tnum">${fmt(r.calm.before)} → ${fmt(r.calm.after)}</b> after yoga</p>`:""}${r.kcal?`<p>🔥 about <b class="tnum">${fmt(r.kcal,0)} kcal</b> burned</p>`:""}</div>`});
   if(r.badges.length) sl.push({c:"s7", h:`<p class="sy-eb">Badges</p><h2 class="sy-num pop tnum">${r.badges.length}</h2><p class="sy-p">new badges collected.</p><div class="badges sy-badges fadeup"${dl(400)}>${r.badges.map(b => badgeEl(b).replace(/data-act="[^"]*"/g, "")).join("")}</div>`});
   sl.push({c:"s8", end:true, h:`<p class="sy-eb">${r.y}</p><h2 class="sy-big pop">A strong year! 🎉</h2><p class="sy-p fadeup"${dl(400)}>${r.n} ${r.n===1?"session":"sessions"}${r.km?`, ${fmt(r.km,0)} km`:""} and lots of perseverance. Here's to a strong ${r.y+1}!</p><div class="sy-btns fadeup"${dl(700)}><button class="sy-btn" data-act="share">📤 Share</button><button class="sy-btn ghost" data-act="storyclose">Close</button></div>`});
   return sl;
@@ -3646,6 +3698,7 @@ function weekData(ws){
   r.runs = H.filter(e => e.run).length;
   const yo = H.filter(e => e.yoga); r.yoga = yo.length; r.yogaMin = yo.reduce((x,e) => x+num(e.yoga.min), 0);
   r.mob = (S.settings.mob||[]).filter(t => t>=ws && t<ws+WEEK).length;
+  r.calm = NFYoga.tension(calmEntries().filter(x => x.t>=ws && x.t<ws+WEEK));
   r.streak = r.cur ? stats().streak : 0;
   const tips = {}; H.forEach(e => Object.keys(e.sets||{}).forEach(id => { const u = upSuggest(id, e.sets[id], exIn(e.type, id)); if(u) tips[id] = u; else delete tips[id]; }));
   r.tips = Object.entries(tips).map(([id,kg]) => ({n:EXN[id] ? EXN[id].n : id, kg}));
@@ -3667,7 +3720,7 @@ function weekSlides(r){
     if(r.vol>0 || hl.length) sl.push({c:"s5", h:`<p class="sy-eb">Highlights</p>${r.vol>0?`<h2 class="sy-num pop tnum"${fmt(Math.round(r.vol),0).length>3?' style="font-size:72px"':""}>${fmt(Math.round(r.vol),0)} kg</h2><p class="sy-p">is what you moved this week.</p>`:`<h2 class="sy-big pop">Your wins</h2>`}${hl.length?`<div class="sy-list fadeup"${dl(400)}>${hl.join("")}</div>`:`<p class="sy-p fadeup"${dl(400)} style="opacity:.85">No new records this time, but showing up is the most important part. 💪</p>`}`});
     const msw = muscleSlide(r.H, "week"); if(msw){ msw.c = "s1"; sl.push(msw); }
     if(r.runs) sl.push({c:"s4", h:`<p class="sy-eb">Running</p><h2 class="sy-num pop tnum">${fmt(r.km)} km</h2><p class="sy-p">is how far you ran this week.</p><div class="sy-list fadeup"${dl(400)}>${r.alster?`<p>🌊 <b>${r.alster}×</b> around the Alster</p>`:""}${r.bestAlW?`<p>⏱️ Best loop: <b class="tnum">${hms(r.bestAlW)}</b></p>`:""}<p>🗺️ <b class="tnum">${fmt(stats().km,0)} km</b> in total so far</p></div>`});
-    if(r.yoga || r.mob || r.kcal) sl.push({c:"s6", h:`<p class="sy-eb">Body and mind</p>${r.yoga?`<h2 class="sy-num pop tnum">${fmt(r.yogaMin,0)} min</h2><p class="sy-p">of yoga this week. Namaste 🧘‍♀️</p>`:`<h2 class="sy-big pop">Kind to yourself</h2>`}<div class="sy-list fadeup"${dl(400)}>${r.mob?`<p>🤸‍♀️ ${r.mob}× glute mobility</p>`:""}${r.kcal?`<p>🔥 about <b class="tnum">${fmt(r.kcal,0)} kcal</b> burned</p>`:""}</div>`});
+    if(r.yoga || r.mob || r.kcal) sl.push({c:"s6", h:`<p class="sy-eb">Body and mind</p>${r.yoga?`<h2 class="sy-num pop tnum">${fmt(r.yogaMin,0)} min</h2><p class="sy-p">of yoga this week. Namaste 🧘‍♀️</p>`:`<h2 class="sy-big pop">Kind to yourself</h2>`}<div class="sy-list fadeup"${dl(400)}>${r.mob?`<p>🤸‍♀️ ${r.mob}× glute mobility</p>`:""}${r.calm && r.calm.n>=2 && r.calm.diff>0?`<p>😌 tension <b class="tnum">${fmt(r.calm.before)} → ${fmt(r.calm.after)}</b> after yoga</p>`:""}${r.kcal?`<p>🔥 about <b class="tnum">${fmt(r.kcal,0)} kcal</b> burned</p>`:""}</div>`});
     if(r.tips.length || r.streak>1) sl.push({c:"s3", h:`<p class="sy-eb">Next week</p>${r.streak>1?`<h2 class="sy-num pop tnum">${r.streak}</h2><p class="sy-p">weeks in a row you reached your goal. 🔥</p>`:`<h2 class="sy-big pop">${r.n>=g?"Keep it going":"There's more in you"}</h2>`}${r.tips.length?`<div class="sy-list fadeup"${dl(400)}><p class="sy-sm">Try next time</p>${r.tips.map(t => `<p>💪 <b>${esc(t.n)}</b> with <b class="tnum">${fmt(t.kg)} kg</b></p>`).join("")}</div>`:""}`});
   }
   const end = r.n>=g ? "Weekly goal reached! 🎉" : r.n>0 ? "Keep it up 💪" : "New week, new chance ❤️";
@@ -3964,6 +4017,8 @@ function monthData(y, m){
   r.weeksOk = r.weeks.filter(w => w.n>=r.goal).length;
   r.gym = H.filter(e => W[e.type].kind==="gym").length; r.runs = H.filter(e => e.run).length; r.yogaN = H.filter(e => e.yoga).length;
   r.mob = (S.settings.mob||[]).filter(t => t>=a && t<b).length;
+  r.calm = NFYoga.tension(calmEntries().filter(x => x.t>=a && x.t<b));
+  r.breaks = (S.settings.breaks||[]).filter(x => x && x.t>=a && x.t<b).length;
   r.alT = H.filter(e => e.run && e.run.mode==="alster" && num(e.run.min)>0).map(e => ({t:e.start, min:num(e.run.min)}));
   r.alster = H.filter(e => e.run && e.run.mode==="alster").length;
   r.wd = [0,0,0,0,0,0,0]; H.forEach(e => r.wd[(new Date(e.start).getDay()+6)%7]++);
@@ -4048,6 +4103,8 @@ function monthShareSpec(r){
   const items = [];
   if(r.curve) items.push(`💪 ${r.curve.n} +${r.curve.pct} %`);
   if(r.alster) items.push(`🌊 ${r.alster}× around the Alster`);
+  if(r.calm && r.calm.n>=2 && r.calm.diff>0) items.push(`😌 Tension ${fmt(r.calm.before)} → ${fmt(r.calm.after)} after yoga`);
+  else if(r.breaks) items.push(`📚 ${r.breaks} study ${r.breaks===1?"break":"breaks"}`);
   const M = muscleLoad(r.H); if(M.rank[0] && M.rank[0].k==="glutes") items.push(`🍑 ${M.glutePct} % for the glutes`);
   const st2 = [["Sessions", String(r.n)]]; if(r.km) st2.push(["Run", fmt(r.km)+" km"]); if(r.vol) st2.push(["Moved", tons(r.vol)]);
   return {key:"m"+r.y+"-"+r.m, col:THEME_COL[""], eyebrow:`${MONTHS[r.m]} ${r.y}`, title:`My ${MONTHS[r.m]}`, sub:"Your training month ✨", stats:st2, items:items.slice(0,3), kcal:r.kcal, foot:`${r.days} training days`, text:`My training month: ${MONTHS[r.m]} ✨`};
@@ -4534,6 +4591,10 @@ document.addEventListener("click", async ev => {
     }
     case "warmup": startWarmup(); break;
     case "yogago": primeVoice(); startYoga(); break;
+    case "calmpick": { const v = +b.dataset.v, c = CALM; if(!c || !NFYoga.validTension(v)) break; CALM = null; closeSheet(); if(c.stage==="before") primeVoice(); c.cb(v); break; }
+    case "calmskip": { const c = CALM; CALM = null; closeSheet(); if(c) c.cb(null); break; }
+    case "calmoff": { const c = CALM; CALM = null; S.settings.calmCheck = false; save(); closeSheet(); toast("Okay, no more questions. You can turn it back on on the yoga screen."); if(c) c.cb(null); break; }
+    case "calmtoggle": S.settings.calmCheck = !calmOn(); save(); renderSession(); break;
     case "yogalevel": S.settings.yogaLevel = b.dataset.v==="known" ? "known" : "new"; save(); renderSession(); break;
     case "yogavoice": S.settings.yogaVoice = !yVoice(); save(); if(S.settings.yogaVoice){ primeVoice(); say("Voice on. I'll read each pose."); } renderSession(); break;
     case "tmvoice": if(TM){ S.settings.yogaVoice = !yVoice(); save(); TM.spokenI = -1; if(!S.settings.yogaVoice) try{ speechSynthesis.cancel(); }catch(e){} drawTimer(); } break;

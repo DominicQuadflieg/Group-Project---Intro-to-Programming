@@ -134,3 +134,23 @@ test("cue: breath steps stay short on every level", () => {
   assert.equal(Y.cue(st[1], "new").easy, "");
   assert.deepEqual(Y.cue(null, "new"), { text: "", easy: "", say: "" });
 });
+
+test("validTension accepts whole numbers from 1 to 5 only", () => {
+  for (const v of [1, 3, 5]) assert.equal(Y.validTension(v), true);
+  for (const v of [0, 6, 2.5, "3", null, undefined, NaN]) assert.equal(Y.validTension(v), false);
+});
+
+test("tension averages only complete checks, rounded to one decimal", () => {
+  assert.deepEqual(Y.tension([{ b: 4, a: 2 }, { b: 3, a: 2 }, { b: 4, a: 3 }, { b: 5 }, null, { b: 9, a: 1 }]),
+    { n: 3, before: 3.7, after: 2.3, diff: 1.4 });
+  assert.equal(Y.tension([]), null);
+  assert.equal(Y.tension([{ b: 3 }]), null);
+  assert.equal(Y.tension(undefined), null);
+});
+
+test("tensionText says down, same or up", () => {
+  assert.equal(Y.tensionText(4, 2), "From 4 down to 2. Nice.");
+  assert.match(Y.tensionText(3, 3), /^Still 3/);
+  assert.match(Y.tensionText(2, 3), /^Up from 2 to 3/);
+  assert.equal(Y.tensionText(4, null), "");
+});
