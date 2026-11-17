@@ -778,6 +778,9 @@ section[id]{scroll-margin-top:calc(var(--nf-hmin) + 14px)}
 .ob .total{font-weight:700;margin-top:10px}
 .ob .total.ok{color:var(--good)}
 .ob .total.no{color:var(--hl,#ED1B34)}
+.ob .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ob .sexes{grid-template-columns:1fr 1fr}
+.ob .gcat small{margin-left:auto;font-weight:600;letter-spacing:0;color:var(--muted)}
 .ob .gcat{font:700 11px var(--num,var(--body));letter-spacing:.1em;text-transform:uppercase;margin:12px 0 2px;display:flex;gap:8px;align-items:center}
 .ob .plans{display:grid;gap:12px}
 .ob .plan{border:1.5px solid var(--ink);background:var(--surface)}
@@ -818,13 +821,15 @@ section[id]{scroll-margin-top:calc(var(--nf-hmin) + 14px)}
 <script>
 /* ================= Plan ================= */
 const W = {
-  po:{name:"Glute Day",kind:"gym",desc:"Hip Thrusts · Bulgarian Split Squats · optional RDL, Kickbacks & Adduction",
-    intro:"Heavy day: the target is 12 reps. Pick a weight where the last 2 reps are really hard but your form stays clean.",
+  po:{name:"Lower Body",kind:"gym",desc:"Squats · Romanian Deadlift · Bulgarian Split Squats · Hip Thrusts",
+    intro:"Lower body day for legs and glutes. Pick weights where the last 2 reps of each set are hard but your form stays clean.",
     ex:[
-      {id:"hip",n:"Hip Thrusts",de:"Barbell or machine",s:3,r:[12,12],rest:120,cue:"Chin to chest, shins vertical at the top, squeeze hard for 1 second at the top."},
-      {id:"bulgarian",n:"Bulgarian Split Squats",de:"Reps per side · rear foot on the bench",s:3,r:[12,12],rest:90,cue:"Front foot far forward, lean your torso slightly forward, push through the front heel. That way your glutes do most of the work, not your quads."},
-      {id:"rdl",n:"Romanian Deadlift",de:"Romanian deadlift",s:3,r:[12,12],rest:120,opt:true,cue:"Knees slightly bent, push your hips far back, keep the bar close to your legs."},
-      {id:"kick",n:"Kickbacks",de:"Reps per side",s:3,r:[12,12],rest:60,opt:true,cue:"Kick back and slightly out, don't arch your lower back."},
+      {id:"squat",n:"Back Squats",de:"Barbell or Smith machine",s:3,r:[8,10],rest:150,cue:"Feet about shoulder-width apart, chest up, sit back and down until your thighs are parallel, push up through your whole foot."},
+      {id:"rdl",n:"Romanian Deadlift",de:"Barbell",s:3,r:[10,12],rest:120,cue:"Knees slightly bent, push your hips far back, keep the bar close to your legs."},
+      {id:"bulgarian",n:"Bulgarian Split Squats",de:"Reps per side · rear foot on the bench",s:3,r:[10,12],rest:90,cue:"Front foot far forward, lean your torso slightly forward, push through the front heel."},
+      {id:"hip",n:"Hip Thrusts",de:"Barbell or machine",s:3,r:[10,12],rest:120,cue:"Chin to chest, shins vertical at the top, squeeze hard for 1 second at the top."},
+      {id:"legcurl",n:"Lying Leg Curls",de:"Machine",s:3,r:[10,15],rest:60,opt:true,cue:"Hips pressed into the pad, curl your heels toward your glutes, lower slowly."},
+      {id:"calf",n:"Standing Calf Raises",de:"Machine or dumbbells",s:3,r:[12,15],rest:60,opt:true,cue:"Rise as high as you can, pause for a second, lower your heels slowly."},
       {id:"add",n:"Hip Adduction",de:"Adductor machine",s:3,r:[12,12],rest:60,opt:true,cue:"Squeeze your legs together slowly, hold for 1 second, open with control."}
     ]},
   lauf:{name:"Run",kind:"run",desc:"Alster loop or treadmill"},
@@ -871,6 +876,8 @@ const YOGA = [
 const YOGA_MIN = Math.round(YOGA.reduce((a,x) => a+x.d, 0)/60);
 const ALSTER_KM = 7.4;
 const EXN = {}; ORDER.forEach(t => (W[t].ex||[]).forEach(e => EXN[e.id] = e));
+// No longer in a workout, but kept so older sessions still show names and charts
+[{id:"kick",n:"Kickbacks",de:"Reps per side",s:3,r:[12,12],rest:60,opt:true,cue:"Kick back and slightly out, don't arch your lower back."}].forEach(e => EXN[e.id] = e);
 const WD = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 
 /* ================= Zustand & Speichern ================= */
@@ -1214,7 +1221,7 @@ function renderHome(){
       return `<button class="exrow" data-act="chart" data-id="${id}"><span class="n">${EXN[id].n}<small class="tnum">${bw?"up to "+fmt(Math.max(...vals))+" reps":"up to "+fmt(Math.max(...vals))+" kg"}</small></span>${spark(vals)}${g?`<span class="pill good tnum">+${g.pct} %</span>`:`<span class="muted">›</span>`}</button>`;
     }).join("")}</div><p class="small muted" style="margin:0">Tap an exercise to see its curve.</p>`;
   }else{
-    h += `<p class="empty">After your first glute or upper body session, your exercises and progress curves show up here.</p>`;
+    h += `<p class="empty">After your first lower or upper body session, your exercises and progress curves show up here.</p>`;
   }
   if(st.vol>0) h += `<p class="small" style="margin:4px 0 0"><b class="tnum">${fmt(Math.round(st.vol),0)} kg</b> moved in total. ${volumeLine(st.vol)}</p>`;
   h += `</div></section>`;
@@ -1670,7 +1677,7 @@ function renderSession(){
   const a = S.active, w = W[a.type], pd = progData();
   let h = `<div class="sbar"><button class="txtbtn" data-act="home">‹ Menu</button>
     <div class="ttl"><b>${w.kind==="run" && a.run && a.run.mode==="band" ? "Treadmill" : w.name}</b>${w.kind==="run" ? `<span>${runDateTxt(a)}` : `<span><span class="tnum" data-elapsed>${elapsedTxt(a)}</span>`}${pd?`<span class="tnum" id="sprogtxt"> · ${pd.done} of ${pd.all} sets</span>`:""}</span></div>
-    <button class="txtbtn r" data-act="discard">Discard</button>${pd?`<i class="sprog" id="sprogbar" style="width:${pd.all?pd.done/pd.all*100:0}%"></i>`:""}</div>`;
+    <button class="txtbtn r" data-act="sessopts" aria-haspopup="dialog">Reset</button>${pd?`<i class="sprog" id="sprogbar" style="width:${pd.all?pd.done/pd.all*100:0}%"></i>`:""}</div>`;
   if(w.intro) h += `<p class="intro ${kc(w)}">${w.intro}</p>`;
   if(w.kind==="gym" && WARMUP[a.type]){
     h += a.warm ? `<div class="warmdone">✓ Warmed up</div>`
@@ -1977,6 +1984,10 @@ function icsText(){
 
 /* ================= Übungen tauschen ================= */
 const ALT = {
+  squat:[{id:"legpress",n:"Leg Press",de:"Machine",cue:"Feet hip-width on the platform, lower until your knees are at about 90°, press through your heels."},
+         {id:"gobletsq",n:"Goblet Squats",de:"Dumbbell or kettlebell",cue:"Hold the weight at your chest, elbows inside your knees, sit down between your heels."},
+         {id:"smithsq",n:"Smith Machine Squats",de:"",cue:"Feet slightly in front of the bar, chest up, sit down until your thighs are parallel."}],
+  legcurl:[{id:"seatcurl",n:"Seated Leg Curls",de:"Machine",cue:"Thigh pad tight, pull your heels down and back, return slowly."}],
   bulgarian:[{id:"split",n:"Split Squats",de:"Reps per side · both feet on the floor",cue:"Lean slightly forward, take a big step, push through the front heel."},
          {id:"revlunge",n:"Reverse Lunges",de:"Reps per side",cue:"Big step back, lean slightly forward, push up through the front heel."}],
   add:[{id:"cableadd",n:"Cable Adduction",de:"Reps per side",cue:"Stand side-on to the cable, pull your leg across in front of your standing leg, return slowly."}],
@@ -2131,7 +2142,7 @@ const BADGES = [
   {id:"goal1", l:"3/3", t:"Weekly goal", d:"You reached your weekly goal for the first time.", ok:f => f.goalWeeks>=1},
   {id:"streak4", l:"4W", t:"4 weeks straight", d:"You reached your weekly goal 4 weeks in a row.", ok:f => f.streakMax>=4},
   {id:"streak8", l:"8W", t:"8 weeks straight", d:"You reached your weekly goal 8 weeks in a row.", ok:f => f.streakMax>=8},
-  {id:"allround", l:"3×", t:"All-rounder", d:"Glute day, a run and upper body in one week.", ok:f => f.allround},
+  {id:"allround", l:"3×", t:"All-rounder", d:"Lower body, a run and upper body in one week.", ok:f => f.allround},
   {id:"km10", l:"10k", t:"10 km", d:"Ran 10 km in total.", ok:f => f.km>=10, run:true},
   {id:"km50", l:"50k", t:"50 km", d:"Ran 50 km in total.", ok:f => f.km>=50, run:true},
   {id:"km100", l:"100k", t:"100 km", d:"Ran 100 km in total.", ok:f => f.km>=100, run:true},
@@ -2307,9 +2318,9 @@ function runGoalsSheet(){
 /* ================= Timer: Aufwärmen & Intervalle ================= */
 const WARMUP = {
   po:[{n:"Easy cardio", i:"Bike, cross trainer or brisk walking.", d:90},
+      {n:"Bodyweight Squats", i:"Slow squats with your own weight, as deep as is comfortable. About 15 reps.", d:45},
       {n:"Glute Bridges", i:"On your back, push your hips up, pause at the top. About 15 reps.", d:45},
-      {n:"Banded Side Steps", i:"Mini band around your knees, slight squat, step sideways. There and back.", d:45},
-      {n:"Fire Hydrants", i:"On all fours, lift your knee out to the side. 20 s per side.", d:40},
+      {n:"Walking Lunges", i:"Long steps forward, back knee close to the floor. About 10 per leg.", d:40},
       {n:"Leg Swings", i:"Hold on to a wall, swing your leg loosely forward and back. Each side.", d:40},
       {n:"Warm-up set", i:"First exercise with a light weight, 10 easy reps.", d:45}],
   oben:[{n:"Easy cardio", i:"Bike, cross trainer or rowing machine.", d:90},
@@ -2649,7 +2660,7 @@ function poseSvg(key, cls){
 }
 
 /* ================= Steigerungs-Tipp ================= */
-const STEP = {incl:1, flatdb:1, lra:1, lracable:1.25, bic:1, hammer:1, tri:1, ohtri:1, bulgarian:2, split:2, revlunge:2, dbhip:2, dbrdl:2, add:5, abd:5, glutebridge:5};
+const STEP = {gobletsq:2, calf:5, legpress:5, incl:1, flatdb:1, lra:1, lracable:1.25, bic:1, hammer:1, tri:1, ohtri:1, bulgarian:2, split:2, revlunge:2, dbhip:2, dbrdl:2, add:5, abd:5, glutebridge:5};
 function stepOf(id){ return STEP[id] || 2.5; }
 function upSuggest(id, sets){
   const ex = EXN[id]; if(!ex || !sets || sets.length<ex.s) return 0;
@@ -2660,6 +2671,9 @@ function upSuggest(id, sets){
 
 /* ================= Übungs-Anleitungen ================= */
 Object.assign(POSES, {
+  xsquat:{h:[94,40], p:[[[98,52],[118,88]], [[118,88],[82,94],[88,132]], [[88,132],[74,132]], [[100,58],[116,66],[110,52]]], eq:[[[64,50],[148,56]]], c:[[64,50,11],[148,56,11]]},
+  xcurl:{h:[30,82], p:[[[42,88],[112,90]], [[112,90],[150,92],[162,62]], [[50,90],[44,104],[40,114]]], eq:[[[28,100],[168,100]],[[40,100],[40,134]],[[156,100],[156,134]]], c:[[164,58,6]]},
+  xcalf:{h:[100,24], p:[[[100,36],[100,84]], [[100,84],[96,106],[96,122]], [[100,84],[106,106],[106,122]], [[96,122],[106,124]], [[100,44],[88,66],[86,88]], [[100,44],[112,66],[114,88]]], eq:[[[78,126],[128,126]],[[78,126],[78,134]],[[128,126],[128,134]],[[80,90],[92,90]],[[108,90],[120,90]]]},
   xhip:{h:[42,78], p:[[[58,88],[110,86]], [[110,86],[142,84],[142,132]], [[142,132],[158,132]], [[60,90],[34,92]]], eq:[[[14,94],[66,94]],[[20,94],[20,134]],[[60,94],[60,134]]], c:[[108,70,13]]},
   xbss:{h:[86,40], p:[[[104,96],[92,54]], [[104,96],[66,98],[60,132]], [[60,132],[46,132]], [[104,96],[128,122],[158,100]], [[94,58],[90,82],[90,100]]], eq:[[[150,100],[196,100]],[[156,100],[156,134]],[[190,100],[190,134]],[[83,103],[97,103]]]},
   xrdl:{h:[54,62], p:[[[112,78],[68,68]], [[112,78],[104,104],[100,132]], [[100,132],[84,132]], [[70,70],[74,94],[78,112]]], c:[[78,116,13]]},
@@ -2671,11 +2685,17 @@ Object.assign(POSES, {
   xbic:{h:[100,26], p:[[[100,38],[100,86]], [[100,46],[102,72],[120,54]], [[100,86],[96,110],[94,132]], [[100,86],[106,110],[108,132]]], eq:[[[113,54],[127,54]]]},
   xtri:{h:[94,28], p:[[[100,40],[100,86]], [[100,46],[108,16],[86,26]], [[100,86],[96,110],[94,132]], [[100,86],[106,110],[108,132]]], eq:[[[79,21],[91,31]]]}
 });
-const EXPOSE = {hip:"xhip", smithhip:"xhip", glutebridge:"xhip", dbhip:"xhip", bulgarian:"xbss", split:"xbss", revlunge:"xbss",
+const EXPOSE = {squat:"xsquat", smithsq:"xsquat", gobletsq:"xsquat", legpress:"xsquat", legcurl:"xcurl", seatcurl:"xcurl", calf:"xcalf", hip:"xhip", smithhip:"xhip", glutebridge:"xhip", dbhip:"xhip", bulgarian:"xbss", split:"xbss", revlunge:"xbss",
   rdl:"xrdl", dbrdl:"xrdl", hyper:"xrdl", kick:"xkick", kickm:"xkick", abd:"xadd", add:"xadd", cableadd:"xadd",
   lat:"xlat", latclose:"xlat", latone:"xlat", incl:"xincl", inclm:"xincl", flatdb:"xincl", lra:"xlra", lracable:"xlra", lram:"xlra",
   bic:"xbic", hammer:"xbic", cablecurl:"xbic", tri:"xtri", pushdown:"xtri", ohtri:"xtri"};
 const GUIDE = {
+  squat:{f:"Quads, glutes and inner thighs", s:["Bar on your upper back, not on your neck. Feet about shoulder-width, toes slightly out.","Brace your core, chest up.","Sit back and down until your thighs are at least parallel to the floor.","Push up through your whole foot, knees following your toes."],
+    x:["Don't let your knees cave in.","Keep your heels on the floor; if they lift, widen your stance or go less deep."]},
+  legcurl:{f:"Hamstrings (back of the thigh)", s:["Lie face down, the pad just above your heels, knees just off the bench.","Hold the handles, press your hips into the pad.","Curl your heels toward your glutes.","Lower slowly until your legs are almost straight."],
+    x:["Don't lift your hips.","No swinging, lower with control."]},
+  calf:{f:"Calves", s:["Balls of your feet on the edge of a step or the machine plate.","Lower your heels slowly for a stretch.","Rise as high as you can and pause for a second."],
+    x:["Use the full range of motion.","Keep your knees almost straight."]},
   hip:{f:"Gluteus maximus (glutes)", s:["Upper back against the edge of the bench, just below your shoulder blades.","Feet hip-width apart and far enough forward that your shins are vertical at the top.","Chin to chest, look forward instead of at the ceiling.","Drive up through your heels, squeeze your glutes hard for 1 second at the top, lower slowly."],
     x:["Don't arch at the top: keep your ribs down, tilt your pelvis slightly back.","Feet too close to your hips? Then your quads work more than your glutes."]},
   bulgarian:{f:"Glutes and hamstrings", s:["Rest the top of your back foot on the bench, front foot far forward.","Lean your torso slightly forward, back straight.","Lower slowly until your back knee almost touches the floor.","Push back up through your front heel."],
@@ -2793,8 +2813,8 @@ function wxLong(){
 function wxPaint(){ document.querySelectorAll("[data-wx]").forEach(el => { el.innerHTML = el.dataset.wx==="long" ? wxLong() : el.dataset.wx==="plain" ? wxPlain() : wxShort(); el.hidden = !wxInfo(); }); }
 
 /* ================= Begrüßungskarte (passt sich Tag & Situation an) ================= */
-const NEXT_TXT = {po:"Glute day with hip thrusts and Bulgarian split squats", oben:"Upper body with lat pulldown, incline press and lateral raises", lauf:"a run, Alster or treadmill", yoga:"30 minutes of vinyasa flow"};
-const TYPE_ICON = {po:"🍑", oben:"💪", lauf:"🏃‍♀️", yoga:"🧘‍♀️"};
+const NEXT_TXT = {po:"Lower body with squats, Romanian deadlifts and hip thrusts", oben:"Upper body with lat pulldown, incline press and lateral raises", lauf:"a run, Alster or treadmill", yoga:"30 minutes of vinyasa flow"};
+const TYPE_ICON = {po:"🦵", oben:"💪", lauf:"🏃‍♀️", yoga:"🧘‍♀️"};
 function hiShort(){ const h = new Date().getHours(), n = esc(firstName()); const [t, e] = h<5 ? ["Still awake?","🌙"] : h<11 ? ["Good morning","☀️"] : h<14 ? ["Hello","👋"] : h<18 ? ["Hey","💪"] : h<22 ? ["Good evening","🌙"] : ["Still awake?","🌙"]; return !n ? `${t} ${e}` : t.endsWith("?") ? `${t.slice(0,-1)}, ${n}? ${e}` : `${t}, ${n} ${e}`; }
 function heroCls(t){ const k = kc(W[t]); return k==="run" ? "run" : k==="yoga" ? "yoga" : ""; }
 function startBtn(t, label){ return t==="yoga" ? `<button class="herobtn" data-act="yogaflow">${label}</button>` : `<button class="herobtn" data-act="start" data-t="${t}">${label}</button>`; }
@@ -2857,7 +2877,7 @@ function heroHtml(st){
   // 7) Montag: neue Woche
   if(d===1) return card("", "New week 💪", `Goal: ${st.goal} sessions. You can rest today or get started already.`, startBtn(next, `${TYPE_ICON[next]} Start ${W[next].name}`), `<span class="heroalt">or <button class="linkbtn" data-act="mobility">${MOB_MIN} min glute mobility</button></span>`);
   // 8) Donnerstag: Muskelkater
-  if(d===4) return card("yoga", "Sore? That means it's working 😄", "Take it easy today. 10 minutes of stretching will do your glutes good.", `<button class="herobtn" data-act="mobility">🤸‍♀️ Start glute mobility</button>`, `<span class="heroalt">or <button class="linkbtn" data-act="start" data-t="${next}">train after all</button></span>`);
+  if(d===4) return card("yoga", "Sore? That means it's working 😄", "Take it easy today. 10 minutes of stretching will do your legs good.", `<button class="herobtn" data-act="mobility">🤸‍♀️ Start glute mobility</button>`, `<span class="heroalt">or <button class="linkbtn" data-act="start" data-t="${next}">train after all</button></span>`);
   // 9) Tag vor einem Trainingstag (Dienstag)
   if(trainDays()[(d+1)%7]) return card("yoga", "Tomorrow is training day", "Eat well today, drink plenty and get to bed early 💧", `<button class="herobtn" data-act="mobility">🤸‍♀️ Glute Mobility · ${MOB_MIN} min</button>`, `<span class="heroalt">or <button class="linkbtn" data-act="start" data-t="${next}">train today after all</button></span>`);
   // 10) Sonstiger Ruhetag
@@ -3065,7 +3085,7 @@ function yearShareSpec(r){
     kcal:r.kcal, foot:`${r.days} training days`, text:`My training year ${r.y} ✨`};
 }
 /* ================= Wochenrückblick als Story ================= */
-const TYPE_EMO = {po:"🍑", oben:"💪", lauf:"🏃‍♀️", yoga:"🧘‍♀️"};
+const TYPE_EMO = {po:"🦵", oben:"💪", lauf:"🏃‍♀️", yoga:"🧘‍♀️"};
 function weekRange(ws){ const end = new Date(ws+WEEK-864e5), st = new Date(ws); return `${st.getDate()} ${st.getMonth()!==end.getMonth()?MONTHS[st.getMonth()].slice(0,3)+" ":""}– ${end.getDate()} ${MONTHS[end.getMonth()]}`; }
 function weekData(ws){
   const r = rangeData(ws, ws+WEEK), H = S.history.filter(e => e.start>=ws && e.start<ws+WEEK);
@@ -3314,6 +3334,8 @@ function nrcHelp(){
 
 /* ================= Muskeln: welche Muskeln wurden wie stark trainiert ================= */
 const MUSC = {
+  squat:{quads:1,glutes:.7,adduct:.3,lowback:.2}, smithsq:{quads:1,glutes:.6,adduct:.3}, gobletsq:{quads:1,glutes:.6,adduct:.3}, legpress:{quads:1,glutes:.5},
+  legcurl:{hams:1}, seatcurl:{hams:1}, calf:{calves:1},
   hip:{glutes:1,hams:.3}, smithhip:{glutes:1,hams:.3}, glutebridge:{glutes:1,hams:.2}, dbhip:{glutes:1,hams:.3},
   bulgarian:{glutes:.8,quads:.6,adduct:.2}, split:{glutes:.7,quads:.7,adduct:.2}, revlunge:{glutes:.8,quads:.6},
   rdl:{hams:1,glutes:.7,lowback:.4}, dbrdl:{hams:1,glutes:.7,lowback:.4}, hyper:{glutes:.9,hams:.5,lowback:.4},
@@ -3374,7 +3396,7 @@ function muscleSlide(H, when){
   else if(UPPER.includes(top)){ big = "Upper body power 💪"; p = `Worked the most: ${M.rank[0].n}.`; }
   else if(top==="core"){ big = "Strong core 🧘‍♀️"; p = "Yoga really challenged your core."; }
   else { big = "Strong legs 🏃‍♀️"; p = `Worked the most: ${M.rank[0].n}.`; }
-  const hint = top!=="glutes" && M.glutePct<20 ? `<p class="sy-p mhint fadeup"${dl(700)}>Your glutes got a bit less attention ${when==="week"?"this week":"this month"}. Glute day next time? 🍑</p>` : "";
+  const hint = top!=="glutes" && M.glutePct<20 ? `<p class="sy-p mhint fadeup"${dl(700)}>Your glutes got a bit less attention ${when==="week"?"this week":"this month"}. Lower body day next time? 🦵</p>` : "";
   const rank = M.rank.slice(0,3).map((r,i) => `<div class="mrk fadeup"${dl(500+i*120)}><b>${i+1}</b><span>${r.n}</span><span class="tnum">${r.pct} %</span><i class="mtr"><i style="width:${Math.round(r.rel*100)}%"></i></i></div>`).join("");
   return {c:"s5", nophoto:true, h:`<p class="sy-eb">Your muscles ${when==="week"?"this week":"in "+when}</p><h2 class="sy-big pop">${big}</h2><p class="sy-p">${p}</p><div class="sy-panel mfig fadeup"${dl(300)}><div class="mfigs"><div>${bodySvg("front", M.I)}<small>front</small></div><div>${bodySvg("back", M.I)}<small>back</small></div></div></div><div class="mrank">${rank}</div>${hint}`};
 }
@@ -3524,7 +3546,8 @@ function closeStory(){ STORY = null; drawStory(); musicStop(); }
 const PW_ITER = 150000, OB_FAILS = 5, OB_WAIT = 30000;
 const KICON = {s:"💪", r:"🏃", y:"🧘"};
 const LEVEL_TXT = {beginner:["Beginner","new or returning"], intermediate:["Intermediate","training regularly"], advanced:["Advanced","1+ year consistent"]};
-const OB_STEPS = {signup:1, days:2, mix:3, goals:4, level:5, plans:6};
+const OB_STEPS = {signup:1, body:2, days:3, mix:4, goals:5, level:6, plans:7};
+const SEX_TXT = {female:"Female", male:"Male", diverse:"Diverse", na:"Prefer not to say"};
 let OB = {step:"welcome", mode:"new", a:null, plans:null, fails:0, until:0};
 const needsOnboarding = () => !S.settings.profile || !!S.settings.locked;
 const firstName = () => ((S.settings.profile && S.settings.profile.name) || "").trim().split(/\s+/)[0];
@@ -3563,7 +3586,7 @@ function obHead(back){
     : (S.history.length && OB_STEPS[OB.step]>1 ? `<button type="button" class="txtbtn" data-act="ob" data-do="skip">Skip for now</button>` : "");
   const left = back ? `<button type="button" class="txtbtn" data-act="ob" data-do="go" data-to="${back}">‹ Back</button>` : NF_MINI;
   const n = OB_STEPS[OB.step];
-  return `<div class="ob-top">${left}${right}</div>${n ? `<div class="ob-prog" aria-hidden="true"><i style="width:${n/6*100}%"></i></div>` : ""}`;
+  return `<div class="ob-top">${left}${right}</div>${n ? `<div class="ob-prog" aria-hidden="true"><i style="width:${n/7*100}%"></i></div>` : ""}`;
 }
 const obStep = (n, of) => `<p class="ob-step">Step ${n} of ${of}</p>`;
 const errEl = (id) => `<p class="err" id="${id}" role="alert" aria-live="polite"></p>`;
@@ -3610,8 +3633,21 @@ function renderOnboard(){
         </form>`;
       break;
     }
+    case "body": {
+      const b = OB.body || (OB.body = Object.assign({sex:"", age:""}, S.settings.body||{}, {kg:S.settings.bodyKg ? String(S.settings.bodyKg) : ""}));
+      h = obHead("") + obStep(1, 5) + `<h2>A bit about you</h2>
+        <p class="lead">Saved in your profile on this phone. Your weight is used to estimate the calories you burn.</p>
+        <label class="f" id="ob-sex-l">Sex</label>
+        <div class="opts sexes" role="group" aria-labelledby="ob-sex-l">${Object.entries(SEX_TXT).map(([k,l]) => `<button type="button" class="opt" data-act="ob" data-do="sex" data-v="${k}" aria-pressed="${b.sex===k}">${l}</button>`).join("")}</div>${errEl("ob-sex-err")}
+        <form id="ob-form" data-form="body" novalidate>
+          <div class="two"><div><label class="f" for="ob-age">Age</label><input class="inp" id="ob-age" name="age" inputmode="numeric" maxlength="3" autocomplete="off" value="${esc(b.age)}" placeholder="21">${errEl("ob-age-err")}</div>
+          <div><label class="f" for="ob-kg">Weight (kg)</label><input class="inp" id="ob-kg" name="kg" inputmode="decimal" maxlength="5" autocomplete="off" value="${esc(b.kg)}" placeholder="68">${errEl("ob-kg-err")}</div></div>
+          <div class="foot"><button class="primary" type="submit">Continue</button></div>
+        </form>`;
+      break;
+    }
     case "days":
-      h = obHead(OB.mode==="edit" || S.settings.profile ? "" : "signup") + obStep(1, 4) + `<h2>${firstName() ? "Hi " + esc(firstName()) + ", how" : "How"} often do you want to train?</h2>
+      h = obHead("body") + obStep(2, 5) + `<h2>${firstName() ? "Hi " + esc(firstName()) + ", how" : "How"} often do you want to train?</h2>
         <p class="lead">Sessions per week. You can change this any time.</p>
         <div class="daysel" role="group" aria-label="Sessions per week">${[2,3,4,5,6].map(d => `<button class="opt" data-act="ob" data-do="days" data-v="${d}" aria-pressed="${a.days===d}">${d}</button>`).join("")}</div>
         <p class="lead" aria-live="polite">${{2:"A calm start. Perfect for busy exam weeks.",3:"The sweet spot for steady progress.",4:"Ambitious, with room to recover.",5:"Serious training. Plan your rest days well.",6:"Athlete mode. One rest day per week."}[a.days]||""}</p>
@@ -3619,7 +3655,7 @@ function renderOnboard(){
       break;
     case "mix": {
       const t = NFPlan.mixTotal(a.mix);
-      h = obHead("days") + obStep(2, 4) + `<h2>What should your week look like?</h2>
+      h = obHead("days") + obStep(3, 5) + `<h2>What should your week look like?</h2>
         <p class="lead">Split your ${a.days} sessions across the three types.</p>
         <div>${NFPlan.KINDS.map(k => `<div class="mixrow"><span><span aria-hidden="true">${KICON[k]}</span>${NFPlan.KIND_LABEL[k]}</span>
           <div class="stepper"><button data-act="ob" data-do="mix" data-k="${k}" data-d="-1" aria-label="Fewer ${NFPlan.KIND_LABEL[k].toLowerCase()} sessions">−</button><b aria-live="polite">${a.mix[k]}</b><button data-act="ob" data-do="mix" data-k="${k}" data-d="1" aria-label="More ${NFPlan.KIND_LABEL[k].toLowerCase()} sessions">+</button></div></div>`).join("")}</div>
@@ -3628,13 +3664,13 @@ function renderOnboard(){
       break;
     }
     case "goals":
-      h = obHead("mix") + obStep(3, 4) + `<h2>Pick your goals</h2>
-        <p class="lead">Choose up to ${NFPlan.MAX_GOALS}. Your plan is built around them.</p>
-        ${NFPlan.KINDS.filter(k => a.mix[k]>0).map(k => `<p class="gcat"><span aria-hidden="true">${KICON[k]}</span>${NFPlan.KIND_LABEL[k]}</p><div class="opts">${NFPlan.GOALS[k].map(g => `<button class="opt" data-act="ob" data-do="goal" data-v="${g.id}" aria-pressed="${a.goals.includes(g.id)}">${esc(g.label)}</button>`).join("")}</div>`).join("")}
-        ${errEl("ob-err")}<div class="foot"><button class="primary" data-act="ob" data-do="next">Continue (${a.goals.length}/${NFPlan.MAX_GOALS})</button></div>`;
+      h = obHead("mix") + obStep(4, 5) + `<h2>Pick your goals</h2>
+        <p class="lead">Choose up to ${NFPlan.MAX_PER_KIND} for each type of training. Your plan is built around them.</p>
+        ${NFPlan.KINDS.filter(k => a.mix[k]>0).map(k => `<p class="gcat"><span aria-hidden="true">${KICON[k]}</span>${NFPlan.KIND_LABEL[k]}<small>${a.goals.filter(id => NFPlan.goalById(id).kind===k).length} / ${NFPlan.MAX_PER_KIND}</small></p><div class="opts">${NFPlan.GOALS[k].map(g => `<button class="opt" data-act="ob" data-do="goal" data-v="${g.id}" aria-pressed="${a.goals.includes(g.id)}">${esc(g.label)}</button>`).join("")}</div>`).join("")}
+        ${errEl("ob-err")}<div class="foot"><button class="primary" data-act="ob" data-do="next">Continue${a.goals.length ? ` (${a.goals.length} ${a.goals.length===1?"goal":"goals"})` : ""}</button></div>`;
       break;
     case "level":
-      h = obHead("goals") + obStep(4, 4) + `<h2>Last thing: your level</h2>
+      h = obHead("goals") + obStep(5, 5) + `<h2>Last thing: your level</h2>
         <p class="lead">So the plan starts at the right intensity.</p>
         <div class="opts" role="group" aria-label="Level">${NFPlan.LEVELS.map(l => `<button class="opt" data-act="ob" data-do="level" data-v="${l}" aria-pressed="${a.level===l}">${LEVEL_TXT[l][0]}<small>${LEVEL_TXT[l][1]}</small></button>`).join("")}</div>
         <label class="f">Time per session</label>
@@ -3677,8 +3713,14 @@ async function obSubmit(form){
       const h = await hashPassword(form.password.value);
       S.settings.profile = Object.assign({name:v.value.name, email:v.value.email, created:Date.now()}, h);
       S.settings.name = v.value.name; S.settings.locked = false; save();
-      obGo("days");
+      obGo("body");
     }catch(e){ obError("ob-pw-err", "This browser can't store a password securely. Open NOVAFit over https or in Safari or Chrome."); btn.disabled = false; }
+  }else if(kind==="body"){
+    const b = OB.body || {}, v = NFPlan.validateBody({sex:b.sex, age:form.age.value, kg:form.kg.value});
+    obError("ob-sex-err", v.errors.sex); obError("ob-age-err", v.errors.age); obError("ob-kg-err", v.errors.kg);
+    if(!v.ok){ const bad = form.querySelector('[aria-invalid="true"]'); if(bad) bad.focus(); return; }
+    S.settings.body = {sex:v.value.sex, age:v.value.age}; S.settings.bodyKg = String(v.value.kg); save();
+    OB.body = null; obGo("days");
   }else if(kind==="login"){
     const pw = form.password.value;
     if(Date.now() < OB.until){ obError("ob-pw-err", `Too many attempts. Try again in ${Math.ceil((OB.until-Date.now())/1000)} seconds.`); return; }
@@ -3704,7 +3746,11 @@ function obAct(b){
   const a = OB.a, d = b.dataset;
   switch(d.do){
     case "go": obGo(d.to); break;
-    case "edit": startOnboarding("days", "edit"); break;
+    case "edit": OB.body = null; startOnboarding("body", "edit"); break;
+    case "sex":
+      (OB.body = OB.body || {}).sex = d.v; obError("ob-sex-err", "");
+      document.querySelectorAll('[data-do="sex"]').forEach(x => x.setAttribute("aria-pressed", String(x.dataset.v===d.v)));
+      break;
     case "cancel": case "skip": finishOnboarding(); break;
     case "finish": finishOnboarding(); break;
     case "days": a.days = +d.v; a.mix = NFPlan.rebalanceMix(a.mix, a.days); renderOnboard(); break;
@@ -3712,8 +3758,12 @@ function obAct(b){
     case "goal": {
       const i = a.goals.indexOf(d.v);
       if(i>=0) a.goals.splice(i, 1);
-      else if(a.goals.length >= NFPlan.MAX_GOALS){ obError("ob-err", `You can pick up to ${NFPlan.MAX_GOALS} goals`); return; }
-      else a.goals.push(d.v);
+      else{
+        const g = NFPlan.goalById(d.v), same = a.goals.filter(id => NFPlan.goalById(id).kind===g.kind).length;
+        if(same >= NFPlan.MAX_PER_KIND){ obError("ob-err", `You can pick up to ${NFPlan.MAX_PER_KIND} ${NFPlan.KIND_LABEL[g.kind].toLowerCase()} goals. Deselect one first.`); return; }
+        if(a.goals.length >= NFPlan.MAX_GOALS){ obError("ob-err", `You can pick up to ${NFPlan.MAX_GOALS} goals`); return; }
+        a.goals.push(d.v);
+      }
       renderOnboard(); break;
     }
     case "level": a.level = d.v; renderOnboard(); break;
@@ -3775,8 +3825,9 @@ function accountHtml(){
   const p = S.settings.profile; if(!p) return "";
   return `<div class="card" style="background:var(--bg);border:0"><span class="lbl">Account</span>
     <p style="margin:0"><b>${esc(p.name)}</b><br><span class="small muted">${esc(p.email)} · saved on this phone only</span></p>
+    ${S.settings.body ? `<p class="small muted" style="margin:0">${esc(SEX_TXT[S.settings.body.sex]||"")} · ${esc(S.settings.body.age)} years${num(S.settings.bodyKg)>0 ? " · " + fmt(num(S.settings.bodyKg)) + " kg" : ""}</p>` : ""}
     <p class="small muted" style="margin:0">Plan: ${esc((S.settings.plan||{}).name || "none yet")}</p>
-    <div class="row2"><button class="secondary" data-act="ob" data-do="edit">Change plan</button><button class="secondary" data-act="ob" data-do="pwsheet">Change password</button></div>
+    <div class="row2"><button class="secondary" data-act="ob" data-do="edit">Edit profile and plan</button><button class="secondary" data-act="ob" data-do="pwsheet">Change password</button></div>
     <button class="secondary" data-act="ob" data-do="lock">Lock app</button></div>`;
 }
 
@@ -3866,6 +3917,19 @@ document.addEventListener("click", async ev => {
     case "finishall": finishSession(true); break;
     case "discard": sheet(`<h3>Discard session?</h3><p class="muted">Everything you logged in this session will be deleted.</p>
         <button class="secondary danger" data-act="discardok">Yes, discard</button><button class="secondary" data-act="closesheet">Cancel</button>`); break;
+    case "sessopts": {
+      const w = W[S.active.type];
+      sheet(`<h3>Reset ${esc(w.kind==="run" && S.active.run && S.active.run.mode==="band" ? "treadmill run" : w.name)}?</h3>
+        <p class="muted">Start over clears everything you've logged in this session and restarts the clock. Delete removes the session completely, nothing is saved.</p>
+        <button class="secondary" data-act="restartok">⟲ Start over</button>
+        <button class="secondary danger" data-act="discardok">🗑 Delete session</button>
+        <button class="secondary" data-act="closesheet">Cancel</button>`);
+      break;
+    }
+    case "restartok": {
+      const t = S.active.type, mode = S.active.run && S.active.run.mode==="band" ? "band" : "out";
+      S.active = null; rest = null; closeSheet(); startSession(t, mode); toast("Started over"); break;
+    }
     case "discardok": S.active = null; rest = null; screen = "home"; save(); closeSheet(); render(); break;
     case "closesheet": closeSheet(); if(screen==="home") renderHome(); break;
     case "hist": histSheet(b.dataset.id); break;
@@ -4100,6 +4164,13 @@ function handleHash(){
 }
 window.addEventListener("hashchange", handleHash);
 setTimeout(handleHash, 0);
+// Older versions: "Glute Day" is now "Lower Body" with new exercises
+(function migrate(){
+  const pl = S.settings.plan; let ch = false;
+  if(pl && Array.isArray(pl.sessions)) pl.sessions.forEach(s => { if(s.title==="Glute Day"){ s.title = "Lower Body"; ch = true; } });
+  const o = S.settings.order; if(o && o.po && !o.po.includes("squat")){ delete o.po; ch = true; }
+  if(ch) save();
+})();
 if(!S.badges) checkBadges(true);
 applyTheme();
 render();

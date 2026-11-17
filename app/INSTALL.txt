@@ -6,7 +6,7 @@ NOVAFit – install it as an app on your phone
 3. iPhone: Share icon -> "Add to Home Screen".  Android: menu -> "Install app".
 4. Done: the app has its own icon, opens full screen and also works offline.
 
-First start: create your account (name, email, password) and answer four quick
+First start: create your account (name, email, password) and answer five quick
 questions. NOVAFit then suggests three training plans and you pick one.
 
 Your account and data stay on the phone. Use Settings -> "Back up" now and then

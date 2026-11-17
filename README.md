@@ -10,16 +10,19 @@ Group project for Introduction to Programming at NOVA.
 
 ## The app: NOVAFit
 
-A training app for your phone (Progressive Web App) in the design of Nova SBE: strength (glute day, upper body), running and yoga, with personal training plans, progress, stats, a calendar, badges and reminders.
+A training app for your phone (Progressive Web App) in the design of Nova SBE: strength (lower body, upper body), running and yoga, with personal training plans, progress, stats, a calendar, badges and reminders.
 
 On first start, new users create an account (name, email, password) and answer a short questionnaire:
 
-1. How many sessions per week (2–6)
-2. How to split them across strength, running and yoga
-3. Up to three predefined goals (e.g. “10 km under 60 minutes”, “Your first pull-up”, “Exam-week stress relief”)
-4. Level and time per session
+1. About you: sex, age and body weight (the weight is used to estimate calories)
+2. How many sessions per week (2–6)
+3. How to split them across strength, running and yoga
+4. Predefined goals, up to 2 per type and 6 in total (e.g. “10 km under 60 minutes”, “Your first pull-up”, “Exam-week stress relief”)
+5. Level and time per session
 
 NOVAFit then suggests three plans (balanced, focused on the main goal, easy start). The chosen plan sets the weekly goal and shows the next session on the home screen.
+
+A session that has been started can be reset at any time (Reset → Start over or Delete session).
 
 The account is a local profile: it lives on the phone together with the training data. The password is never stored in plain text, only as a salted PBKDF2-SHA256 hash, and locks the app on that device (Settings → Lock app).
 
@@ -51,7 +54,7 @@ Requires Node.js 18 or newer, no packages to install:
 node --test
 ```
 
-or `npm test`. The tests cover valid and rejected sign-up input (empty fields, invalid email, weak or too long passwords, markup in names), questionnaire limits (days, mix, goals, level, session length) and the plan suggestions (session counts, rest days, edge cases). GitHub runs them automatically on every push and pull request.
+or `npm test`. The tests cover valid and rejected sign-up input (empty fields, invalid email, weak or too long passwords, markup in names), body data (age and weight limits, non-numeric input), questionnaire limits (days, mix, goals per type, level, session length) and the plan suggestions (session counts, rest days, edge cases). GitHub runs them automatically on every push and pull request.
 
 ## Replacing the pictures
 

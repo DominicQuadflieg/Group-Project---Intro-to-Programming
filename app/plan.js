@@ -13,8 +13,10 @@
   const DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   // Which weekdays (Mon = 0) get a session, so rest days are spread out
   const DAY_SETS = { 2: [0, 3], 3: [0, 2, 4], 4: [0, 1, 3, 5], 5: [0, 1, 2, 4, 5], 6: [0, 1, 2, 3, 4, 5] };
-  const MIN_DAYS = 2, MAX_DAYS = 6, MAX_GOALS = 3;
+  const MIN_DAYS = 2, MAX_DAYS = 6, MAX_GOALS = 6, MAX_PER_KIND = 2;
   const LEVELS = ["beginner", "intermediate", "advanced"];
+  const SEXES = ["female", "male", "diverse", "na"];
+  const MIN_AGE = 16, MAX_AGE = 99, MIN_KG = 30, MAX_KG = 250;
   const MINUTES = [30, 45, 60];
 
   // Predefined goals per kind. plan = name of the goal-focused plan.
@@ -66,6 +68,26 @@
     return { ok: Object.keys(errors).length === 0, errors, value: { name, email: email.toLowerCase() } };
   }
 
+  /* ---------- About you: sex, age, body weight ---------- */
+  // Accepts numbers or text like "62,5" from the input fields
+  function toNumber(v) {
+    if (typeof v === "number") return v;
+    const t = String(v == null ? "" : v).trim().replace(",", ".");
+    return /^\d+(\.\d+)?$/.test(t) ? Number(t) : NaN;
+  }
+
+  function validateBody(input) {
+    const sex = (input && input.sex) || "", age = toNumber(input && input.age), kg = toNumber(input && input.kg);
+    const errors = {};
+    if (!SEXES.includes(sex)) errors.sex = "Choose an option";
+    if (!Number.isInteger(age)) errors.age = "Enter your age in whole years";
+    else if (age < MIN_AGE || age > MAX_AGE) errors.age = `Enter an age between ${MIN_AGE} and ${MAX_AGE}`;
+    if (!Number.isFinite(kg)) errors.kg = "Enter your weight in kg, e.g. 68 or 68.5";
+    else if (kg < MIN_KG || kg > MAX_KG) errors.kg = `Enter a weight between ${MIN_KG} and ${MAX_KG} kg`;
+    const ok = Object.keys(errors).length === 0;
+    return { ok, errors, value: ok ? { sex, age, kg: Math.round(kg * 10) / 10 } : null };
+  }
+
   /* ---------- Questionnaire ---------- */
   const isInt = v => Number.isInteger(v);
 
@@ -96,10 +118,12 @@
     if (!Array.isArray(goals) || goals.length === 0) return { ok: false, error: "Pick at least one goal" };
     if (goals.length > MAX_GOALS) return { ok: false, error: `Pick up to ${MAX_GOALS} goals` };
     if (new Set(goals).size !== goals.length) return { ok: false, error: "Each goal can only be picked once" };
+    const per = { s: 0, r: 0, y: 0 };
     for (const id of goals) {
       const g = goalById(id);
       if (!g) return { ok: false, error: "Unknown goal" };
       if (mix && !(mix[g.kind] > 0)) return { ok: false, error: `Add a ${KIND_LABEL[g.kind].toLowerCase()} session for “${g.label}”` };
+      if (++per[g.kind] > MAX_PER_KIND) return { ok: false, error: `Pick up to ${MAX_PER_KIND} ${KIND_LABEL[g.kind].toLowerCase()} goals` };
     }
     return { ok: true };
   }
@@ -134,7 +158,7 @@
       const j = used[k]++;
       left[k]--; last = k;
       let workout, title;
-      if (k === "s") { workout = strength[j % 2]; title = workout === "po" ? "Glute Day" : "Upper Body"; }
+      if (k === "s") { workout = strength[j % 2]; title = workout === "po" ? "Lower Body" : "Upper Body"; }
       else if (k === "r") { workout = WORKOUT.r; title = runs[j % runs.length]; }
       else { workout = WORKOUT.y; title = j % 2 ? "Mobility flow" : "Vinyasa flow"; }
       out.push({ day: days[i], kind: k, workout, title, min: k === "y" ? Math.min(min, 30) : min });
@@ -198,8 +222,9 @@
   }
 
   const api = {
-    KINDS, KIND_LABEL, DAY_NAMES, GOALS, LEVELS, MINUTES, MIN_DAYS, MAX_DAYS, MAX_GOALS,
-    goalById, validateSignup, validateDays, validateMix, validateGoals, validateAnswers,
+    KINDS, KIND_LABEL, DAY_NAMES, GOALS, LEVELS, MINUTES, MIN_DAYS, MAX_DAYS, MAX_GOALS, MAX_PER_KIND,
+    SEXES, MIN_AGE, MAX_AGE, MIN_KG, MAX_KG,
+    goalById, validateSignup, validateBody, toNumber, validateDays, validateMix, validateGoals, validateAnswers,
     rebalanceMix, mixTotal, scheduleWeek, suggestPlans, weekdayIndex, sessionOn, nextSession
   };
   if (typeof module === "object" && module.exports) module.exports = api;
