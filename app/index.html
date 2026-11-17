@@ -1055,7 +1055,10 @@ const GYM_MAX = 60*60000;
 function isGym(t){ return !!(W[t] && W[t].kind==="gym"); }
 function elapsedOf(a){ const d = Date.now()-a.start; return isGym(a.type) ? Math.min(d, GYM_MAX) : d; }
 function elapsedTxt(a){ const c = clock(elapsedOf(a)); return isGym(a.type) && Date.now()-a.start>=GYM_MAX ? c+" · stopped" : c; }
-/* Kalorien-Schätzung (MET-Werte bzw. ~1 kcal pro kg und km beim Laufen) */
+/* Kalorien-Schätzung (MET-Werte bzw. ~1 kcal pro kg und km beim Laufen).
+   MET-Teile werden mit dem persönlichen Ruheumsatz aus Geschlecht, Alter, Gewicht und Größe
+   angepasst (NFPlan.kcalFactor, getestet in tests/plan.test.js). Laufen nach Strecke und das
+   Laufband nach ACSM bleiben, wie sie sind: sie rechnen schon mit Gewicht und Tempo. */
 function kcalOn(){ return S.settings.showKcal!==false && num(S.settings.bodyKg)>0; }
 function distKcal(km, min, kg){ const v = min>0 ? km/(min/60) : 10; return km*kg*(v<7 ? 0.6 : 1.0); }
 /* Laufband: ACSM-Formel mit Steigung (Gehen bis ~7,2 km/h, darüber Laufen) */
@@ -1067,14 +1070,15 @@ function treadKcal(km, min, incl, kg){
 }
 function kcalOf(e){
   const kg = num(S.settings.bodyKg); if(!(kg>0)) return 0;
+  const f = NFPlan.kcalFactor(Object.assign({}, S.settings.body, {kg}));
   let k = 0;
-  if(e.run){ const km = num(e.run.km), mn = num(e.run.min); k += e.run.mode==="band" && km>0 && mn>0 ? treadKcal(km, mn, e.run.incline, kg) : km>0 ? distKcal(km, mn, kg) : mn*kg*9.8/60; }
-  if(e.yoga) k += num(e.yoga.min)*kg*(e.yoga.flow ? 3.5 : 3.0)/60;
+  if(e.run){ const km = num(e.run.km), mn = num(e.run.min); k += e.run.mode==="band" && km>0 && mn>0 ? treadKcal(km, mn, e.run.incline, kg) : km>0 ? distKcal(km, mn, kg) : mn*kg*9.8/60*f; }
+  if(e.yoga) k += num(e.yoga.min)*kg*(e.yoga.flow ? 3.5 : 3.0)/60*f;
   if(isGym(e.type)){
     const nSets = Object.values(e.sets||{}).reduce((x,a) => x+a.length, 0);
     const tot = Math.min(60, Math.max(((e.end||e.start)-e.start)/60000, nSets*3)), tm = e.tread ? num(e.tread.min) : 0;
-    if(e.tread) k += num(e.tread.km)>0 && tm>0 ? treadKcal(num(e.tread.km), tm, e.tread.incline, kg) : tm*kg*(6 + num(e.tread.incline)*.45)/60;
-    if(e.sets) k += Math.max(0, tot-tm)*kg*5/60;
+    if(e.tread) k += num(e.tread.km)>0 && tm>0 ? treadKcal(num(e.tread.km), tm, e.tread.incline, kg) : tm*kg*(6 + num(e.tread.incline)*.45)/60*f;
+    if(e.sets) k += Math.max(0, tot-tm)*kg*5/60*f;
   }
   return Math.round(k/5)*5;
 }
@@ -2221,7 +2225,8 @@ function settingsSheet(){
     <div><span class="lbl">Weekly goal</span><div class="stepper"><button data-act="goal" data-d="-1" aria-label="fewer">−</button><b id="goalv">${st.goal}</b><button data-act="goal" data-d="1" aria-label="more">+</button><span class="muted small">sessions per week</span></div></div>
     <div class="card" style="background:var(--bg);border:0">
       <span class="lbl">My profile</span>
-      <div class="rungrid"><div><label class="lbl" for="set-kg">Body weight</label><div class="field"><input inputmode="decimal" id="set-kg" data-in="bodykg" value="${esc(st.bodyKg)}" placeholder="e.g. 60"><span class="u">kg</span></div></div></div>
+      <div class="rungrid"><div><label class="lbl" for="set-kg">Body weight</label><div class="field"><input inputmode="decimal" id="set-kg" data-in="bodykg" value="${esc(st.bodyKg)}" placeholder="e.g. 60"><span class="u">kg</span></div></div>
+      <div><label class="lbl" for="set-cm">Height</label><div class="field"><input inputmode="numeric" id="set-cm" data-in="bodycm" value="${esc((st.body && st.body.cm) || "")}" placeholder="e.g. 175"><span class="u">cm</span></div></div></div>
       <p class="small muted" style="margin:6px 0 10px">Only used to estimate calories after a session.</p>
       <span class="lbl">Show calories</span>
       <div class="seg theme" id="kcalseg">${[["1","On"],["0","Off"]].map(([k,l]) => `<button data-act="kcalshow" data-v="${k}" aria-pressed="${(st.showKcal!==false)===(k==="1")}">${l}</button>`).join("")}</div>
@@ -4075,14 +4080,15 @@ function renderOnboard(){
       break;
     }
     case "body": {
-      const b = OB.body || (OB.body = Object.assign({sex:"", age:""}, S.settings.body||{}, {kg:S.settings.bodyKg ? String(S.settings.bodyKg) : ""}));
+      const b = OB.body || (OB.body = Object.assign({sex:"", age:"", cm:""}, S.settings.body||{}, {kg:S.settings.bodyKg ? String(S.settings.bodyKg) : ""}));
       h = obHead("") + obStep(1, obTotal()) + `<h2>A bit about you</h2>
-        <p class="lead">Saved in your profile on this phone. Your weight is used to estimate the calories you burn.</p>
+        <p class="lead">Saved in your profile on this phone. Sex, age, weight and height are used to estimate the calories you burn.</p>
         <label class="f" id="ob-sex-l">Sex</label>
         <div class="opts sexes" role="group" aria-labelledby="ob-sex-l">${Object.entries(SEX_TXT).map(([k,l]) => `<button type="button" class="opt" data-act="ob" data-do="sex" data-v="${k}" aria-pressed="${b.sex===k}">${l}</button>`).join("")}</div>${errEl("ob-sex-err")}
         <form id="ob-form" data-form="body" novalidate>
           <div class="two"><div><label class="f" for="ob-age">Age</label><input class="inp" id="ob-age" name="age" inputmode="numeric" maxlength="3" autocomplete="off" value="${esc(b.age)}" placeholder="21">${errEl("ob-age-err")}</div>
           <div><label class="f" for="ob-kg">Weight (kg)</label><input class="inp" id="ob-kg" name="kg" inputmode="decimal" maxlength="5" autocomplete="off" value="${esc(b.kg)}" placeholder="68">${errEl("ob-kg-err")}</div></div>
+          <div class="two"><div><label class="f" for="ob-cm">Height (cm) <span class="muted" style="text-transform:none;letter-spacing:0">optional</span></label><input class="inp" id="ob-cm" name="cm" inputmode="numeric" maxlength="3" autocomplete="off" value="${esc(b.cm==null ? "" : b.cm)}" placeholder="175">${errEl("ob-cm-err")}</div><div></div></div>
           <div class="foot"><button class="primary" type="submit">Continue</button></div>
         </form>`;
       break;
@@ -4169,10 +4175,11 @@ async function obSubmit(form){
       obGo("body");
     }catch(e){ obError("ob-pw-err", "This browser can't store a password securely. Open NOVAFit over https or in Safari or Chrome."); btn.disabled = false; }
   }else if(kind==="body"){
-    const b = OB.body || {}, v = NFPlan.validateBody({sex:b.sex, age:form.age.value, kg:form.kg.value});
-    obError("ob-sex-err", v.errors.sex); obError("ob-age-err", v.errors.age); obError("ob-kg-err", v.errors.kg);
+    const b = OB.body || {}, v = NFPlan.validateBody({sex:b.sex, age:form.age.value, kg:form.kg.value, cm:form.cm.value});
+    obError("ob-sex-err", v.errors.sex); obError("ob-age-err", v.errors.age); obError("ob-kg-err", v.errors.kg); obError("ob-cm-err", v.errors.cm);
     if(!v.ok){ const bad = form.querySelector('[aria-invalid="true"]'); if(bad) bad.focus(); return; }
-    S.settings.body = {sex:v.value.sex, age:v.value.age}; S.settings.bodyKg = String(v.value.kg); save();
+    S.settings.body = {sex:v.value.sex, age:v.value.age}; if(v.value.cm) S.settings.body.cm = v.value.cm;
+    S.settings.bodyKg = String(v.value.kg); save();
     OB.body = null; obGo("days");
   }else if(kind==="login"){
     const pw = form.password.value;
@@ -4282,7 +4289,7 @@ function accountHtml(){
   const p = S.settings.profile; if(!p) return "";
   return `<div class="card" style="background:var(--bg);border:0"><span class="lbl">Account</span>
     <p style="margin:0"><b>${esc(p.name)}</b><br><span class="small muted">${esc(p.email)} · saved on this phone only</span></p>
-    ${S.settings.body ? `<p class="small muted" style="margin:0">${esc(SEX_TXT[S.settings.body.sex]||"")} · ${esc(S.settings.body.age)} years${num(S.settings.bodyKg)>0 ? " · " + fmt(num(S.settings.bodyKg)) + " kg" : ""}</p>` : ""}
+    ${S.settings.body ? `<p class="small muted" style="margin:0">${esc(SEX_TXT[S.settings.body.sex]||"")} · ${esc(S.settings.body.age)} years${num(S.settings.bodyKg)>0 ? " · " + fmt(num(S.settings.bodyKg)) + " kg" : ""}${S.settings.body.cm ? " · " + esc(S.settings.body.cm) + " cm" : ""}</p>` : ""}
     <p class="small muted" style="margin:0">Plan: ${esc((S.settings.plan||{}).name || "none yet")}</p>
     <div class="row2"><button class="secondary" data-act="ob" data-do="edit">Edit profile and plan</button><button class="secondary" data-act="ob" data-do="pwsheet">Change password</button></div>
     <button class="secondary" data-act="ob" data-do="lock">Lock app</button></div>`;
@@ -4514,6 +4521,8 @@ document.addEventListener("input", ev => {
   if(k==="libq"){ LIB.q = t.value; const l = $("#liblist"); if(l) l.innerHTML = libListHtml(); return; }
   if(k==="name"){ S.settings.name = t.value; save(); return; }
   if(k==="bodykg"){ S.settings.bodyKg = t.value.trim(); save(); return; }
+  if(k==="bodycm"){ const cm = Math.round(num(t.value)); S.settings.body = S.settings.body || {};
+    if(cm>=NFPlan.MIN_CM && cm<=NFPlan.MAX_CM) S.settings.body.cm = cm; else delete S.settings.body.cm; save(); return; }
   if(k==="time"){ S.settings.remTime = t.value || "18:00"; save(); return; }
   if(k==="plw"){ if(t.dataset.f==="target"){ const f = fmtTimeDigits(t.value); if(f!==t.value) t.value = f; } PLW[t.dataset.f] = t.value; if(t.type==="date") render(); return; }
   if(k==="shot"){ if(t.id==="sh-time"){ const f = fmtTimeDigits(t.value); if(f!==t.value) t.value = f; } t.setAttribute("aria-invalid", "false"); const e = t.closest("div").parentNode.querySelector(".err"); if(e) e.textContent = ""; return; }

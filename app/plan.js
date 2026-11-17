@@ -16,6 +16,7 @@
   const MIN_DAYS = 2, MAX_DAYS = 6, MAX_GOALS = 6, MAX_PER_KIND = 2;
   const LEVELS = ["beginner", "intermediate", "advanced"];
   const SEXES = ["female", "male", "diverse", "na"];
+  const MIN_CM = 120, MAX_CM = 230;
   const MIN_AGE = 16, MAX_AGE = 99, MIN_KG = 30, MAX_KG = 250;
   const MINUTES = [30, 45, 60];
 
@@ -76,16 +77,50 @@
     return /^\d+(\.\d+)?$/.test(t) ? Number(t) : NaN;
   }
 
+  // Height is optional: empty is fine, anything else must be a plausible height in cm
   function validateBody(input) {
     const sex = (input && input.sex) || "", age = toNumber(input && input.age), kg = toNumber(input && input.kg);
+    const cmRaw = String((input && input.cm) == null ? "" : input.cm).trim(), cm = cmRaw === "" ? null : toNumber(cmRaw);
     const errors = {};
     if (!SEXES.includes(sex)) errors.sex = "Choose an option";
     if (!Number.isInteger(age)) errors.age = "Enter your age in whole years";
     else if (age < MIN_AGE || age > MAX_AGE) errors.age = `Enter an age between ${MIN_AGE} and ${MAX_AGE}`;
     if (!Number.isFinite(kg)) errors.kg = "Enter your weight in kg, e.g. 68 or 68.5";
     else if (kg < MIN_KG || kg > MAX_KG) errors.kg = `Enter a weight between ${MIN_KG} and ${MAX_KG} kg`;
+    if (cm !== null) {
+      if (!Number.isFinite(cm)) errors.cm = "Enter your height in cm, e.g. 175";
+      else if (cm < MIN_CM || cm > MAX_CM) errors.cm = `Enter a height between ${MIN_CM} and ${MAX_CM} cm`;
+    }
     const ok = Object.keys(errors).length === 0;
-    return { ok, errors, value: ok ? { sex, age, kg: Math.round(kg * 10) / 10 } : null };
+    return { ok, errors, value: ok ? { sex, age, kg: Math.round(kg * 10) / 10, cm: cm === null ? null : Math.round(cm) } : null };
+  }
+
+  /* ---------- Calories: personal resting burn ---------- */
+  // A MET counts 1 kcal per kg and hour at rest for everyone. Real resting burn is lower
+  // for women than for men and drops with age, so MET estimates are personalised with the
+  // Mifflin-St Jeor equation. Without a height, a typical height for the sex is used;
+  // "diverse" and "prefer not to say" use the average of the female and male equations.
+  const TYPICAL_CM = { female: 165, male: 178 };
+  const SEX_OFFSET = { female: -161, male: 5 };
+
+  function restingKcalPerDay(body) {
+    const b = body || {}, kg = toNumber(b.kg), age = toNumber(b.age);
+    if (!(kg > 0) || !(age > 0)) return null;
+    const known = b.sex === "female" || b.sex === "male";
+    let cm = toNumber(b.cm);
+    if (!(cm >= MIN_CM && cm <= MAX_CM)) cm = known ? TYPICAL_CM[b.sex] : (TYPICAL_CM.female + TYPICAL_CM.male) / 2;
+    const offset = known ? SEX_OFFSET[b.sex] : (SEX_OFFSET.female + SEX_OFFSET.male) / 2;
+    return 10 * kg + 6.25 * cm - 5 * age + offset;
+  }
+
+  // Multiplier for MET-based calories: resting kcal per kg and hour (1 = the MET standard).
+  // 1 when sex or age are unknown, so older profiles keep their numbers.
+  function kcalFactor(body) {
+    const b = body || {};
+    if (!SEXES.includes(b.sex)) return 1;
+    const r = restingKcalPerDay(b), kg = toNumber(b.kg);
+    if (!r) return 1;
+    return Math.min(1.25, Math.max(0.7, r / 24 / kg));
   }
 
   /* ---------- Questionnaire ---------- */
@@ -354,8 +389,8 @@
 
   const api = {
     KINDS, KIND_LABEL, DAY_NAMES, GOALS, LEVELS, MINUTES, MIN_DAYS, MAX_DAYS, MAX_GOALS, MAX_PER_KIND,
-    SEXES, MIN_AGE, MAX_AGE, MIN_KG, MAX_KG,
-    goalById, validateSignup, validateBody, toNumber, validateDays, validateMix, validateGoals, validateAnswers,
+    SEXES, MIN_AGE, MAX_AGE, MIN_KG, MAX_KG, MIN_CM, MAX_CM,
+    goalById, validateSignup, validateBody, toNumber, restingKcalPerDay, kcalFactor, validateDays, validateMix, validateGoals, validateAnswers,
     rebalanceMix, mixTotal, scheduleWeek, suggestPlans, weekdayIndex, sessionOn, nextSession,
     WORKOUTS, HEAVY_LEGS, ADDONS, ADDON_FOR, SPLITS, splitsFor, splitById, recommendSplit, splitFor, validateSplit
   };
