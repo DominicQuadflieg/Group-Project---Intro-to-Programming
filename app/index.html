@@ -342,6 +342,10 @@ textarea{width:100%;min-height:64px;border:1px solid var(--line);border-radius:c
 .flowlist li small{display:block;color:var(--muted);font-size:12px;font-style:italic}
 .flowlist li b{font-weight:500;color:var(--muted);font-size:13px}
 .thumb{width:64px;height:45px;color:var(--yoga);background:var(--yoga-soft);border-radius:calc(var(--rs) * 8px);padding:3px}
+.p2{--pf:var(--surface);--pdot:var(--yoga)}
+.thumb.p2{color:var(--ink);--pf:var(--surface)}
+#timerlayer .p2{--pf:var(--ink);--pdot:currentColor}
+#timerlayer.fast .p2{--pf:var(--hl, var(--accent))}#timerlayer.slow .p2{--pf:var(--run)}#timerlayer.yoga .p2{--pf:var(--yoga)}
 .tmpose{width:min(86%,340px);height:auto;max-height:30vh;align-self:center;margin-bottom:4px}
 #timerlayer.yoga{background:#5b45b8;color:#fff}
 .tmsub{margin:-6px 0 0;font-size:16px;font-style:italic;opacity:.85}
@@ -2038,7 +2042,7 @@ const ySuggest = () => NFYoga.suggest(Date.now(), ranToday());
 function ySid(){ const a = S.active && S.active.yoga; return (a && a.sid) || S.settings.yogaSid || ySuggest() || "vinyasa"; }
 function yLen(id){ return id==="vinyasa" ? yogaLen() : NFYoga.lengthFor(id, (S.settings.yogaLens||{})[id]); }
 // The steps of a session at its chosen length (vinyasa: the flows taking turns)
-function ySteps(id){ return id==="vinyasa" ? flowSteps(curFlow()) : NFYoga.stepsFor(id, yLen(id)); }
+function ySteps(id){ return id==="vinyasa" ? NFYoga.expandSun(flowSteps(curFlow())) : NFYoga.stepsFor(id, yLen(id)); }
 const yPose = id => { const s = NFYoga.byId(id); return id==="vinyasa" ? "dog" : s.steps[Math.min(2, s.steps.length-1)].pose; };
 function yMeta(s, min){
   const bars = [1,2,3].map(i => `<i class="${i<=s.level?"on":""}"></i>`).join("");
@@ -2047,7 +2051,9 @@ function yMeta(s, min){
 function yogaBlock(){
   const y = S.active.yoga, sid = ySid(), s = NFYoga.byId(sid), FS = ySteps(sid), FM = stepsMin(FS), sug = ySuggest();
   const n = S.history.filter(e => e.yoga).length;
-  const sub = sid==="vinyasa" ? `Today: ${esc(curFlow().n)} · ${FS.length} poses` : `${FS.length} poses`;
+  // breath-by-breath Sun Salutation steps don't count as separate poses
+  const np = FS.filter(x => !x.fix).length, sun = FS.some(x => x.fix) ? " + Sun Salutations, one breath per step" : "";
+  const sub = (sid==="vinyasa" ? `Today: ${esc(curFlow().n)} · ` : "") + `${np} poses${sun}`;
   const others = NFYoga.SESSIONS.filter(x => x.id!==sid).map(x => `<button class="yrow" data-act="yogapick" data-id="${x.id}">${poseSvg(yPose(x.id),"thumb")}<span class="ytxt">${x.id===sug?`<span class="ysug">Suggested now</span>`:""}<b>${esc(x.n)}</b><small>${esc(x.desc)}</small>${yMeta(x, x.id==="vinyasa" ? yogaLen() : yLen(x.id))}</span></button>`).join("");
   return `<article class="card yogacard">
     <div class="exhead"><h3>${esc(s.n)}<small>${sid===sug?"Suggested now · ":""}${esc(s.desc)}</small></h3>
@@ -3148,6 +3154,9 @@ const P2 = {
   plank:{head:[46,84], sh:[62,90], hip:[118,98], nel:[61,109], nwr:[60,127], fel:[66,109], fwr:[66,127], nkn:[148,108], nan:[176,124], fkn:[146,110], fan:[174,126], nofoot:1},
   cobra:{head:[50,90], sh:[64,102], hip:[122,120], nel:[82,118], nwr:[66,128], fel:[86,116], fwr:[72,127], nkn:[152,123], nan:[184,126], fkn:[150,125], fan:[182,128], nofoot:1},
   fold:{head:[86,116], sh:[92,98], hip:[112,68], nel:[88,113], nwr:[90,127], fel:[94,112], fwr:[96,126], nkn:[110,98], nan:[108,128], fkn:[114,98], fan:[112,128], toe:-1},
+  // Sun Salutation: half lift (long back, hands on the shins) and lowering down (chaturanga)
+  half:{head:[60,70], sh:[76,72], hip:[112,68], nel:[84,88], nwr:[100,100], fel:[86,89], fwr:[104,101], nkn:[110,98], nan:[108,128], fkn:[114,98], fan:[112,128], toe:-1},
+  low:{head:[46,108], sh:[62,114], hip:[118,118], nel:[78,105], nwr:[66,127], fel:[82,105], fwr:[70,127], nkn:[148,121], nan:[176,124], fkn:[146,122], fan:[174,126], nofoot:1},
   chair:{head:[92,38], sh:[98,56], hip:[118,94], nel:[80,42], nwr:[64,26], fel:[84,40], fwr:[68,24], nkn:[86,104], nan:[100,128], fkn:[90,104], fan:[104,128], toe:-1, glow:1},
   butterfly:{head:[100,52], sh:[100,70], hip:[100,114], nel:[118,96], nwr:[106,122], fel:[82,96], fwr:[94,122], nkn:[146,114], nan:[106,127], fkn:[54,114], fan:[94,127], nofoot:1, glow:1},
   tri:{head:[52,64], sh:[68,72], hip:[100,88], nel:[70,48], nwr:[72,22], fel:[64,94], fwr:[60,114], nkn:[72,108], nan:[46,128], fkn:[128,108], fan:[156,128], nofoot:1},
@@ -3167,21 +3176,30 @@ const PROPS = {
   chair:`<g stroke-width="5" opacity=".35"><line x1="68" y1="98" x2="132" y2="98"/><line x1="72" y1="98" x2="72" y2="130"/><line x1="128" y1="98" x2="128" y2="130"/><line x1="74" y1="98" x2="74" y2="58"/><line x1="126" y1="98" x2="126" y2="58"/><line x1="74" y1="60" x2="126" y2="60"/></g>`,
   wall:`<rect x="142" y="8" width="10" height="122" fill="currentColor" stroke="none" opacity=".18"/>`
 };
+/* Pose drawings: a dark outline around a light body, like the exercise drawings.
+   --pf is the body color (the background behind the drawing), --pdot marks where you should feel it. */
 function poseSvg(key, cls){
   if(!key) return "";
   const mir = key.endsWith("-"), k = key.replace("-",""), p = P2[k];
   if(!p) return poseSvgOld(key, cls);
-  const L = (a, b, w) => `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke-width="${w}"/>`;
-  const foot = (an) => p.nofoot || an[1] < 122 ? "" : L(an, [an[0] + 8*(p.toe||-1), an[1]+.5], 6.5);
-  const far = `<g opacity=".42">${L(p.sh,p.fel,9)}${L(p.fel,p.fwr,7.5)}<circle cx="${p.fwr[0]}" cy="${p.fwr[1]}" r="4.2" fill="currentColor" stroke="none"/>${L(p.hip,p.fkn,13)}${L(p.fkn,p.fan,10.5)}${foot(p.fan)}</g>`;
+  const O = 3.4;
+  const ln = (a, b, w) => `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke-width="${w}"/>`;
+  // a set of limbs: outline in the drawing color first, then the body color on top
+  const part = (segs, op) => `<g${op?` opacity="${op}"`:""}><g>${segs.map(([a,b,w]) => ln(a, b, w+O)).join("")}</g><g style="stroke:var(--pf)">${segs.map(([a,b,w]) => ln(a, b, w)).join("")}</g></g>`;
+  const foot = an => p.nofoot || an[1] < 122 ? [] : [[an, [an[0] + 8*(p.toe||-1), an[1]+.5], 5.5]];
   const mid = [(p.sh[0]+p.hip[0])/2, (p.sh[1]+p.hip[1])/2];
-  const torso = p.bend ? `<path d="M${p.sh} Q${p.bend} ${p.hip}" fill="none" stroke-width="21"/>` : L(p.sh, mid, 22) + L(mid, p.hip, 19.5) + `<circle cx="${p.hip[0]}" cy="${p.hip[1]}" r="10.5" fill="currentColor" stroke="none"/>`;
-  const dx = p.head[0]-p.sh[0], dy = p.head[1]-p.sh[1], ln = Math.hypot(dx,dy) || 1, nk = [p.sh[0]+dx/ln*(ln-9), p.sh[1]+dy/ln*(ln-9)];
-  const glow = p.glow ? `<circle cx="${p.hip[0]}" cy="${p.hip[1]}" r="19" fill="url(#pglow)" stroke="none"/>` : "";
-  const near = `${L(p.hip,p.nkn,14)}${L(p.nkn,p.nan,11)}${foot(p.nan)}${L(p.sh,p.nel,10)}${L(p.nel,p.nwr,8)}<circle cx="${p.nwr[0]}" cy="${p.nwr[1]}" r="4.6" fill="currentColor" stroke="none"/>${L(p.sh,nk,8.5)}`;
-  return `<svg class="${cls||"pose"} p2" viewBox="0 0 200 140" aria-hidden="true"><defs><radialGradient id="pglow"><stop offset="0" stop-color="#ffffff" stop-opacity=".95"/><stop offset=".55" stop-color="#ffffff" stop-opacity=".42"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></radialGradient></defs>
-    <rect x="10" y="130" width="180" height="6" rx="3" fill="currentColor" opacity=".16"/>
-    <g ${mir?'transform="translate(200,0) scale(-1,1)"':""} stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" fill="none">${PROPS[p.prop]||""}${far}${torso}${glow}${near}<circle cx="${p.head[0]}" cy="${p.head[1]}" r="11.5" fill="currentColor" stroke="none"/></g></svg>`;
+  const dx = p.head[0]-p.sh[0], dy = p.head[1]-p.sh[1], len = Math.hypot(dx,dy) || 1, nk = [p.sh[0]+dx/len*(len-9), p.sh[1]+dy/len*(len-9)];
+  const far = part([[p.sh,p.fel,7.5],[p.fel,p.fwr,6],[p.hip,p.fkn,11],[p.fkn,p.fan,8.5], ...foot(p.fan)], .5);
+  const legs = [[p.hip,p.nkn,12],[p.nkn,p.nan,9.5], ...foot(p.nan), [p.sh,nk,7]];
+  const torso = p.bend
+    ? `<path d="M${p.sh} Q${p.bend} ${p.hip}" stroke-width="${18+O}"/>${part(legs)}<path d="M${p.sh} Q${p.bend} ${p.hip}" stroke-width="18" style="stroke:var(--pf)"/>`
+    : part(legs.concat([[p.sh, mid, 19], [mid, p.hip, 17]]));
+  const head = `<circle cx="${p.head[0]}" cy="${p.head[1]}" r="${10.5+O/2}" fill="currentColor" stroke="none"/><circle cx="${p.head[0]}" cy="${p.head[1]}" r="10.5" stroke="none" style="fill:var(--pf)"/>`;
+  const arm = part([[p.sh,p.nel,8],[p.nel,p.nwr,6.5]]);
+  const dot = p.glow ? `<circle cx="${p.hip[0]}" cy="${p.hip[1]}" r="4.5" stroke="none" style="fill:var(--pdot)"/>` : "";
+  return `<svg class="${cls||"pose"} p2" viewBox="0 0 200 140" aria-hidden="true">
+    <rect x="10" y="130" width="180" height="5" rx="2.5" fill="currentColor" opacity=".16"/>
+    <g ${mir?'transform="translate(200,0) scale(-1,1)"':""} stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" fill="none">${PROPS[p.prop]||""}${far}${torso}${head}${arm}${dot}</g></svg>`;
 }
 
 /* ================= Steigerungs-Tipp ================= */

@@ -96,6 +96,38 @@
     { id: "vinyasa", n: "Vinyasa flow", desc: "Flowing and sweaty. A different flow every time.", where: "Mat", level: 3, lens: [30, 15, 45], steps: null }
   ];
 
+  /* Sun Salutations, one step per breath. Shown instead of one long "Sun Salutation A, 3 rounds" step,
+     so the picture and the voice can say what comes next. fix: never stretched or shortened. */
+  const SUN = {
+    A: [["Arms up", "in", 5, "up"], ["Forward fold", "out", 5, "fold"], ["Half lift, long back", "in", 5, "half"],
+        ["Plank", "out", 5, "plank"], ["Lower down, knees may touch", "out", 5, "low"], ["Cobra", "in", 5, "cobra"],
+        ["Downward dog, 5 breaths", "out", 25, "dog"], ["Step forward, half lift", "in", 5, "half"], ["Forward fold", "out", 5, "fold"]],
+    B: [["Chair", "in", 5, "chair"], ["Forward fold", "out", 5, "fold"], ["Half lift, long back", "in", 5, "half"],
+        ["Plank", "out", 5, "plank"], ["Lower down", "out", 5, "low"], ["Cobra", "in", 5, "cobra"], ["Downward dog", "out", 10, "dog"],
+        ["Warrior I, right foot forward", "in", 15, "w1"], ["Plank · lower down · cobra", "out", 10, "plank"], ["Downward dog", "out", 5, "dog"],
+        ["Warrior I, left foot forward", "in", 15, "w1-"], ["Plank · lower down · cobra", "out", 10, "plank"], ["Downward dog, 5 breaths", "out", 25, "dog"],
+        ["Step forward, fold", "out", 5, "fold"]]
+  };
+  const BREATH = { in: "Inhale", out: "Exhale" };
+
+  /* Replaces every "Sun Salutation A/B, N rounds" step with its rounds, one step per breath. */
+  function expandSun(steps) {
+    const out = [];
+    for (const x of steps || []) {
+      const m = /Sun Salutation ([AB]),\s*(\d+) rounds?/.exec(x.n || "");
+      if (!m) { out.push(x); continue; }
+      const kind = m[1], rounds = Math.max(1, Number(m[2]));
+      for (let r = 1; r <= rounds; r++) {
+        SUN[kind].forEach(([n, b, d, pose]) => out.push({ n, s: `Sun Salutation ${kind} · round ${r} of ${rounds} · ${BREATH[b]}`,
+          i: d > 10 ? "Stay here and breathe slowly. Heels toward the floor, hips up and back." : b === "in" ? "Move as you breathe in." : "Move as you breathe out.",
+          d, pose, breath: b, fix: true }));
+        out.push({ n: r < rounds ? "Rise up, arms up" : "Rise up, hands to your heart", s: `Sun Salutation ${kind} · Inhale`,
+          i: r < rounds ? "Inhale all the way up. Next round starts with your exhale." : "Stand tall for a breath.", d: 5, pose: "up", breath: "in", fix: true });
+      }
+    }
+    return out;
+  }
+
   const byId = id => SESSIONS.find(s => s.id === id) || null;
   const total = steps => (steps || []).reduce((a, x) => a + x.d, 0);
   const minutes = steps => Math.round(total(steps) / 60);
@@ -111,10 +143,10 @@
   function stepsFor(id, len) {
     const s = byId(id); if (!s || !s.steps) return [];
     const L = lengthFor(id, len), k = (L * 60) / total(s.steps);
-    return s.steps.map(x => Object.assign({}, x, {
+    return expandSun(s.steps.map(x => Object.assign({}, x, {
       d: Math.max(MIN_STEP, Math.round(x.d * k / 5) * 5),
       n: Math.abs(k - 1) < .05 ? x.n : x.n.replace(/(\d+) rounds/, (m, r) => { const n = Math.max(1, Math.round(r * k)); return n + (n === 1 ? " round" : " rounds"); })
-    }));
+    })));
   }
 
   const ymd = t => { const d = new Date(t); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
@@ -133,7 +165,7 @@
     return "";
   }
 
-  const api = { SESSIONS, EXAM_WEEKS, MIN_STEP, byId, total, minutes, lengthFor, stepsFor, examWeek, suggest };
+  const api = { SESSIONS, EXAM_WEEKS, MIN_STEP, SUN, expandSun, byId, total, minutes, lengthFor, stepsFor, examWeek, suggest };
   if (typeof module === "object" && module.exports) module.exports = api;
   else root.NFYoga = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);
