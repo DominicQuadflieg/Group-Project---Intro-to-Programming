@@ -859,6 +859,9 @@ section[id]{scroll-margin-top:calc(var(--nf-hmin) + 14px)}
 .ob .split small{font-size:13px;opacity:.8}
 .ob .plan .ses .st{display:flex;flex-direction:column}
 .ob .plan .ses small.addon{font-size:12px;color:var(--muted)}
+.exdraw.n1{grid-template-columns:1fr}
+.exdraw.n3{grid-template-columns:1fr 1fr 1fr}
+.exdraw.n3 img{height:130px}
 .exdraw{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line)}
 .exdraw figure{margin:0;background:#fff;display:flex;flex-direction:column;align-items:center;padding:10px 8px 8px}
 .exdraw img{width:100%;height:170px;object-fit:contain}
@@ -3022,8 +3025,8 @@ function guideSheet(id){
   const g = GUIDE[id] || {}, focus = g.f || NFEx.focusOf(ex);
   const steps = g.s || [ex.cue].filter(Boolean);
   sheet(`<p class="eyebrow">How to · ${esc(ex.part||"")} · ${esc(NFEx.TYPES[ex.type]||"")}</p><h3 style="margin:-6px 0 0">${esc(ex.n)}</h3>${focus?`<p class="muted small" style="margin:-4px 0 0">🎯 ${esc(focus)}</p>`:""}
-    ${ex.img ? `<div class="exdraw">${["start","end"].map((k,i) => `<figure><img src="img/ex/${id}-${k}.svg" alt="${esc(ex.n)}: ${esc(ex.img[i].toLowerCase())}" loading="lazy"><figcaption><b>${i+1}</b> ${esc(ex.img[i])}</figcaption></figure>`).join("")}</div>
-      <p class="credit">Drawings: <a href="https://github.com/everkinetic/data" target="_blank" rel="noopener">Everkinetic</a>, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a></p>`
+    ${ex.img ? `<div class="exdraw n${ex.img.length}">${ex.img.map((c,i) => `<figure><img src="img/ex/${id}-${i+1}.svg" alt="${esc(ex.n)}: ${esc(c.toLowerCase())}" loading="lazy"><figcaption>${ex.img.length>1?`<b>${i+1}</b> `:""}${esc(c)}</figcaption></figure>`).join("")}</div>
+      <p class="credit">Drawings: ${ex.imgSrc==="wg" ? `<a href="https://github.com/bryllim/workout-guide" target="_blank" rel="noopener">Workout Guide</a> by Bryl Lim, based on ` : ""}<a href="https://github.com/everkinetic/data" target="_blank" rel="noopener">Everkinetic</a>, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a></p>`
       : poseSvg(EXPOSE[id] || PAT_POSE[ex.pat], "expose")}
     ${steps.length?`<p class="exn" style="margin:0;font-weight:600">How to do it</p><ol class="guide">${steps.map(t => `<li>${esc(t)}</li>`).join("")}</ol>`:""}
     ${(g.x||[]).length?`<p class="exn" style="margin:0;font-weight:600">Watch out for</p><ul class="guide">${g.x.map(t => `<li>${esc(t)}</li>`).join("")}</ul>`:""}
