@@ -16,6 +16,7 @@
   const MIN_DAYS = 2, MAX_DAYS = 6, MAX_GOALS = 6, MAX_PER_KIND = 2;
   const LEVELS = ["beginner", "intermediate", "advanced"];
   const SEXES = ["female", "male", "diverse", "na"];
+  const MIN_CM = 120, MAX_CM = 230;
   const MIN_AGE = 16, MAX_AGE = 99, MIN_KG = 30, MAX_KG = 250;
   const MINUTES = [30, 45, 60];
 
@@ -76,16 +77,50 @@
     return /^\d+(\.\d+)?$/.test(t) ? Number(t) : NaN;
   }
 
+  // Height is optional: empty is fine, anything else must be a plausible height in cm
   function validateBody(input) {
     const sex = (input && input.sex) || "", age = toNumber(input && input.age), kg = toNumber(input && input.kg);
+    const cmRaw = String((input && input.cm) == null ? "" : input.cm).trim(), cm = cmRaw === "" ? null : toNumber(cmRaw);
     const errors = {};
     if (!SEXES.includes(sex)) errors.sex = "Choose an option";
     if (!Number.isInteger(age)) errors.age = "Enter your age in whole years";
     else if (age < MIN_AGE || age > MAX_AGE) errors.age = `Enter an age between ${MIN_AGE} and ${MAX_AGE}`;
     if (!Number.isFinite(kg)) errors.kg = "Enter your weight in kg, e.g. 68 or 68.5";
     else if (kg < MIN_KG || kg > MAX_KG) errors.kg = `Enter a weight between ${MIN_KG} and ${MAX_KG} kg`;
+    if (cm !== null) {
+      if (!Number.isFinite(cm)) errors.cm = "Enter your height in cm, e.g. 175";
+      else if (cm < MIN_CM || cm > MAX_CM) errors.cm = `Enter a height between ${MIN_CM} and ${MAX_CM} cm`;
+    }
     const ok = Object.keys(errors).length === 0;
-    return { ok, errors, value: ok ? { sex, age, kg: Math.round(kg * 10) / 10 } : null };
+    return { ok, errors, value: ok ? { sex, age, kg: Math.round(kg * 10) / 10, cm: cm === null ? null : Math.round(cm) } : null };
+  }
+
+  /* ---------- Calories: personal resting burn ---------- */
+  // A MET counts 1 kcal per kg and hour at rest for everyone. Real resting burn is lower
+  // for women than for men and drops with age, so MET estimates are personalised with the
+  // Mifflin-St Jeor equation. Without a height, a typical height for the sex is used;
+  // "diverse" and "prefer not to say" use the average of the female and male equations.
+  const TYPICAL_CM = { female: 165, male: 178 };
+  const SEX_OFFSET = { female: -161, male: 5 };
+
+  function restingKcalPerDay(body) {
+    const b = body || {}, kg = toNumber(b.kg), age = toNumber(b.age);
+    if (!(kg > 0) || !(age > 0)) return null;
+    const known = b.sex === "female" || b.sex === "male";
+    let cm = toNumber(b.cm);
+    if (!(cm >= MIN_CM && cm <= MAX_CM)) cm = known ? TYPICAL_CM[b.sex] : (TYPICAL_CM.female + TYPICAL_CM.male) / 2;
+    const offset = known ? SEX_OFFSET[b.sex] : (SEX_OFFSET.female + SEX_OFFSET.male) / 2;
+    return 10 * kg + 6.25 * cm - 5 * age + offset;
+  }
+
+  // Multiplier for MET-based calories: resting kcal per kg and hour (1 = the MET standard).
+  // 1 when sex or age are unknown, so older profiles keep their numbers.
+  function kcalFactor(body) {
+    const b = body || {};
+    if (!SEXES.includes(b.sex)) return 1;
+    const r = restingKcalPerDay(b), kg = toNumber(b.kg);
+    if (!r) return 1;
+    return Math.min(1.25, Math.max(0.7, r / 24 / kg));
   }
 
   /* ---------- Questionnaire ---------- */
@@ -352,12 +387,63 @@
     return Object.assign({ inDays: (s.day - d + 7) % 7 }, s);
   }
 
+  /* ---------- Own program ("Build my own") ---------- */
+  // Each strength day is either "rec" (a ready-made template, exercises can still be added in the
+  // workout) or "own" (the user picks every exercise, no suggestions). A custom split has only
+  // own days with names the user gives them.
+  const OWN_MAX_EX = 15, OWN_NAME_MAX = 30;
+  const STRENGTH_MODES = ["rec", "own"];
+
+  function ownDaysFor(splitId, n) {
+    if (splitId === "custom") return Array.from({ length: n }, (_, i) => ({ name: `Day ${i + 1}`, tpl: null, mode: "own", ex: [] }));
+    const sp = splitById(splitId);
+    if (!sp) return [];
+    return sp.workouts.map(k => ({ name: WORKOUTS[k].title, tpl: k, mode: "rec", ex: [] }));
+  }
+
+  function validateOwnDays(days, n) {
+    if (!Array.isArray(days) || !days.length) return { ok: false, error: "Choose a split first", day: -1 };
+    if (Number.isInteger(n) && days.length !== n) return { ok: false, error: `Set up ${n} strength ${n === 1 ? "day" : "days"}`, day: -1 };
+    for (let i = 0; i < days.length; i++) {
+      const d = days[i] || {}, name = String(d.name || "").trim(), label = name || `Day ${i + 1}`;
+      if (!name) return { ok: false, error: `Give day ${i + 1} a name`, day: i };
+      if (name.length > OWN_NAME_MAX) return { ok: false, error: `Use ${OWN_NAME_MAX} characters or fewer for “${label.slice(0, 12)}…”`, day: i };
+      if (/[<>{}]/.test(name)) return { ok: false, error: `Use letters, numbers and spaces for “${label}”`, day: i };
+      if (!STRENGTH_MODES.includes(d.mode)) return { ok: false, error: `Choose Recommended or Choose my own for ${label}`, day: i };
+      if (d.mode === "rec" && !WORKOUTS[d.tpl]) return { ok: false, error: `${label} has no template, choose your own exercises`, day: i };
+      if (d.mode === "own") {
+        const ex = Array.isArray(d.ex) ? d.ex : [];
+        if (!ex.length) return { ok: false, error: `Add at least one exercise to ${label}`, day: i };
+        if (ex.length > OWN_MAX_EX) return { ok: false, error: `Use ${OWN_MAX_EX} exercises or fewer on ${label}`, day: i };
+        if (new Set(ex).size !== ex.length) return { ok: false, error: `${label} has an exercise twice`, day: i };
+      }
+    }
+    return { ok: true };
+  }
+
+  // The workout key and title each own day stands for: a template key, or own1, own2, … for own days
+  function ownDayKeys(days) {
+    return (days || []).map((d, i) => ({ workout: d.mode === "own" ? `own${i + 1}` : d.tpl, title: String(d.name || "").trim() || `Day ${i + 1}` }));
+  }
+
+  // Puts the own days into a suggested plan: the strength sessions, in week order, take them in turn
+  // name (optional) replaces the split's name in the plan, e.g. "Custom split"
+  function applyOwnDays(plan, keys, name) {
+    if (!plan || !Array.isArray(plan.sessions) || !keys || !keys.length) return plan;
+    const out = JSON.parse(JSON.stringify(plan));
+    out.sessions.filter(x => x.kind === "s").sort((x, y) => x.day - y.day)
+      .forEach((x, i) => { const k = keys[i % keys.length]; x.workout = k.workout; x.title = k.title; });
+    if (out.split) out.split = Object.assign({}, out.split, { own: true }, name ? { name } : {});
+    return out;
+  }
+
   const api = {
     KINDS, KIND_LABEL, DAY_NAMES, GOALS, LEVELS, MINUTES, MIN_DAYS, MAX_DAYS, MAX_GOALS, MAX_PER_KIND,
-    SEXES, MIN_AGE, MAX_AGE, MIN_KG, MAX_KG,
-    goalById, validateSignup, validateBody, toNumber, validateDays, validateMix, validateGoals, validateAnswers,
+    SEXES, MIN_AGE, MAX_AGE, MIN_KG, MAX_KG, MIN_CM, MAX_CM,
+    goalById, validateSignup, validateBody, toNumber, restingKcalPerDay, kcalFactor, validateDays, validateMix, validateGoals, validateAnswers,
     rebalanceMix, mixTotal, scheduleWeek, suggestPlans, weekdayIndex, sessionOn, nextSession,
-    WORKOUTS, HEAVY_LEGS, ADDONS, ADDON_FOR, SPLITS, splitsFor, splitById, recommendSplit, splitFor, validateSplit
+    WORKOUTS, HEAVY_LEGS, ADDONS, ADDON_FOR, SPLITS, splitsFor, splitById, recommendSplit, splitFor, validateSplit,
+    OWN_MAX_EX, OWN_NAME_MAX, STRENGTH_MODES, ownDaysFor, validateOwnDays, ownDayKeys, applyOwnDays
   };
   if (typeof module === "object" && module.exports) module.exports = api;
   else root.NFPlan = api;
