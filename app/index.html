@@ -848,6 +848,43 @@ section[id]{scroll-margin-top:calc(var(--nf-hmin) + 14px)}
 .cxf .inp[aria-invalid="true"]{border-color:var(--hl,#ED1B34)}
 .cxf .row2{margin-top:10px}
 .ob .splits{display:grid;gap:10px}
+/* Build my own: strength mode, own days, exercise list with drawings */
+.ob .stmode{display:grid;gap:12px}
+.ob .split.custom{border-style:dashed;background:var(--bg)}
+.ownday{border:1.5px solid var(--line);padding:14px;display:flex;flex-direction:column;gap:10px;background:var(--surface)}
+.ownday .od-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.ownday .od-h b{font:700 20px/1.2 var(--display)}
+.ownday .od-h small{font:700 11px var(--num,var(--body));letter-spacing:.1em;color:var(--muted)}
+.ownday .od-name{font:700 18px var(--display)}
+.odseg{display:grid;grid-template-columns:1fr 1fr}
+.odseg button{height:40px;border:1.5px solid var(--ink);background:var(--surface);color:var(--ink);font:700 12px var(--body);cursor:pointer;border-radius:0}
+.odseg button+button{border-left:0}
+.odseg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.od-prev{margin:0;font-size:13px;line-height:1.5;color:var(--muted)}
+.od-ex{display:flex;flex-direction:column}
+.od-ex .oe{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line);font-size:14px}
+.od-ex .oe span:nth-child(2){flex:1;min-width:0}
+.od-ex .oe button{width:44px;height:44px;border:0;background:none;color:var(--muted);cursor:pointer;font-size:18px}
+.od-add{height:44px;border:1.5px dashed var(--ink);background:var(--bg);color:var(--ink);font:700 13px var(--body);cursor:pointer;border-radius:0}
+.lth{width:52px;height:52px;flex:none;display:flex;align-items:center;justify-content:center;background:#fff;overflow:hidden}
+.lth img{width:100%;height:100%;object-fit:contain}
+.lth.lt{background:var(--bg);font:900 24px var(--display);color:var(--ink)}
+.od-ex .lth{width:40px;height:40px}
+.od-ex .lth.lt{font-size:18px}
+.lsec{margin:0;padding:12px 2px 6px;font:800 12px var(--body);letter-spacing:.08em;color:var(--muted);border-bottom:1px solid var(--line)}
+.librow2{display:flex;align-items:center;gap:4px;border-bottom:1px solid var(--line)}
+.librow2.on{background:var(--run-soft,#e7f1f0)}
+.librow2 .lr-main{flex:1;min-width:0;display:flex;align-items:center;gap:12px;padding:8px 2px;border:0;background:none;color:var(--ink);text-align:left;cursor:pointer;font-family:inherit}
+.librow2 .lr-main[aria-disabled="true"]{opacity:.5;cursor:default}
+.librow2 .lr-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.librow2 .lr-t b{font-weight:600;font-size:15px;line-height:1.25}
+.librow2 .lr-t small{color:var(--muted);font-size:12px}
+.librow2 .lr-ck{width:24px;height:24px;flex:none;border:1.5px solid var(--ink);display:flex;align-items:center;justify-content:center;color:var(--bg)}
+.librow2.on .lr-ck{background:var(--ink)}
+.librow2 .lr-info{width:44px;height:44px;flex:none;border:0;background:none;color:var(--run);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.libtop{display:flex;justify-content:space-between;align-items:center;gap:10px;position:sticky;top:-18px;z-index:2;background:var(--surface);padding:18px 0 8px;margin-top:-18px}
+.libtop .primary{width:auto;padding:0 18px;min-height:44px}
+.lr-main:focus-visible,.lr-info:focus-visible,.odseg button:focus-visible,.od-add:focus-visible{outline:3px solid var(--run);outline-offset:2px}
 .ob .split{display:flex;flex-direction:column;gap:7px;width:100%;text-align:left;padding:12px 14px;border:1.5px solid var(--ink);background:var(--surface);color:var(--ink);cursor:pointer;border-radius:0;font-family:inherit}
 .ob .split[aria-checked="true"]{background:var(--ink);color:var(--bg)}
 .ob .split .sp-h{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;width:100%}
@@ -881,6 +918,7 @@ section[id]{scroll-margin-top:calc(var(--nf-hmin) + 14px)}
 <script src="exercises.js"></script>
 <script src="plan.js"></script>
 <script src="run.js"></script>
+<script src="muscles.js"></script>
 <script>
 /* ================= Plan ================= */
 /* Strength workouts come from the templates in exercises.js (NFEx), exercises from its library */
@@ -940,6 +978,18 @@ const ALSTER_KM = 7.4;
 /* Every exercise by id: the library plus the user's own exercises (added after loading, see addCustomToEXN) */
 const EXN = {}; NFEx.LIBRARY.forEach(e => EXN[e.id] = exFromLib(e));
 const customList = () => (S && S.settings && Array.isArray(S.settings.custom)) ? S.settings.custom : [];
+/* Own workouts from "Build my own" (S.settings.ownW: key → {name, ex}). Kept after a plan change so
+   older sessions still show their name; unknown types in the history get a plain fallback. */
+function registerOwn(){
+  const m = (S && S.settings && S.settings.ownW) || {};
+  Object.keys(m).forEach(k => {
+    const d = m[k] || {}, ex = (d.ex||[]).map(id => EXN[id] ? Object.assign(exFromLib(EXN[id]), {opt:false}) : null).filter(Boolean);
+    W[k] = {name:d.name || "Own workout", kind:"gym", group:"free", own:true, intro:"Your own workout. You can still swap, add or remove exercises.", ex,
+      desc:ex.slice(0, 4).map(e => e.n.replace(/ \(.*\)$/, "")).join(" · ") || "Your own workout"};
+    if(!ALL_W.includes(k)) ALL_W.splice(ALL_W.indexOf("lauf"), 0, k);
+  });
+  ((S && S.history) || []).forEach(e => { if(e && e.type && !W[e.type]){ W[e.type] = {name:"Workout", kind:"gym", group:"free", ex:[], desc:""}; if(!ALL_W.includes(e.type)) ALL_W.splice(ALL_W.indexOf("lauf"), 0, e.type); } });
+}
 function addCustomToEXN(){ customList().forEach(c => { if(c && c.id && !NFEx.BY_ID[c.id]) EXN[c.id] = exFromLib(c); }); }
 const exType = id => (EXN[id] && EXN[id].type) || "w";
 const exUnit = id => EXN[id] ? NFEx.unitOf(EXN[id]) : "kg";
@@ -965,6 +1015,7 @@ function normalize(s){
 }
 let S = (() => { try{ return normalize(JSON.parse(localStorage.getItem(LS)||"null")); }catch(e){ return clone(DEF); } })();
 addCustomToEXN();
+registerOwn();
 let screen = "home", summary = null, rest = null;
 
 let ref = null, saveTimer = null, writing = false, dirty = false, lastSent = "";
@@ -1036,7 +1087,8 @@ const isTyping = () => document.activeElement && /INPUT|TEXTAREA/.test(document.
 const $ = s => document.querySelector(s);
 const esc = s => String(s==null?"":s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const num = v => { const n = parseFloat(String(v==null?"":v).replace(",", ".")); return isFinite(n) ? n : 0; };
-const fmt = (n,d=1) => Number(n).toLocaleString("en-GB",{maximumFractionDigits:d, useGrouping:false});
+// Display only: thousands separators (16,440 kg). Never feed this back into an input that num() reads, use plain numbers there.
+const fmt = (n,d=1) => Number(n).toLocaleString("en-GB",{maximumFractionDigits:d, useGrouping:true});
 const filled = s => s && String(s.r==null?"":s.r).trim()!=="";
 /* Ein Satz zählt, wenn sie ihn abhakt oder selbst etwas einträgt. Vorausgefüllte Werte vom letzten Mal zählen erst danach. */
 const isDone = s => s && (s.ok===true || (s.ok===undefined && filled(s)));
@@ -1054,7 +1106,10 @@ const GYM_MAX = 60*60000;
 function isGym(t){ return !!(W[t] && W[t].kind==="gym"); }
 function elapsedOf(a){ const d = Date.now()-a.start; return isGym(a.type) ? Math.min(d, GYM_MAX) : d; }
 function elapsedTxt(a){ const c = clock(elapsedOf(a)); return isGym(a.type) && Date.now()-a.start>=GYM_MAX ? c+" · stopped" : c; }
-/* Kalorien-Schätzung (MET-Werte bzw. ~1 kcal pro kg und km beim Laufen) */
+/* Kalorien-Schätzung (MET-Werte bzw. ~1 kcal pro kg und km beim Laufen).
+   MET-Teile werden mit dem persönlichen Ruheumsatz aus Geschlecht, Alter, Gewicht und Größe
+   angepasst (NFPlan.kcalFactor, getestet in tests/plan.test.js). Laufen nach Strecke und das
+   Laufband nach ACSM bleiben, wie sie sind: sie rechnen schon mit Gewicht und Tempo. */
 function kcalOn(){ return S.settings.showKcal!==false && num(S.settings.bodyKg)>0; }
 function distKcal(km, min, kg){ const v = min>0 ? km/(min/60) : 10; return km*kg*(v<7 ? 0.6 : 1.0); }
 /* Laufband: ACSM-Formel mit Steigung (Gehen bis ~7,2 km/h, darüber Laufen) */
@@ -1066,14 +1121,15 @@ function treadKcal(km, min, incl, kg){
 }
 function kcalOf(e){
   const kg = num(S.settings.bodyKg); if(!(kg>0)) return 0;
+  const f = NFPlan.kcalFactor(Object.assign({}, S.settings.body, {kg}));
   let k = 0;
-  if(e.run){ const km = num(e.run.km), mn = num(e.run.min); k += e.run.mode==="band" && km>0 && mn>0 ? treadKcal(km, mn, e.run.incline, kg) : km>0 ? distKcal(km, mn, kg) : mn*kg*9.8/60; }
-  if(e.yoga) k += num(e.yoga.min)*kg*(e.yoga.flow ? 3.5 : 3.0)/60;
+  if(e.run){ const km = num(e.run.km), mn = num(e.run.min); k += e.run.mode==="band" && km>0 && mn>0 ? treadKcal(km, mn, e.run.incline, kg) : km>0 ? distKcal(km, mn, kg) : mn*kg*9.8/60*f; }
+  if(e.yoga) k += num(e.yoga.min)*kg*(e.yoga.flow ? 3.5 : 3.0)/60*f;
   if(isGym(e.type)){
     const nSets = Object.values(e.sets||{}).reduce((x,a) => x+a.length, 0);
     const tot = Math.min(60, Math.max(((e.end||e.start)-e.start)/60000, nSets*3)), tm = e.tread ? num(e.tread.min) : 0;
-    if(e.tread) k += num(e.tread.km)>0 && tm>0 ? treadKcal(num(e.tread.km), tm, e.tread.incline, kg) : tm*kg*(6 + num(e.tread.incline)*.45)/60;
-    if(e.sets) k += Math.max(0, tot-tm)*kg*5/60;
+    if(e.tread) k += num(e.tread.km)>0 && tm>0 ? treadKcal(num(e.tread.km), tm, e.tread.incline, kg) : tm*kg*(6 + num(e.tread.incline)*.45)/60*f;
+    if(e.sets) k += Math.max(0, tot-tm)*kg*5/60*f;
   }
   return Math.round(k/5)*5;
 }
@@ -1212,6 +1268,25 @@ try{ matchMedia("(prefers-reduced-motion: reduce)").addEventListener("change", (
 /* Campus-Fotos für den großen Kasten oben. Eigene Fotos (Einstellungen → Fotos) haben Vorrang.
    Zum Austauschen: Bilder nach app/img legen und hier eintragen. */
 const CAMPUS_PHOTOS = [{url:"img/campus-1.svg"}, {url:"img/campus-2.svg"}];
+/* Standard-Fotopaket für Startseite und Rückblicke (img/pack/, siehe img/pack/README.txt).
+   Gilt, solange keine eigenen Fotos in den Einstellungen sind. Fehlende Dateien werden übersprungen;
+   fehlt das ganze Paket, zeigt die Startseite CAMPUS_PHOTOS und die Rückblicke bleiben ohne Foto.
+   pos = Bildausschnitt (wie CSS object-position), damit im Hochformat das Wichtige sichtbar bleibt. */
+const PHOTO_PACK = [
+  {url:"img/pack/campus-plaza.jpg", pos:"62% 50%"},
+  {url:"img/pack/campus-terrace.jpg", pos:"86% 55%"},
+  {url:"img/pack/campus-glass-hall.jpg", pos:"62% 55%"},
+  {url:"img/pack/gym-cardio.jpg", pos:"40% 60%"},
+  {url:"img/pack/gym-weights.jpg", pos:"55% 60%"}
+];
+let PACK = null;
+function packPhotos(){
+  return PACK || (PACK = Promise.all(PHOTO_PACK.map(p => new Promise(ok => {
+    const im = new Image(); im.onload = () => ok(p); im.onerror = () => ok(null); im.src = p.url;
+  }))).then(a => a.filter(Boolean)));
+}
+// Eigene Fotos haben Vorrang, sonst das Paket
+function defaultPhotos(){ return photoUrls().catch(() => []).then(ps => ps.length ? ps : packPhotos()); }
 let HERO_STEP = null, REVEALED = false;
 const smoothOk = () => !(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
 const HB_ICON = '<svg viewBox="0 0 30 24" aria-hidden="true"><rect y="1" width="30" height="4.5" fill="currentColor"/><rect y="9.75" width="30" height="4.5" fill="currentColor"/><rect y="18.5" width="30" height="4.5" fill="currentColor"/></svg>';
@@ -2116,6 +2191,15 @@ function buildSummary(e){
   return {e, ups, first:!lastSame, vol, lv, nSets, weekCount, played:false};
 }
 function pendingCount(){ let n = 0; Object.values(S.active.sets||{}).forEach(a => a.forEach(x => { if(!isDone(x) && filled(x)) n++; })); return n; }
+// Which sets are still open, for the finish dialog: "Shoulder Press set 2 and 3"
+function pendingList(){
+  const out = [];
+  Object.entries(S.active.sets||{}).forEach(([id, a]) => {
+    const open = a.map((x, i) => !isDone(x) && filled(x) ? i+1 : 0).filter(Boolean);
+    if(open.length) out.push(`${(EXN[id] ? EXN[id].n : id).replace(/ \(.*\)$/, "")} set ${open.length>1 ? open.slice(0,-1).join(", ") + " and " + open[open.length-1] : open[0]}`);
+  });
+  return out;
+}
 function finishSession(withPending){
   const e = buildEntry(withPending);
   if(!e.sets && !e.run && !e.tread && !e.yoga){
@@ -2238,7 +2322,8 @@ function settingsSheet(){
     <div><span class="lbl">Weekly goal</span><div class="stepper"><button data-act="goal" data-d="-1" aria-label="fewer">−</button><b id="goalv">${st.goal}</b><button data-act="goal" data-d="1" aria-label="more">+</button><span class="muted small">sessions per week</span></div></div>
     <div class="card" style="background:var(--bg);border:0">
       <span class="lbl">My profile</span>
-      <div class="rungrid"><div><label class="lbl" for="set-kg">Body weight</label><div class="field"><input inputmode="decimal" id="set-kg" data-in="bodykg" value="${esc(st.bodyKg)}" placeholder="e.g. 60"><span class="u">kg</span></div></div></div>
+      <div class="rungrid"><div><label class="lbl" for="set-kg">Body weight</label><div class="field"><input inputmode="decimal" id="set-kg" data-in="bodykg" value="${esc(st.bodyKg)}" placeholder="e.g. 60"><span class="u">kg</span></div></div>
+      <div><label class="lbl" for="set-cm">Height</label><div class="field"><input inputmode="numeric" id="set-cm" data-in="bodycm" value="${esc((st.body && st.body.cm) || "")}" placeholder="e.g. 175"><span class="u">cm</span></div></div></div>
       <p class="small muted" style="margin:6px 0 10px">Only used to estimate calories after a session.</p>
       <span class="lbl">Show calories</span>
       <div class="seg theme" id="kcalseg">${[["1","On"],["0","Off"]].map(([k,l]) => `<button data-act="kcalshow" data-v="${k}" aria-pressed="${(st.showKcal!==false)===(k==="1")}">${l}</button>`).join("")}</div>
@@ -2633,7 +2718,7 @@ function runGoalsHtml(st){
 function runGoalsSheet(){
   sheet(`<h3>Running goals</h3>
     <div><label class="lbl" for="g-al">Alster loop under (mm:ss)</label><input class="inp tnum" id="g-al" inputmode="text" value="${mmss(S.settings.alsterGoal)}"></div>
-    <div><label class="lbl" for="g-km">Kilometres per month</label><input class="inp tnum" id="g-km" inputmode="decimal" value="${fmt(S.settings.kmGoal,0)}"></div>
+    <div><label class="lbl" for="g-km">Kilometres per month</label><input class="inp tnum" id="g-km" inputmode="decimal" value="${Math.round(num(S.settings.kmGoal))}"></div>
     <button class="primary run" data-act="rungoalsave">Save</button><button class="secondary" data-act="closesheet">Cancel</button>`);
 }
 
@@ -3060,7 +3145,7 @@ const GUIDE = {
 };
 const PAT_POSE = {squat:"xsquat", legcurl:"xcurl", calf:"xcalf", thrust:"xhip", lunge:"xbss", rdl:"xrdl", kick:"xkick", abduct:"xadd", adduct:"xadd",
   vpull:"xlat", pullup:"xlat", ipress:"xincl", hpress:"xincl", raise:"xlra", curl:"xbic", tri:"xtri"};
-function guideSheet(id){
+function guideSheet(id, back){
   const ex = EXN[id]; if(!ex) return;
   const g = GUIDE[id] || {}, focus = g.f || NFEx.focusOf(ex);
   const steps = g.s || [ex.cue].filter(Boolean);
@@ -3070,7 +3155,7 @@ function guideSheet(id){
       : poseSvg(EXPOSE[id] || PAT_POSE[ex.pat], "expose")}
     ${steps.length?`<p class="exn" style="margin:0;font-weight:600">How to do it</p><ol class="guide">${steps.map(t => `<li>${esc(t)}</li>`).join("")}</ol>`:""}
     ${(g.x||[]).length?`<p class="exn" style="margin:0;font-weight:600">Watch out for</p><ul class="guide">${g.x.map(t => `<li>${esc(t)}</li>`).join("")}</ul>`:""}
-    <button class="secondary" data-act="closesheet">Close</button>`);
+    ${back ? `<button class="secondary" data-act="libback">‹ Back to the list</button>` : `<button class="secondary" data-act="closesheet">Close</button>`}`);
 }
 
 /* ================= Po-Mobility (Ruhetage, ohne Trainings-Uhr) ================= */
@@ -3233,18 +3318,33 @@ function workoutsSheet(){
 /* ================= Exercise library ================= */
 let LIB = {q:"", part:"", eq:"", mode:"browse"};
 function inSession(id){ return !!S.active && sessList().some(e => e.id===id || eff(e).id===id); }
+const INFO_ICO = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/></svg>';
+const CK_ICO = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>';
+// Small picture of an exercise (end position of its drawing), else its first letter
+function exThumb(e){
+  return e && Array.isArray(e.img) && e.img.length && !e.custom
+    ? `<span class="lth"><img src="img/ex/${e.id}-${e.img.length}.svg" alt="" loading="lazy"></span>`
+    : `<span class="lth lt" aria-hidden="true">${esc(((e && e.n) || "?").charAt(0).toUpperCase())}</span>`;
+}
 function libListHtml(){
   const res = NFEx.search(LIB.q, {part:LIB.part, eq:LIB.eq, custom:customList()});
   if(!res.length) return `<p class="empty">No exercise found. Create it as your own exercise below.</p>`;
-  const add = LIB.mode==="add";
-  return `<p class="count" aria-live="polite">${res.length} ${res.length===1?"exercise":"exercises"}</p>` + res.map(e => {
-    const has = add && inSession(e.id);
-    return `<button class="librow${has?" in":""}" data-act="${add?"libadd":"guide"}" data-ex="${e.id}"${has?` aria-disabled="true"`:""}><b>${esc(e.n)}</b><small>${esc(e.part)} · ${NFEx.TYPES[e.type]}${e.custom?" · your exercise":""}</small>${has?`<span class="pill">added</span>`:e.custom?`<span class="pill">own</span>`:""}</button>`;
-  }).join("");
+  const mode = LIB.mode, sel = LIB.sel || [];
+  let letter = "", h = `<p class="count" aria-live="polite">${res.length} ${res.length===1?"exercise":"exercises"}</p>`;
+  res.forEach(e => {
+    const L = (e.n.charAt(0) || "#").toUpperCase();
+    if(!LIB.q && L!==letter){ letter = L; h += `<p class="lsec" aria-hidden="true">${esc(L)}</p>`; }
+    const has = mode==="add" && inSession(e.id), on = mode==="pick" && sel.includes(e.id);
+    const act = mode==="pick" ? "libpick" : mode==="add" ? "libadd" : "guide";
+    const sub = `${esc(e.part)}${e.eq ? " · " + esc(e.eq) : ""}${e.custom ? " · your exercise" : ""}${has ? " · added" : ""}`;
+    h += `<div class="librow2${on?" on":""}"><button type="button" class="lr-main" data-act="${act}" data-ex="${e.id}"${mode==="pick" ? ` aria-pressed="${on}"` : ""}${has ? ` aria-disabled="true"` : ""}>${exThumb(e)}<span class="lr-t"><b>${esc(e.n)}</b><small>${sub}</small></span>${mode==="pick" ? `<span class="lr-ck">${on ? CK_ICO : ""}</span>` : ""}</button>${mode!=="browse" ? `<button type="button" class="lr-info" data-act="libguide" data-ex="${e.id}" aria-label="How to do ${esc(e.n)}">${INFO_ICO}</button>` : ""}</div>`;
+  });
+  return h;
 }
 function libSheet(){
   const chips = (list, key, label) => `<div class="libchips" role="group" aria-label="${label}">${["", ...list].map(v => `<button class="lchip" data-act="libfilter" data-k="${key}" data-v="${esc(v)}" aria-pressed="${LIB[key]===v}">${v || "All"}</button>`).join("")}</div>`;
-  sheet(`<h3>${LIB.mode==="add" ? "Add exercise" : "Exercise library"}</h3>
+  const pick = LIB.mode==="pick", day = pick && OB.a && OB.a.own && OB.a.own.days[LIB.day];
+  sheet(`${pick ? `<div class="libtop"><h3 style="margin:0">Add to ${esc((day && day.name) || "your day")}</h3><button class="primary" id="libdone" data-act="libpickdone">${pickLabel()}</button></div>` : `<h3>${LIB.mode==="add" ? "Add exercise" : "Exercise library"}</h3>`}
     <input class="inp" id="libq" data-in="libq" type="search" enterkeyhint="search" autocomplete="off" placeholder="Search, e.g. row or dumbbell" value="${esc(LIB.q)}" aria-label="Search exercises">
     ${chips(NFEx.PARTS, "part", "Body part")}${chips(NFEx.EQUIP, "eq", "Equipment")}
     <div class="liblist" id="liblist">${libListHtml()}</div>
@@ -3252,6 +3352,9 @@ function libSheet(){
     <button class="secondary" data-act="closesheet">Close</button>`);
 }
 function openLibrary(mode){ LIB = {q:"", part:"", eq:"", mode}; libSheet(); }
+// Picks exercises for an own day during onboarding: several at once, then back to the day list
+function openPicker(i){ const day = OB.a.own.days[i]; LIB = {q:"", part:"", eq:"", mode:"pick", day:i, sel:(day.ex||[]).slice()}; libSheet(); }
+const pickLabel = () => { const n = (LIB.sel||[]).length; return n ? `Done (${n})` : "Done"; };
 function libNewSheet(err, val){
   err = err || {}; val = val || {};
   const sel = (name, list, label) => `<select class="inp" id="cx-${name}" name="${name}"${err[name]?` aria-invalid="true" aria-describedby="cx-${name}-err"`:""}><option value="">Choose…</option>${list.map(([v,t]) => `<option value="${esc(v)}"${val[name]===v?" selected":""}>${esc(t)}</option>`).join("")}</select><p class="err" id="cx-${name}-err" role="alert">${esc(err[name]||"")}</p>`;
@@ -3273,6 +3376,7 @@ function libCreate(form){
   const c = NFEx.makeCustom(v.value, "c" + Date.now().toString(36));
   S.settings.custom = customList().concat(c); EXN[c.id] = exFromLib(c); save();
   if(LIB.mode==="add" && S.active){ libAdd(c.id); return; }
+  if(LIB.mode==="pick"){ LIB.sel = (LIB.sel||[]).concat(c.id); LIB.q = ""; libSheet(); toast(`${c.n} created and picked`); return; }
   LIB.q = ""; libSheet(); toast(`${c.n} created`);
 }
 function libAdd(id){
@@ -3378,14 +3482,14 @@ function heroPhotos(){
   clearInterval(HERO_ROT);
   const hero = document.querySelector("#app section.hero"); if(!hero) return;
   const go = ps => { if(!ps || !ps.length) ps = CAMPUS_PHOTOS; if(hero.isConnected && !hero.querySelector(".hph")) mountHeroPhotos(hero, ps); };
-  if(PHOTOS) go(PHOTOS); else photoUrls().then(go).catch(() => go(null));
+  defaultPhotos().then(go).catch(() => go(null));
 }
 function mountHeroPhotos(hero, ps){
   const now = new Date(), doy = Math.floor((now - new Date(now.getFullYear(),0,0))/864e5);
   const n = Math.min(ps.length, 5), start = doy % ps.length;
-  const pick = Array.from({length:n}, (_,i) => ps[(start+i) % ps.length].url);
+  const pick = Array.from({length:n}, (_,i) => ps[(start+i) % ps.length]);
   const box = document.createElement("div"); box.className = "hph"; box.setAttribute("aria-hidden", "true");
-  box.innerHTML = pick.map((u,i) => `<img src="${u}" alt="" class="${i===0?"on":""}" style="animation-name:kb${i%3}">`).join("") + `<div class="hblur"></div><div class="hov"></div>`;
+  box.innerHTML = pick.map((p,i) => `<img src="${p.url}" alt="" class="${i===0?"on":""}" style="animation-name:kb${i%3}${p.pos?`;object-position:${p.pos}`:""}">`).join("") + `<div class="hblur"></div><div class="hov"></div>`;
   hero.prepend(box); hero.classList.add("photo");
   if(n>1){ const dots = document.createElement("div"); dots.className = "hdots"; dots.innerHTML = pick.map((_,i) => `<i class="${i===0?"on":""}"></i>`).join(""); hero.querySelector("h2").before(dots); }
   HERO_STEP = null;
@@ -3759,10 +3863,11 @@ async function addPhotos(files){
   toast(ok ? `${ok} ${ok===1?"photo":"photos"} added ❤️` : "That didn't work.");
 }
 function attachPhotos(st){
-  photoUrls().then(ps => {
+  defaultPhotos().then(ps => {
     if(!ps.length || STORY!==st) return;
     const sh = ps.slice().sort(() => Math.random()-.5);
-    st.photos = st.slides.map((_,i) => sh[i % sh.length].url);
+    let j = 0;   // Folien mit Diagrammen (nophoto) bleiben ohne Foto, damit sie lesbar sind
+    st.photos = st.slides.map(sl => sl.nophoto ? null : sh[j++ % sh.length]);
     drawStory(true);
   }).catch(() => {});
 }
@@ -3821,34 +3926,9 @@ function nrcHelp(){
 }
 
 /* ================= Muskeln: welche Muskeln wurden wie stark trainiert ================= */
-const MUSC = {
-  squat:{quads:1,glutes:.7,adduct:.3,lowback:.2}, smithsq:{quads:1,glutes:.6,adduct:.3}, gobletsq:{quads:1,glutes:.6,adduct:.3}, legpress:{quads:1,glutes:.5},
-  legcurl:{hams:1}, seatcurl:{hams:1}, calf:{calves:1},
-  hip:{glutes:1,hams:.3}, smithhip:{glutes:1,hams:.3}, glutebridge:{glutes:1,hams:.2}, dbhip:{glutes:1,hams:.3},
-  bulgarian:{glutes:.8,quads:.6,adduct:.2}, split:{glutes:.7,quads:.7,adduct:.2}, revlunge:{glutes:.8,quads:.6},
-  rdl:{hams:1,glutes:.7,lowback:.4}, dbrdl:{hams:1,glutes:.7,lowback:.4}, hyper:{glutes:.9,hams:.5,lowback:.4},
-  kick:{glutes:1}, kickm:{glutes:1}, abd:{glutes:.9}, add:{adduct:1}, cableadd:{adduct:1},
-  lat:{back:1,biceps:.4}, latclose:{back:1,biceps:.4}, latone:{back:1,biceps:.4},
-  incl:{chest:1,shoulders:.4,triceps:.4}, inclm:{chest:1,shoulders:.4,triceps:.4}, flatdb:{chest:1,triceps:.4,shoulders:.3},
-  lra:{shoulders:1}, lracable:{shoulders:1}, lram:{shoulders:1},
-  bic:{biceps:1}, hammer:{biceps:1}, cablecurl:{biceps:1}, tri:{triceps:1}, pushdown:{triceps:1}, ohtri:{triceps:1}
-};
-const MUSC_N = {glutes:"Glutes", hams:"Hamstrings", quads:"Quads", adduct:"Inner thighs", calves:"Calves", back:"Back", lowback:"Lower back", chest:"Chest", shoulders:"Shoulders", biceps:"Biceps", triceps:"Triceps", core:"Core"};
-const UPPER = ["back","chest","shoulders","biceps","triceps"];
-function muscleLoad(H){
-  const L = {};
-  const add = (m, v) => L[m] = (L[m]||0) + v;
-  H.forEach(e => {
-    Object.keys(e.sets||{}).forEach(id => { const map = MUSC[id] || (EXN[id] && EXN[id].m); if(!map) return; const n = (e.sets[id]||[]).filter(s => num(s.r)>0).length; Object.entries(map).forEach(([m,w]) => add(m, n*w)); });
-    const km = kmOf(e); if(km>0){ const k = Math.min(2, km/5); add("quads", 2*k); add("calves", 2*k); add("hams", 1.2*k); add("glutes", 1*k); add("core", .4*k); }
-    if(e.yoga){ const k = Math.min(1.5, Math.max(.5, num(e.yoga.min)/30)); add("core", 2*k); add("glutes", 1*k); add("hams", 1*k); add("back", .5*k); add("shoulders", .5*k); }
-  });
-  const tot = Object.values(L).reduce((a,b) => a+b, 0), max = Math.max(0, ...Object.values(L));
-  const rank = Object.entries(L).filter(x => x[1]>0).sort((a,b) => b[1]-a[1]).map(([k,v]) => ({k, n:MUSC_N[k], pct:tot ? Math.round(v/tot*100) : 0, rel:max ? v/max : 0}));
-  const I = {}; Object.entries(L).forEach(([k,v]) => I[k] = max ? v/max : 0);
-  I.traps = (I.back||0)*.5;
-  return {I, rank, tot, glutePct:tot ? Math.round((L.glutes||0)/tot*100) : 0};
-}
+/* Welche Muskeln wie viel abbekommen und die Überschrift dazu stecken in muscles.js (NFMuscles), getestet in tests/muscles.test.js.
+   Übungen ohne eigenen Eintrag dort nehmen die Muskeln aus der Bibliothek (NFEx, Feld m). */
+const muscleLoad = H => NFMuscles.load(H, id => EXN[id] && EXN[id].m);
 function bodySvg(view, I){
   const base = "rgba(255,255,255,.16)", sk = "rgba(255,255,255,.08)";
   const c = k => { const v = I[k]||0; return v<=0.02 ? base : `rgba(255,255,255,${(.24+.76*v).toFixed(2)})`; };
@@ -3878,15 +3958,11 @@ function bodySvg(view, I){
 }
 function muscleSlide(H, when){
   const M = muscleLoad(H); if(!M.rank.length) return null;
-  const top = M.rank[0].k, dl = ms => ` style="animation-delay:${ms}ms"`;
-  let big, p;
-  if(top==="glutes"){ big = "Glutes on fire 🔥"; p = `${M.glutePct} % of your training ${when==="week"?"this week ":""}went to your glutes 🍑`; }
-  else if(UPPER.includes(top)){ big = "Upper body power 💪"; p = `Worked the most: ${M.rank[0].n}.`; }
-  else if(top==="core"){ big = "Strong core 🧘‍♀️"; p = "Yoga really challenged your core."; }
-  else { big = "Strong legs 🏃‍♀️"; p = `Worked the most: ${M.rank[0].n}.`; }
-  const hint = top!=="glutes" && M.glutePct<20 ? `<p class="sy-p mhint fadeup"${dl(700)}>Your glutes got a bit less attention ${when==="week"?"this week":"this month"}. Lower body day next time? 🦵</p>` : "";
+  const dl = ms => ` style="animation-delay:${ms}ms"`;
+  const hd = NFMuscles.headline(M, when);
+  const hint = hd.hint ? `<p class="sy-p mhint fadeup"${dl(700)}>${hd.hint}</p>` : "";
   const rank = M.rank.slice(0,3).map((r,i) => `<div class="mrk fadeup"${dl(500+i*120)}><b>${i+1}</b><span>${r.n}</span><span class="tnum">${r.pct} %</span><i class="mtr"><i style="width:${Math.round(r.rel*100)}%"></i></i></div>`).join("");
-  return {c:"s5", nophoto:true, h:`<p class="sy-eb">Your muscles ${when==="week"?"this week":"in "+when}</p><h2 class="sy-big pop">${big}</h2><p class="sy-p">${p}</p><div class="sy-panel mfig fadeup"${dl(300)}><div class="mfigs"><div>${bodySvg("front", M.I)}<small>front</small></div><div>${bodySvg("back", M.I)}<small>back</small></div></div></div><div class="mrank">${rank}</div>${hint}`};
+  return {c:"s5", nophoto:true, h:`<p class="sy-eb">Your muscles ${when==="week"?"this week":"in "+when}</p><h2 class="sy-big pop">${hd.title}</h2><p class="sy-p">${hd.text}</p><div class="sy-panel mfig fadeup"${dl(300)}><div class="mfigs"><div>${bodySvg("front", M.I)}<small>front</small></div><div>${bodySvg("back", M.I)}<small>back</small></div></div></div><div class="mrank">${rank}</div>${hint}`};
 }
 
 /* ================= Monatsrückblick (Story) ================= */
@@ -3986,7 +4062,7 @@ function monthShareSpec(r){
   const items = [];
   if(r.curve) items.push(`💪 ${r.curve.n} +${r.curve.pct} %`);
   if(r.alster) items.push(`🌊 ${r.alster}× around the Alster`);
-  const M = muscleLoad(r.H); if(M.rank[0] && M.rank[0].k==="glutes") items.push(`🍑 ${M.glutePct} % for the glutes`);
+  const M = muscleLoad(r.H), mt = M.rank[0]; if(mt) items.push(`${NFMuscles.EMOJI[mt.k] || "💪"} ${mt.pct} % for the ${String(mt.n).toLowerCase()}`);
   const st2 = [["Sessions", String(r.n)]]; if(r.km) st2.push(["Run", fmt(r.km)+" km"]); if(r.vol) st2.push(["Moved", tons(r.vol)]);
   return {key:"m"+r.y+"-"+r.m, col:THEME_COL[""], eyebrow:`${MONTHS[r.m]} ${r.y}`, title:`My ${MONTHS[r.m]}`, sub:"Your training month ✨", stats:st2, items:items.slice(0,3), kcal:r.kcal, foot:`${r.days} training days`, text:`My training month: ${MONTHS[r.m]} ✨`};
 }
@@ -4014,7 +4090,7 @@ function drawStory(noFx){
   const sl = STORY.slides[STORY.i];
   const ph = STORY.photos && STORY.photos[STORY.i];
   el.className = "story " + sl.c + (ph ? " has-photo" : "");
-  el.innerHTML = (ph ? `<div class="sy-bg kb${STORY.i%3}" style="background-image:url('${ph}')"></div><div class="sy-tint"></div><div class="sy-shade"></div>` : "") + `<div class="sy-prog">${STORY.slides.map((_,i) => `<i class="${i<STORY.i?"done":i===STORY.i?"on":""}"></i>`).join("")}</div><button class="sy-snd" data-act="storymute" aria-label="${S.settings.storyMute?"Music on":"Music off"}">${S.settings.storyMute?"🔇":"🔊"}</button><button class="sy-x" data-act="storyclose" aria-label="Close">✕</button><div class="sy-in">${sl.h}</div>`;
+  el.innerHTML = (ph ? `<div class="sy-bg kb${STORY.i%3}" style="background-image:url('${ph.url}')${ph.pos?`;background-position:${ph.pos}`:""}"></div><div class="sy-tint"></div><div class="sy-shade"></div>` : "") + `<div class="sy-prog">${STORY.slides.map((_,i) => `<i class="${i<STORY.i?"done":i===STORY.i?"on":""}"></i>`).join("")}</div><button class="sy-snd" data-act="storymute" aria-label="${S.settings.storyMute?"Music on":"Music off"}">${S.settings.storyMute?"🔇":"🔊"}</button><button class="sy-x" data-act="storyclose" aria-label="Close">✕</button><div class="sy-in">${sl.h}</div>`;
   if(sl.end && !noFx) confetti(true);
   musicLevel(STORY.i, STORY.slides.length);
 }
@@ -4034,8 +4110,8 @@ function closeStory(){ STORY = null; drawStory(); musicStop(); }
 const PW_ITER = 150000, OB_FAILS = 5, OB_WAIT = 30000;
 const KICON = {s:"💪", r:"🏃", y:"🧘"};
 const LEVEL_TXT = {beginner:["Beginner","new or returning"], intermediate:["Intermediate","training regularly"], advanced:["Advanced","1+ year consistent"]};
-const OB_STEPS = {signup:1, body:2, days:3, mix:4, goals:5, level:6, split:7, plans:8};
-const obTotal = () => (OB.a && OB.a.mix && OB.a.mix.s>0) ? 6 : 5;
+const OB_STEPS = {signup:1, body:2, days:3, mix:4, goals:5, level:6, stmode:7, split:8, owndays:9, plans:10};
+const obTotal = () => (OB.a && OB.a.mix && OB.a.mix.s>0) ? (OB.a.stmode==="own" ? 8 : 7) : 5;
 const SEX_TXT = {female:"Female", male:"Male", diverse:"Diverse", na:"Prefer not to say"};
 let OB = {step:"welcome", mode:"new", a:null, plans:null, fails:0, until:0};
 const needsOnboarding = () => !S.settings.profile || !!S.settings.locked;
@@ -4075,7 +4151,7 @@ function obHead(back){
     : (S.history.length && OB_STEPS[OB.step]>1 ? `<button type="button" class="txtbtn" data-act="ob" data-do="skip">Skip for now</button>` : "");
   const left = back ? `<button type="button" class="txtbtn" data-act="ob" data-do="go" data-to="${back}">‹ Back</button>` : NF_MINI;
   const n = OB_STEPS[OB.step];
-  return `<div class="ob-top">${left}${right}</div>${n ? `<div class="ob-prog" aria-hidden="true"><i style="width:${n/8*100}%"></i></div>` : ""}`;
+  return `<div class="ob-top">${left}${right}</div>${n ? `<div class="ob-prog" aria-hidden="true"><i style="width:${n/10*100}%"></i></div>` : ""}`;
 }
 const obStep = (n, of) => `<p class="ob-step">Step ${n} of ${of}</p>`;
 const errEl = (id) => `<p class="err" id="${id}" role="alert" aria-live="polite"></p>`;
@@ -4123,14 +4199,15 @@ function renderOnboard(){
       break;
     }
     case "body": {
-      const b = OB.body || (OB.body = Object.assign({sex:"", age:""}, S.settings.body||{}, {kg:S.settings.bodyKg ? String(S.settings.bodyKg) : ""}));
+      const b = OB.body || (OB.body = Object.assign({sex:"", age:"", cm:""}, S.settings.body||{}, {kg:S.settings.bodyKg ? String(S.settings.bodyKg) : ""}));
       h = obHead("") + obStep(1, obTotal()) + `<h2>A bit about you</h2>
-        <p class="lead">Saved in your profile on this phone. Your weight is used to estimate the calories you burn.</p>
+        <p class="lead">Saved in your profile on this phone. Sex, age, weight and height are used to estimate the calories you burn.</p>
         <label class="f" id="ob-sex-l">Sex</label>
         <div class="opts sexes" role="group" aria-labelledby="ob-sex-l">${Object.entries(SEX_TXT).map(([k,l]) => `<button type="button" class="opt" data-act="ob" data-do="sex" data-v="${k}" aria-pressed="${b.sex===k}">${l}</button>`).join("")}</div>${errEl("ob-sex-err")}
         <form id="ob-form" data-form="body" novalidate>
           <div class="two"><div><label class="f" for="ob-age">Age</label><input class="inp" id="ob-age" name="age" inputmode="numeric" maxlength="3" autocomplete="off" value="${esc(b.age)}" placeholder="21">${errEl("ob-age-err")}</div>
           <div><label class="f" for="ob-kg">Weight (kg)</label><input class="inp" id="ob-kg" name="kg" inputmode="decimal" maxlength="5" autocomplete="off" value="${esc(b.kg)}" placeholder="68">${errEl("ob-kg-err")}</div></div>
+          <div class="two"><div><label class="f" for="ob-cm">Height (cm) <span class="muted" style="text-transform:none;letter-spacing:0">optional</span></label><input class="inp" id="ob-cm" name="cm" inputmode="numeric" maxlength="3" autocomplete="off" value="${esc(b.cm==null ? "" : b.cm)}" placeholder="175">${errEl("ob-cm-err")}</div><div></div></div>
           <div class="foot"><button class="primary" type="submit">Continue</button></div>
         </form>`;
       break;
@@ -4166,20 +4243,57 @@ function renderOnboard(){
         <div class="mins" role="group" aria-label="Time per session">${NFPlan.MINUTES.map(m => `<button class="opt" data-act="ob" data-do="min" data-v="${m}" aria-pressed="${a.min===m}">${m} min</button>`).join("")}</div>
         ${errEl("ob-err")}<div class="foot"><button class="primary" data-act="ob" data-do="next">${a.mix.s>0 ? "Continue" : "Show my plans"}</button></div>`;
       break;
+    case "stmode": {
+      const n = a.mix.s, rec = NFPlan.splitById(a.split) || NFPlan.recommendSplit(n, a.goals, a.level).split, own = a.stmode==="own";
+      const why = a.goals.map(id => NFPlan.goalById(id)).filter(g => g && g.kind==="s").map(g => `“${esc(g.label)}”`)[0];
+      h = obHead("level") + obStep(6, obTotal()) + `<h2>How do you want to train strength?</h2>
+        <p class="lead">${n} strength ${n===1?"session":"sessions"} a week. Follow our plan, or put it together yourself.</p>
+        <div class="splits stmode" role="radiogroup" aria-label="Strength plan">
+          <button class="split" role="radio" aria-checked="${!own}" data-act="ob" data-do="stmode" data-v="rec">
+            <span class="sp-h"><b>Recommended for you</b><span class="tag">Ready to go</span></span>
+            <span class="sp-w">${rec.workouts.map(k => `<i>${esc(NFPlan.WORKOUTS[k].title)}</i>`).join("")}</span>
+            <small>${esc(rec.name)}${why ? `, based on your goal ${why}` : ""}. Every exercise already chosen.</small></button>
+          <button class="split" role="radio" aria-checked="${own}" data-act="ob" data-do="stmode" data-v="own">
+            <span class="sp-h"><b>Build my own</b><span class="tag">Your choice</span></span>
+            <small>Pick your split, then decide for each day: take our template or choose every exercise yourself.</small></button>
+        </div>
+        <p class="note">You can switch later in Menu › My plan. Either way you can swap or add exercises during a workout.</p>
+        ${errEl("ob-err")}<div class="foot"><button class="primary" data-act="ob" data-do="next">Continue</button></div>`;
+      break;
+    }
     case "split": {
-      const n = a.mix.s, rec = NFPlan.recommendSplit(n, a.goals, a.level), list = NFPlan.splitsFor(n);
+      const n = a.mix.s, rec = NFPlan.recommendSplit(n, a.goals, a.level), list = NFPlan.splitsFor(n), own = a.stmode==="own";
+      const cur = own ? (a.ownSplit || a.split) : a.split;
       const why = rec.reason==="goal" ? `Best for “${NFPlan.goalById(rec.goal).label}”` : rec.reason==="beginner" ? "Best for beginners" : "Recommended";
-      h = obHead("level") + obStep(6, 6) + `<h2>How do you want to split your strength days?</h2>
-        <p class="lead">${n} strength ${n===1?"session":"sessions"} a week. Every option trains your whole body over the week. Pick the one that suits you, you can change it any time.</p>
-        <div class="splits" role="radiogroup" aria-label="Strength split">${list.map(sp => `<button class="split" role="radio" aria-checked="${a.split===sp.id}" data-act="ob" data-do="split" data-v="${sp.id}">
+      h = obHead("stmode") + obStep(7, obTotal()) + `<h2>${own ? "Choose your split" : "How do you want to split your strength days?"}</h2>
+        <p class="lead">${n} strength ${n===1?"session":"sessions"} a week. ${own ? "Next you decide for each day: template or your own exercises." : "Every option trains your whole body over the week. Pick the one that suits you, you can change it any time."}</p>
+        <div class="splits" role="radiogroup" aria-label="Strength split">${list.map(sp => `<button class="split" role="radio" aria-checked="${cur===sp.id}" data-act="ob" data-do="split" data-v="${sp.id}">
           <span class="sp-h"><b>${esc(sp.name)}</b>${sp.id===rec.split.id?`<span class="tag">${esc(why)}</span>`:""}</span>
           <span class="sp-w">${sp.workouts.map(k => `<i>${esc(NFPlan.WORKOUTS[k].title)}</i>`).join("")}</span>
-          <small>${esc(sp.why)}</small></button>`).join("")}</div>
+          <small>${esc(sp.why)}</small></button>`).join("")}${own ? `<button class="split custom" role="radio" aria-checked="${cur==="custom"}" data-act="ob" data-do="split" data-v="custom">
+          <span class="sp-h"><b>Custom split</b></span><small>Name your own ${n===1?"day":"days"}, e.g. Chest &amp; Back or Arms, and choose every exercise.</small></button>` : ""}</div>
+        ${errEl("ob-err")}<div class="foot"><button class="primary" data-act="ob" data-do="next">${own ? "Continue" : "Show my plans"}</button></div>`;
+      break;
+    }
+    case "owndays": {
+      const days = (a.own && a.own.days) || [], custom = a.own && a.own.split==="custom";
+      h = obHead("split") + obStep(8, obTotal()) + `<h2>Set up your days</h2>
+        <p class="lead">For each day: take our template or pick the exercises yourself.</p>
+        <div class="splits">${days.map((d, i) => {
+          const tpl = d.tpl && W[d.tpl], prev = tpl ? tpl.ex.filter(e => !e.opt).map(e => esc(e.n.replace(/ \(.*\)$/, ""))).join(" · ") : "";
+          const seg = custom ? "" : `<div class="odseg" role="group" aria-label="${esc(d.name)}: template or own">${[["rec","Recommended"],["own","Choose my own"]].map(([m,l]) => `<button type="button" aria-pressed="${d.mode===m}" data-act="ob" data-do="ownmode" data-i="${i}" data-v="${m}">${l}</button>`).join("")}</div>`;
+          const name = custom ? `<label class="f" for="od-n${i}" style="margin:0">Name of day ${i+1}</label><input class="inp" id="od-n${i}" data-in="ownname" data-i="${i}" maxlength="${NFPlan.OWN_NAME_MAX}" value="${esc(d.name)}" placeholder="e.g. Chest &amp; Back">` : "";
+          const body = d.mode==="own"
+            ? `<div class="od-ex">${(d.ex||[]).map(id => { const e = EXN[id]; return e ? `<div class="oe">${exThumb(e)}<span>${esc(e.n)}</span><button type="button" data-act="ob" data-do="ownrm" data-i="${i}" data-ex="${id}" aria-label="Remove ${esc(e.n)}">×</button></div>` : ""; }).join("")}</div>
+               <button type="button" class="od-add" data-act="ob" data-do="ownadd" data-i="${i}">+ ${(d.ex||[]).length ? "Add more exercises" : "Choose exercises"}</button>`
+            : `<p class="od-prev">${prev}</p><p class="od-prev" style="font-size:12px">You can still add exercises during the workout.</p>`;
+          return `<div class="ownday"><div class="od-h">${custom ? "" : `<b>${esc(d.name)}</b>`}<small>DAY ${i+1}${d.mode==="own" ? ` · ${(d.ex||[]).length} ${(d.ex||[]).length===1?"exercise":"exercises"}` : ""}</small></div>${name}${seg}${body}</div>`;
+        }).join("")}</div>
         ${errEl("ob-err")}<div class="foot"><button class="primary" data-act="ob" data-do="next">Show my plans</button></div>`;
       break;
     }
     case "plans":
-      h = obHead(a.mix.s>0 ? "split" : "level") + `<h2>Your suggested plans</h2>
+      h = obHead(a.mix.s>0 ? (a.stmode==="own" ? "owndays" : "split") : "level") + `<h2>Your suggested plans</h2>
         <p class="lead">${LEVEL_TXT[a.level][0]} · ${a.goals.map(id => esc(NFPlan.goalById(id).label)).join(" · ")}</p>
         <div class="plans">${OB.plans.map((p,i) => `<article class="plan${p.best?" best":""}"><header><span aria-hidden="true" style="font-size:20px">${p.best?"🎯":p.id==="easy"?"🌱":"⚖️"}</span><div><b>${esc(p.name)}</b><small>${esc(p.why)} · ${p.days} sessions${p.split ? " · " + esc(p.split.name) : ""}</small></div>${p.best?`<span class="tag">Best match</span>`:""}</header>
           ${p.sessions.map(s => `<div class="ses"><b>${NFPlan.DAY_NAMES[s.day]}</b><span aria-hidden="true">${KICON[s.kind]}</span><span class="st">${esc(s.title)}${s.addon && MOB[s.addon.id] ? `<small class="addon">+ ${esc(MOB[s.addon.id].n.toLowerCase())} ${stepsMin(MOB[s.addon.id].steps)} min</small>` : ""}</span><em>${s.min} min</em></div>`).join("")}
@@ -4217,10 +4331,11 @@ async function obSubmit(form){
       obGo("body");
     }catch(e){ obError("ob-pw-err", "This browser can't store a password securely. Open NOVAFit over https or in Safari or Chrome."); btn.disabled = false; }
   }else if(kind==="body"){
-    const b = OB.body || {}, v = NFPlan.validateBody({sex:b.sex, age:form.age.value, kg:form.kg.value});
-    obError("ob-sex-err", v.errors.sex); obError("ob-age-err", v.errors.age); obError("ob-kg-err", v.errors.kg);
+    const b = OB.body || {}, v = NFPlan.validateBody({sex:b.sex, age:form.age.value, kg:form.kg.value, cm:form.cm.value});
+    obError("ob-sex-err", v.errors.sex); obError("ob-age-err", v.errors.age); obError("ob-kg-err", v.errors.kg); obError("ob-cm-err", v.errors.cm);
     if(!v.ok){ const bad = form.querySelector('[aria-invalid="true"]'); if(bad) bad.focus(); return; }
-    S.settings.body = {sex:v.value.sex, age:v.value.age}; S.settings.bodyKg = String(v.value.kg); save();
+    S.settings.body = {sex:v.value.sex, age:v.value.age}; if(v.value.cm) S.settings.body.cm = v.value.cm;
+    S.settings.bodyKg = String(v.value.kg); save();
     OB.body = null; obGo("days");
   }else if(kind==="login"){
     const pw = form.password.value;
@@ -4268,24 +4383,49 @@ function obAct(b){
       renderOnboard(); break;
     }
     case "level": a.level = d.v; renderOnboard(); break;
-    case "split": a.split = d.v; document.querySelectorAll('[data-do="split"]').forEach(x => x.setAttribute("aria-checked", String(x.dataset.v===d.v))); obError("ob-err", ""); break;
+    case "split":
+      if(a.stmode==="own"){ a.ownSplit = d.v; if(d.v!=="custom") a.split = d.v; } else a.split = d.v;
+      document.querySelectorAll('[data-do="split"]').forEach(x => x.setAttribute("aria-checked", String(x.dataset.v===d.v))); obError("ob-err", ""); break;
+    case "stmode": a.stmode = d.v; document.querySelectorAll('[data-do="stmode"]').forEach(x => x.setAttribute("aria-checked", String(x.dataset.v===d.v))); obError("ob-err", ""); break;
+    case "ownmode": { const day = a.own && a.own.days[+d.i]; if(day){ day.mode = d.v; renderOnboard(); } break; }
+    case "ownrm": { const day = a.own && a.own.days[+d.i]; if(day){ day.ex = (day.ex||[]).filter(x => x!==d.ex); renderOnboard(); } break; }
+    case "ownadd": { const day = a.own && a.own.days[+d.i]; if(day) openPicker(+d.i); break; }
     case "min": a.min = +d.v; renderOnboard(); break;
     case "next": {
       // A split only exists with strength sessions; keep the chosen one if it still fits
       if(OB.step==="level"){ if(a.mix.s>0){ if(!NFPlan.validateSplit(a.split, a.mix.s).ok || a.split==null) a.split = NFPlan.recommendSplit(a.mix.s, a.goals, a.level).split.id; } else a.split = null; }
-      const r = OB.step==="days" ? NFPlan.validateDays(a.days)
+      const r = OB.step==="owndays" || OB.step==="stmode" ? {ok:true} : OB.step==="days" ? NFPlan.validateDays(a.days)
         : OB.step==="mix" ? NFPlan.validateMix(a.mix, a.days)
         : OB.step==="goals" ? NFPlan.validateGoals(a.goals, a.mix)
         : NFPlan.validateAnswers(a);
       if(!r.ok){ obError("ob-err", r.error); return; }
       if(OB.step==="mix") a.goals = a.goals.filter(id => a.mix[NFPlan.goalById(id).kind] > 0);
-      if(OB.step==="level" && a.mix.s>0) obGo("split");
+      if(OB.step==="level" && a.mix.s>0){ if(!a.stmode) a.stmode = "rec"; obGo("stmode"); }
+      else if(OB.step==="stmode") obGo("split");
+      else if(OB.step==="split" && a.stmode==="own"){
+        const sp = a.ownSplit || a.split;
+        if(!a.own || a.own.split!==sp || a.own.days.length!==a.mix.s) a.own = {split:sp, days:NFPlan.ownDaysFor(sp, a.mix.s)};
+        obGo("owndays");
+      }
+      else if(OB.step==="owndays"){
+        const v = NFPlan.validateOwnDays(a.own && a.own.days, a.mix.s);
+        if(!v.ok){ obError("ob-err", v.error); return; }
+        const keys = NFPlan.ownDayKeys(a.own.days);
+        const spName = a.own.split==="custom" ? "Custom split" : ((NFPlan.splitById(a.own.split)||{}).name || "") + " (your own)";
+        OB.plans = NFPlan.suggestPlans(a).map(p => NFPlan.applyOwnDays(p, keys, spName)); obGo("plans");
+      }
       else if(OB.step==="level" || OB.step==="split"){ OB.plans = NFPlan.suggestPlans(a); obGo("plans"); }
       else obGo({days:"mix", mix:"goals", goals:"level"}[OB.step]);
       break;
     }
     case "choose": {
       const p = OB.plans[+d.i];
+      if(a.stmode==="own" && a.own && a.mix.s>0){
+        const keys = NFPlan.ownDayKeys(a.own.days);
+        S.settings.ownW = S.settings.ownW || {};
+        a.own.days.forEach((x, i) => { if(x.mode==="own") S.settings.ownW[keys[i].workout] = {name:keys[i].title, ex:(x.ex||[]).slice()}; });
+        registerOwn();
+      }
       S.settings.plan = Object.assign({chosen:Date.now()}, p);
       S.settings.answers = clone(a); S.settings.goal = p.days;
       save(); obGo("done"); break;
@@ -4330,7 +4470,7 @@ function accountHtml(){
   const p = S.settings.profile; if(!p) return "";
   return `<div class="card" style="background:var(--bg);border:0"><span class="lbl">Account</span>
     <p style="margin:0"><b>${esc(p.name)}</b><br><span class="small muted">${esc(p.email)} · saved on this phone only</span></p>
-    ${S.settings.body ? `<p class="small muted" style="margin:0">${esc(SEX_TXT[S.settings.body.sex]||"")} · ${esc(S.settings.body.age)} years${num(S.settings.bodyKg)>0 ? " · " + fmt(num(S.settings.bodyKg)) + " kg" : ""}</p>` : ""}
+    ${S.settings.body ? `<p class="small muted" style="margin:0">${esc(SEX_TXT[S.settings.body.sex]||"")} · ${esc(S.settings.body.age)} years${num(S.settings.bodyKg)>0 ? " · " + fmt(num(S.settings.bodyKg)) + " kg" : ""}${S.settings.body.cm ? " · " + esc(S.settings.body.cm) + " cm" : ""}</p>` : ""}
     <p class="small muted" style="margin:0">Plan: ${esc((S.settings.plan||{}).name || "none yet")}</p>
     <div class="row2"><button class="secondary" data-act="ob" data-do="edit">Edit profile and plan</button><button class="secondary" data-act="ob" data-do="pwsheet">Change password</button></div>
     <button class="secondary" data-act="ob" data-do="lock">Lock app</button></div>`;
@@ -4414,9 +4554,11 @@ document.addEventListener("click", async ev => {
         finishSession(); return;
       }
       if(pend>0){
-        sheet(`<h3>${pend} ${pend===1?"set isn't":"sets aren't"} checked off</h3><p class="muted">They still show the values from last time. Did you do these sets like that?</p>
-          <button class="primary" data-act="finishall">Yes, save all</button>
-          ${e.sets||e.run||e.tread||e.yoga?`<button class="secondary" data-act="finishok">Save checked sets only</button>`:""}
+        // Safer default: the big button saves only what was ticked; saving untouched sets needs a deliberate second choice
+        const done = Object.values(S.active.sets||{}).reduce((n, a) => n + a.filter(isDone).length, 0), list = pendingList();
+        sheet(`<h3>${pend} ${pend===1?"set isn't":"sets aren't"} ticked off</h3><p class="muted">${esc(list.slice(0,3).join(", "))}${list.length>3?" and more":""}. ${pend===1?"It still shows":"They still show"} last time's numbers.</p>
+          ${done ? `<button class="primary" data-act="finishok">Save the ${done} ${done===1?"set":"sets"} I did</button>` : ""}
+          <button class="${done ? "secondary" : "primary"}" data-act="finishall">I did ${done ? `all ${done+pend}` : (pend===1 ? "it" : `all ${pend}`)}, save ${done ? "them all" : (pend===1 ? "it" : "them")}</button>
           <button class="secondary" data-act="closesheet">Keep training</button>`);
         return;
       }
@@ -4497,6 +4639,23 @@ document.addEventListener("click", async ev => {
     case "libadd": if(b.getAttribute("aria-disabled")!=="true") libAdd(b.dataset.ex); break;
     case "libnew": libNewSheet(); break;
     case "libback": libSheet(); break;
+    case "libguide": guideSheet(b.dataset.ex, true); break;
+    case "libpick": {
+      const id = b.dataset.ex, sel = LIB.sel = LIB.sel || [], i = sel.indexOf(id);
+      if(i>=0) sel.splice(i, 1);
+      else if(sel.length >= NFPlan.OWN_MAX_EX){ toast(`Up to ${NFPlan.OWN_MAX_EX} exercises per day`); break; }
+      else sel.push(id);
+      const on = sel.includes(id), row = b.closest(".librow2");
+      b.setAttribute("aria-pressed", String(on)); if(row) row.classList.toggle("on", on);
+      const ck = b.querySelector(".lr-ck"); if(ck) ck.innerHTML = on ? CK_ICO : "";
+      const done = $("#libdone"); if(done) done.textContent = pickLabel();
+      break;
+    }
+    case "libpickdone": {
+      const day = OB.a && OB.a.own && OB.a.own.days[LIB.day];
+      if(day) day.ex = (LIB.sel||[]).slice();
+      closeSheet(); if(screen==="onboard") renderOnboard(); break;
+    }
     case "planday": planDaySheet(+b.dataset.d); break;
     case "rmex": {
       const a = S.active, id = b.dataset.base, added = !!b.dataset.added, xid = added ? id : eff(exIn(a.type, id)).id;
@@ -4551,7 +4710,7 @@ document.addEventListener("change", ev => {
     try{
       const d = JSON.parse(rd.result);
       if(!d || !Array.isArray(d.history)) throw 0;
-      S = merge(S, d); checkBadges(true); save(); applyTheme(); closeSheet(); screen = "home"; render(); toast(`${d.history.length} sessions loaded.`);
+      S = merge(S, d); addCustomToEXN(); registerOwn(); checkBadges(true); save(); applyTheme(); closeSheet(); screen = "home"; render(); toast(`${d.history.length} sessions loaded.`);
     }catch(e){ toast("That's not a valid backup."); }
   };
   rd.readAsText(f);
@@ -4563,8 +4722,11 @@ document.addEventListener("change", ev => { if(ev.target.id==="runfile"){ const 
 document.addEventListener("input", ev => {
   const t = ev.target, k = t.dataset.in; if(!k) return;
   if(k==="libq"){ LIB.q = t.value; const l = $("#liblist"); if(l) l.innerHTML = libListHtml(); return; }
+  if(k==="ownname"){ const day = OB.a && OB.a.own && OB.a.own.days[+t.dataset.i]; if(day) day.name = t.value; return; }
   if(k==="name"){ S.settings.name = t.value; save(); return; }
   if(k==="bodykg"){ S.settings.bodyKg = t.value.trim(); save(); return; }
+  if(k==="bodycm"){ const cm = Math.round(num(t.value)); S.settings.body = S.settings.body || {};
+    if(cm>=NFPlan.MIN_CM && cm<=NFPlan.MAX_CM) S.settings.body.cm = cm; else delete S.settings.body.cm; save(); return; }
   if(k==="time"){ S.settings.remTime = t.value || "18:00"; save(); return; }
   if(k==="plw"){ if(t.dataset.f==="target"){ const f = fmtTimeDigits(t.value); if(f!==t.value) t.value = f; } PLW[t.dataset.f] = t.value; if(t.type==="date") render(); return; }
   if(k==="shot"){ if(t.id==="sh-time"){ const f = fmtTimeDigits(t.value); if(f!==t.value) t.value = f; } t.setAttribute("aria-invalid", "false"); const e = t.closest("div").parentNode.querySelector(".err"); if(e) e.textContent = ""; return; }

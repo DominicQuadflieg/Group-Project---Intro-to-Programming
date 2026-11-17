@@ -43,7 +43,7 @@ test("sign-up rejects markup in the name and over-long names", () => {
 test("body data accepts realistic values, also with a decimal comma", () => {
   const r = P.validateBody({ sex: "female", age: "21", kg: "62,5" });
   assert.equal(r.ok, true);
-  assert.deepEqual(r.value, { sex: "female", age: 21, kg: 62.5 });
+  assert.deepEqual(r.value, { sex: "female", age: 21, kg: 62.5, cm: null });
   assert.equal(P.validateBody({ sex: "na", age: 16, kg: 30 }).ok, true);   // lower limits
   assert.equal(P.validateBody({ sex: "male", age: 99, kg: 250 }).ok, true); // upper limits
 });
@@ -242,4 +242,93 @@ test("each strength session and run gets a matching mobility add-on", () => {
   assert.ok(p.sessions.filter(s => s.kind === "y").every(s => !s.addon));
   const f = P.suggestPlans(answers({ days: 3, mix: { s: 3, r: 0, y: 0 }, goals: ["muscle"], split: "full3" }))[0];
   assert.ok(f.sessions.every(s => s.addon.id === "stretch"));
+});
+
+/* ---------- Height and personal calorie factor ---------- */
+test("height is optional, but must be plausible when given", () => {
+  assert.equal(P.validateBody({ sex: "male", age: 21, kg: 72 }).value.cm, null);
+  assert.equal(P.validateBody({ sex: "male", age: 21, kg: 72, cm: "" }).ok, true);
+  assert.equal(P.validateBody({ sex: "male", age: 21, kg: 72, cm: "180" }).value.cm, 180);
+  assert.equal(P.validateBody({ sex: "male", age: 21, kg: 72, cm: "179,6" }).value.cm, 180);
+  assert.equal(P.validateBody({ sex: "male", age: 21, kg: 72, cm: 120 }).ok, true);
+  assert.equal(P.validateBody({ sex: "male", age: 21, kg: 72, cm: 230 }).ok, true);
+  assert.match(P.validateBody({ sex: "male", age: 21, kg: 72, cm: 119 }).errors.cm, /between 120 and 230/);
+  assert.match(P.validateBody({ sex: "male", age: 21, kg: 72, cm: "1.80m" }).errors.cm, /in cm/);
+});
+
+test("resting burn follows Mifflin-St Jeor", () => {
+  assert.equal(P.restingKcalPerDay({ sex: "male", age: 21, kg: 70, cm: 175 }), 1693.75);
+  assert.equal(P.restingKcalPerDay({ sex: "female", age: 21, kg: 70, cm: 175 }), 1527.75);
+  // without height: typical height for the sex
+  assert.equal(P.restingKcalPerDay({ sex: "female", age: 21, kg: 60 }), P.restingKcalPerDay({ sex: "female", age: 21, kg: 60, cm: 165 }));
+  // diverse and prefer not to say: between female and male
+  const d = P.restingKcalPerDay({ sex: "diverse", age: 21, kg: 70, cm: 175 });
+  assert.ok(d > 1527.75 && d < 1693.75);
+  assert.equal(P.restingKcalPerDay({ sex: "male", age: "", kg: 70 }), null);
+});
+
+test("calorie factor: women and older people burn a bit less per MET", () => {
+  const m = P.kcalFactor({ sex: "male", age: 21, kg: 70, cm: 175 });
+  const w = P.kcalFactor({ sex: "female", age: 21, kg: 70, cm: 175 });
+  assert.ok(Math.abs(m - 1) < 0.02, `young man ≈ MET standard (${m})`);
+  assert.ok(w < m && w > 0.85, `same body, woman ≈ 10 % less (${w})`);
+  assert.ok(P.kcalFactor({ sex: "male", age: 60, kg: 70, cm: 175 }) < m);
+  // unknown sex or age: unchanged
+  assert.equal(P.kcalFactor({ age: 21, kg: 70 }), 1);
+  assert.equal(P.kcalFactor({ sex: "male", kg: 70 }), 1);
+  assert.equal(P.kcalFactor(null), 1);
+  // stays within sensible bounds
+  assert.equal(P.kcalFactor({ sex: "female", age: 99, kg: 250, cm: 120 }), 0.7);
+});
+
+/* ---------- Own program (Build my own) ---------- */
+test("own days start from the chosen split, a custom split has named own days", () => {
+  const d = P.ownDaysFor("ppl3", 3);
+  assert.deepEqual(d.map(x => [x.name, x.tpl, x.mode]), [["Push", "push", "rec"], ["Pull", "pull", "rec"], ["Legs", "legs", "rec"]]);
+  const c = P.ownDaysFor("custom", 2);
+  assert.deepEqual(c.map(x => [x.name, x.tpl, x.mode]), [["Day 1", null, "own"], ["Day 2", null, "own"]]);
+  assert.deepEqual(P.ownDaysFor("nope", 3), []);
+});
+
+test("own days: recommended needs a template, own needs 1 to 15 different exercises", () => {
+  const days = P.ownDaysFor("ppl3", 3);
+  assert.equal(P.validateOwnDays(days, 3).ok, true);
+  assert.match(P.validateOwnDays(days, 4).error, /Set up 4 strength days/);
+  const own = JSON.parse(JSON.stringify(days)); own[0].mode = "own";
+  assert.equal(P.validateOwnDays(own, 3).day, 0);
+  assert.match(P.validateOwnDays(own, 3).error, /Add at least one exercise to Push/);
+  own[0].ex = ["bench", "incl"];
+  assert.equal(P.validateOwnDays(own, 3).ok, true);
+  own[0].ex = ["bench", "bench"];
+  assert.match(P.validateOwnDays(own, 3).error, /twice/);
+  own[0].ex = Array.from({ length: 16 }, (_, i) => "x" + i);
+  assert.match(P.validateOwnDays(own, 3).error, /15 exercises or fewer/);
+});
+
+test("own days: names are required, short and plain", () => {
+  const c = P.ownDaysFor("custom", 1); c[0].ex = ["bench"];
+  assert.equal(P.validateOwnDays(c, 1).ok, true);
+  c[0].name = "  "; assert.match(P.validateOwnDays(c, 1).error, /Give day 1 a name/);
+  c[0].name = "Chest <b>"; assert.match(P.validateOwnDays(c, 1).error, /letters, numbers and spaces/);
+  c[0].name = "x".repeat(31); assert.match(P.validateOwnDays(c, 1).error, /30 characters or fewer/);
+  c[0].name = "Arms"; c[0].mode = "rec"; assert.match(P.validateOwnDays(c, 1).error, /no template/);
+  assert.equal(P.validateOwnDays([], 1).ok, false);
+});
+
+test("own days go into the plan's strength sessions in week order", () => {
+  const a = answers({ days: 5, mix: { s: 3, r: 1, y: 1 }, goals: ["muscle"] });
+  a.split = "ppl3";
+  const plan = P.suggestPlans(a)[0];
+  const days = P.ownDaysFor("ppl3", 3); days[0].mode = "own"; days[0].ex = ["bench"]; days[0].name = "My Push";
+  const keys = P.ownDayKeys(days);
+  assert.deepEqual(keys, [{ workout: "own1", title: "My Push" }, { workout: "pull", title: "Pull" }, { workout: "legs", title: "Legs" }]);
+  const out = P.applyOwnDays(plan, keys);
+  const st = out.sessions.filter(x => x.kind === "s").sort((x, y) => x.day - y.day);
+  assert.deepEqual(st.map(x => x.workout), ["own1", "pull", "legs"]);
+  assert.equal(st[0].title, "My Push");
+  assert.equal(P.applyOwnDays(plan, keys, "Custom split").split.name, "Custom split");
+  assert.equal(P.applyOwnDays(plan, keys).split.name, plan.split.name);
+  // runs and yoga stay, the original plan is not changed
+  assert.equal(out.sessions.filter(x => x.kind !== "s").length, plan.sessions.filter(x => x.kind !== "s").length);
+  assert.notEqual(plan.sessions.find(x => x.kind === "s").workout, "own1");
 });

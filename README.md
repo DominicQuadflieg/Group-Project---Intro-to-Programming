@@ -39,6 +39,7 @@ The app needs no build step:
 | `app/plan.js` | Sign-up validation, questionnaire checks, strength splits and plan suggestions (pure functions, tested) |
 | `app/exercises.js` | Exercise library, workout templates, search and checks for custom exercises (pure functions, tested) |
 | `app/run.js` | Running logic: reading runs from screenshots and from GPX, TCX and FIT files, checking the values, turning Strava activities into runs (pure functions, tested) |
+| `app/muscles.js` | Which muscles were trained and how much, and the headline of the muscle slide in the reviews (pure functions, tested) |
 | `app/manifest.webmanifest` | Name, colours and icon for the home screen |
 | `app/OneSignalSDKWorker.js` | Service worker: offline use and push reminders |
 | `app/img/` | Pictures for the home screen and training cards (placeholders) |
@@ -52,6 +53,7 @@ The app needs no build step:
 | `tests/exercises.test.js` | Tests for `app/exercises.js` |
 | `tests/run.test.js` | Tests for `app/run.js` (screenshots) |
 | `tests/run-files.test.js` | Tests for `app/run.js` (GPX, TCX, FIT, ZIP) |
+| `tests/muscles.test.js` | Tests for `app/muscles.js` |
 | `tests/strava.test.js` | Tests for the Strava connection (app side and function) |
 
 ## Run
@@ -92,20 +94,18 @@ or `npm test`. The tests cover valid and rejected sign-up input (empty fields, i
 
 ## Replacing the pictures
 
-The pictures in `app/img/` are placeholder graphics:
+**Photo pack (home screen and reviews):** put the photos into `app/img/pack/` with the names listed in `app/img/pack/README.txt`. They are used for the photo box on the home screen and as backgrounds in the weekly and monthly reviews, unless a user has added own photos in Settings. The list and the crop for portrait screens are in `PHOTO_PACK` in `app/index.html`. Missing files are skipped.
+
+**Placeholder graphics:** the pictures in `app/img/` are placeholders:
 
 | File | Where |
 |---|---|
-| `campus-1.svg`, `campus-2.svg` | Large photo box at the top of the home screen |
+| `campus-1.svg`, `campus-2.svg` | Photo box on the home screen, only if the photo pack is empty |
 | `gym.svg`, `run.svg`, `yoga.svg` | Picture at the top of the training cards |
 
-To use your own photos (ideally JPG, campus photos in portrait, about 1200 px wide):
+To change the training card pictures, update the file names in `.simg-gym`, `.simg-run`, `.simg-yoga` in `app/index.html`. When you add files the app loads at start, also add them to `FILES` in `app/OneSignalSDKWorker.js` and increase `CACHE` by one so installed apps pick them up (photo pack files are cached automatically when they are first shown).
 
-1. Put the photos into `app/img/`, e.g. `campus-1.jpg`.
-2. In `app/index.html`, update the `CAMPUS_PHOTOS` list or the file names in `.simg-gym`, `.simg-run`, `.simg-yoga`.
-3. In `app/OneSignalSDKWorker.js`, add the file names to `FILES` and increase `CACHE` by one so installed apps load the new pictures.
-
-Only use your own photos or photos with a suitable licence – pictures from the Nova website are protected by copyright.
+The photos in `app/img/pack/` are © Nova SBE and used only for this course project. For anything beyond the course, replace them with your own photos or photos with a suitable licence.
 
 ## Credits
 
