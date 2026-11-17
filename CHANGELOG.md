@@ -9,6 +9,22 @@ Alle Versionen der App, die neueste oben.
 - Profiles without sex or age keep the old numbers
 - 3 new tests
 
+## Unreleased – Default photo pack for home screen and reviews
+
+- New default photo pack in `app/img/pack/`: campus and gym photos for the photo box on the home screen and as backgrounds in the weekly and monthly reviews
+- Own photos from Settings still come first; the pack is used when there are none, missing files are skipped
+- Each photo has a crop point, so people and buildings stay in view on tall phone screens
+- Review slides with charts (calendar, curves, muscle map, rhythm) no longer get a photo behind them, so they stay readable
+- Five photos included: campus plaza, roof terrace, glass hall, gym cardio area and weights area (© Nova SBE, used for this course project only, see `app/img/pack/README.txt`)
+
+## Unreleased – Muscle slide follows your training
+
+- The muscle slide in the weekly and monthly reviews now names the muscle that got the most volume, e.g. “Back on fire 🔥”, “Quads on fire 🔥” or “Glutes on fire 🔥”, instead of always talking about the glutes
+- Two muscles that are almost even share the headline (“Quads & calves on fire 🔥”)
+- The tip at the bottom points to whatever was left out: a lower body day when the legs got little, an upper body day after a leg-heavy gym week; runners without strength sessions get no tip
+- The monthly share card shows the top muscle instead of only the glutes
+- New file `app/muscles.js` with the muscle logic and 9 new tests
+
 ## Unreleased – New app icon
 
 - New home screen icon: the white NOVA ring with its bar on Nova blue (`icon-192.png`, `icon-512.png`, `apple-touch-icon.png`); the design keeps to the safe area, so Android's round and squircle masks don't cut it
