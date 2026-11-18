@@ -145,6 +145,18 @@ node --test
 
 or `npm test`. The tests cover valid and rejected sign-up input (empty fields, invalid email, weak or too long passwords, markup in names), body data (age and weight limits, non-numeric input), questionnaire limits (days, mix, goals per type, level, session length), the plan suggestions (session counts, rest days, splits, no run after leg day, mobility add-ons, edge cases), the exercise library (search, filters, alternatives, templates) and custom exercises (empty, too short or long, markup, duplicates). GitHub runs them automatically on every push and pull request.
 
+### In the browser (end-to-end)
+
+The logic tests don't touch `app.js`, so a second set of tests drives the real app in a real browser (Chromium via Playwright, the only package, a development dependency with a fixed version):
+
+```
+npm ci
+npx playwright install chromium
+npm run e2e
+```
+
+They serve `app/` with the same security headers as Netlify (`netlify.toml`), keep the browser offline and fail on any page error or blocked request. Covered: sign-up with wrong and right input, body data, the app lock with a wrong password, an empty and a logged strength session, a run without time and a valid run, importing a wrong file and a GPX file from a watch, a wrong time in the check step, the flexibility check, importing a wrong CSV and a Garmin list (twice, so nothing is counted double), a broken backup and a backup with markup in its names. GitHub runs them in a second job next to the logic tests.
+
 ## Replacing the pictures
 
 **Photo pack (home screen and reviews):** put the photos into `app/img/pack/` with the names listed in `app/img/pack/README.txt`. They are used for the photo box on the home screen and as backgrounds in the weekly and monthly reviews, unless a user has added own photos in Settings. The list and the crop for portrait screens are in `PHOTO_PACK` in `app/index.html`. Missing files are skipped.

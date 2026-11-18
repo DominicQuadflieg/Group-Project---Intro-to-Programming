@@ -2,6 +2,13 @@
 
 Alle Versionen der App, die neueste oben.
 
+## v2.14 – Tests in the browser
+
+- 11 end-to-end tests drive the real app in Chromium: sign-up (empty, invalid and valid), body data, the app lock with a wrong password, strength sessions (empty and logged), runs (no time, valid, watch file, wrong file, impossible time), the flexibility check, the training history import (wrong CSV, Garmin list, the same list again) and backups (broken file, markup in names)
+- They run against the security headers from `netlify.toml` and fail on any page error or blocked request, so a policy that breaks the app shows up before it goes live
+- GitHub runs them as a second job; `npm run e2e` locally
+- Playwright is the only package: a development dependency with a fixed version and a lockfile; the app itself still loads no packages
+
 ## v2.13 – Security: headers, pinned scripts, protected functions
 
 - **Fixed:** a changed backup file could put HTML (and with it script) into exercise and workout names, which then ran on the Progress tab. Names from storage, backups and the cloud sync are now cleaned when they are loaded and escaped when they are shown; the custom exercise form also refuses quotes
