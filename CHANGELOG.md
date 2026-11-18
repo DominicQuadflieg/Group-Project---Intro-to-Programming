@@ -12,6 +12,95 @@ Alle Versionen der App, die neueste oben.
 - Big Strava archives are read in parts (only the list of files and activities.csv), so even hundreds of MB work on a phone
 - 16 new tests (106 in total), one older test no longer depends on the computer's time zone
 
+## Unreleased – New layout: Today · Train · Progress, "You" page
+
+- Bottom tabs instead of one long home page. **Today**: the photo card, three big numbers (sessions this week opens the weekly review, last run, weeks in a row), "What's next" with the next two sessions of your plan, a note before and during exam weeks, and your last session. **Train**: your plan week, all sessions as photo tiles, more workouts, exercise library, running plan, yoga and short routines. **Progress**: numbers for the month, all reviews (this week, earlier weeks, this and last month, the year), strength, running, calendar, badges and history
+- The NOVAFit header with the shrinking sign stays; its menu button now opens **You**: name, week ring, numbers, and every setting grouped (You, Training, Connected, App, Your data). Each row opens only its own settings
+- "Photos for reviews" is now "Your photos" and says where they show (big card on Today and the reviews); small tiles use fixed photos per kind of training
+
+## Unreleased – Tension check before and after yoga
+
+- Before a yoga session or study break the app asks "How tense do you feel right now?" (1 relaxed to 5 very tense), and again afterwards: "From 4 down to 2. Nice." Skip is always one tap away, "Don't ask me again" turns it off, the yoga screen turns it back on
+- After two checks the result shows the average of the last 60 days; the monthly and yearly reviews show "tension 3.8 → 2.1 after yoga" when it went down, otherwise the number of study breaks
+- Answers are saved with the yoga session (`e.yoga.calm`) or, for study breaks from the home screen, in `S.settings.breaks`; `validTension`, `tension` and `tensionText` in `app/yoga.js` with tests
+
+## Unreleased – Yoga level and spoken guidance
+
+- Level on the yoga screen: "New to yoga" explains every pose and shows an easier option (knees down in plank, hands on a chair in downward dog …); "I know the poses" shows only the names. New users start on "New to yoga" until their 5th yoga session
+- "Read the poses aloud": the phone reads each pose (and the easier option) with its built-in voice and lowers the music meanwhile; also a speaker button in the timer. Sun Salutation steps are read short ("Plank, exhale")
+- `easier` and `cue` in `app/yoga.js` with tests
+
+## Unreleased – Sun Salutations breath by breath, new pose drawings
+
+- Sun Salutations are no longer one 2–3 minute step under a single picture: each movement is its own step with its own drawing and "Inhale"/"Exhale" (arms up, fold, half lift, plank, lower down, cobra, downward dog …), in the new sessions and in the vinyasa flows
+- New drawings for the half lift and lowering down
+- All pose drawings now use a dark outline around a light body, like the exercise drawings; in the timer they are white lines on the timer color. A dot marks where you should feel the stretch
+- `expandSun` in `app/yoga.js` with tests
+
+## Unreleased – Yoga sessions to choose from
+
+- Yoga now has 7 sessions instead of one rotating flow: Study break (5–10 min on a chair), Wind down, Beginner basics, Morning wake-up, After your run, Back and neck, and the existing Vinyasa flow. Each shows its length, what you need (chair, mat, floor) and how calm or strong it is
+- The app suggests one: wind down after 21:00, after-run stretches on days you ran, the morning session before 10:00, and the study break during the December exam weeks
+- The study break is also under Short routines on the home screen and opens straight from `#studybreak` (for push messages); started from there it doesn't count as a workout
+- New drawings for the chair poses and legs up the wall; history and reviews show the session's name; calm sessions count fewer calories
+- Sessions and their timing live in the new `app/yoga.js`, with tests in `tests/yoga.test.js`
+
+## Unreleased – Weather where you are, your own loop
+
+- Running weather follows your location: tap "📍 Show the weather where I am" on the run screen or pick "Where I am" in Settings. The position is rounded to about 1 km and only used for the forecast (Open-Meteo) and the town name (BigDataCloud). Without permission the weather is for Carcavelos (Nova SBE).
+- The Hamburg leftovers are gone: "Alster loop" is now your own loop with a name and length (Running goals, default "Home loop", 5 km). Old runs keep counting as loop runs.
+- New pure helpers in `run.js` (`wxUrl`, `samePlace`, `placeName`, `loopName`, `validateLoop`) with tests
+
+## Unreleased – Compact workout page
+
+- Compact workout page: each exercise shows its drawing, name and target in one line; "How to", swap, add set, move and remove sit behind ⋯. Instructions only show for the first 3 times, finished exercises fold into one line (tap to open), and new exercises get a short hint for choosing a weight.
+
+## Unreleased – Screen stays on, sound when rest is over
+
+- The screen stays on from Start to Finish of every workout, not only in the warm-up and yoga timers; it comes back on after switching apps
+- When the rest is over, a short double tone plays on every phone (iPhones can't vibrate from a web app), plus vibration on Android, and the next open set scrolls into view
+- New switch in Settings: “Sound when rest is over” (on by default). On an iPhone set to silent the tone stays off
+## Unreleased – Readable numbers, safer finish
+
+- Large numbers get thousands separators everywhere they are shown, e.g. “16,440 kg moved” instead of “16440 kg”
+- Finishing with sets that aren't ticked off: the dialog now names them (“Triceps Pushdown set 1, 2 and 3”), and the main button saves only the sets you actually did. Saving the untouched sets with last time's numbers is the second, deliberate choice
+
+## Unreleased – Build my own strength plan
+
+- New step after the questionnaire: “Recommended for you” (the ready plan as before) or “Build my own”
+- Build my own: pick a split (or a custom split with your own day names, e.g. “Chest & Back”), then for each day choose “Recommended” (our template, you can still add exercises during the workout) or “Choose my own” (no suggestions, you pick every exercise, up to 15)
+- Your own days show up by name in the plan, on the home screen and in the history, and start with exactly your exercises
+- Exercise list redone in the style of Strong: a small drawing next to every exercise, A–Z sections, search, body part and equipment filters, an ⓘ button for the how-to with “Back to the list”, and checkboxes to pick several exercises at once
+- 4 new tests for the own-day logic in `app/plan.js`
+
+## Unreleased – Calories by sex, age, weight and height
+
+- Calorie estimates for strength, yoga and timed runs now use your personal resting burn (Mifflin-St Jeor) from sex, age, weight and height instead of the same value for everyone: women and older people get a more honest, slightly lower number (e.g. 45 min strength at 70 kg: about 265 kcal for a 21-year-old man, about 240 kcal for a 21-year-old woman)
+- New optional field “Height (cm)” in “A bit about you” and in Settings; without it a typical height is used. Distance runs and treadmill runs keep their pace-based formula
+- Profiles without sex or age keep the old numbers
+- 3 new tests
+
+## Unreleased – Default photo pack for home screen and reviews
+
+- New default photo pack in `app/img/pack/`: campus and gym photos for the photo box on the home screen and as backgrounds in the weekly and monthly reviews
+- Own photos from Settings still come first; the pack is used when there are none, missing files are skipped
+- Each photo has a crop point, so people and buildings stay in view on tall phone screens
+- Review slides with charts (calendar, curves, muscle map, rhythm) no longer get a photo behind them, so they stay readable
+- Five photos included: campus plaza, roof terrace, glass hall, gym cardio area and weights area (© Nova SBE, used for this course project only, see `app/img/pack/README.txt`)
+
+## Unreleased – Muscle slide follows your training
+
+- The muscle slide in the weekly and monthly reviews now names the muscle that got the most volume, e.g. “Back on fire 🔥”, “Quads on fire 🔥” or “Glutes on fire 🔥”, instead of always talking about the glutes
+- Two muscles that are almost even share the headline (“Quads & calves on fire 🔥”)
+- The tip at the bottom points to whatever was left out: a lower body day when the legs got little, an upper body day after a leg-heavy gym week; runners without strength sessions get no tip
+- The monthly share card shows the top muscle instead of only the glutes
+- New file `app/muscles.js` with the muscle logic and 9 new tests
+
+## Unreleased – New app icon
+
+- New home screen icon: the white NOVA ring with its bar on Nova blue (`icon-192.png`, `icon-512.png`, `apple-touch-icon.png`); the design keeps to the safe area, so Android's round and squircle masks don't cut it
+- Service worker cache bumped so installed apps pick up the new icon
+
 ## Unreleased – Own OneSignal app for NOVAFit
 
 - Push notifications now go through NOVAFit's own OneSignal app instead of the one the app was copied from, so NOVAFit users only get NOVAFit messages

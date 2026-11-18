@@ -460,7 +460,7 @@
   /* Did the runner allow NOVAFit to read activities? (They can untick it on the Strava page.) */
   const stravaScopeOk = scope => String(scope || "").split(",").some(s => /^activity:read/.test(s));
 
-  /* A Strava activity as a NOVAFit history entry. alsterKm: length of the Alster loop. */
+  /* A Strava activity as a NOVAFit history entry. alsterKm: length of your usual loop (mode id "alster"). */
   function stravaEntry(a, alsterKm) {
     const km = round2((a.distance || 0) / 1000), min = (a.moving_time || a.elapsed_time || 0) / 60;
     const start = Date.parse(a.start_date) || 0;
@@ -664,11 +664,49 @@
       .map(a => ({ kind: (a.sport_type || a.type) === "Walk" ? "walk" : "run", entry: stravaEntry(a, alsterKm) }));
   }
 
+  /* ---------- weather where you are & your own running loop ---------- */
+  // Used when the phone does not share its location: Nova SBE in Carcavelos
+  const WX_HOME = { lat: 38.678, lon: -9.326, place: "Carcavelos" };
+  const LOOP_DEFAULT = "Home loop", LOOP_KM = 5, LOOP_NAME_MAX = 24;
+  const okPos = p => !!p && isFinite(p.lat) && isFinite(p.lon) && Math.abs(p.lat) <= 90 && Math.abs(p.lon) <= 180;
+
+  /* Open-Meteo forecast for a position, rounded to about 1 km so the exact spot is never sent. */
+  function wxUrl(pos) {
+    const p = okPos(pos) ? pos : WX_HOME, r = n => (Math.round(n * 100) / 100).toFixed(2);
+    return "https://api.open-meteo.com/v1/forecast?latitude=" + r(p.lat) + "&longitude=" + r(p.lon) +
+      "&current=temperature_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,is_day" +
+      "&hourly=precipitation_probability&forecast_hours=3&timezone=auto";
+  }
+  /* Same place for the weather? (within about 5 km) */
+  function samePlace(a, b) {
+    return okPos(a) && okPos(b) && Math.abs(a.lat - b.lat) < 0.05 && Math.abs(a.lon - b.lon) < 0.05;
+  }
+  /* Town name from a reverse-geocoding answer (BigDataCloud), "" if there is none. */
+  function placeName(d) {
+    if (!d || typeof d !== "object") return "";
+    const n = [d.city, d.locality, d.principalSubdivision].find(x => typeof x === "string" && x.trim());
+    return n ? n.trim().slice(0, 30) : "";
+  }
+  /* Name of your usual running loop. */
+  function loopName(name) {
+    const n = String(name == null ? "" : name).replace(/\s+/g, " ").trim();
+    return n || LOOP_DEFAULT;
+  }
+  /* Checks the loop form: name up to 24 characters (empty = "Home loop"), length 1–50 km. */
+  function validateLoop(name, km) {
+    const err = {}, n = String(name == null ? "" : name).replace(/\s+/g, " ").trim(), k = toNum(km);
+    if (n.length > LOOP_NAME_MAX) err.name = "Use at most " + LOOP_NAME_MAX + " characters.";
+    else if (/[<>]/.test(n)) err.name = "Please leave out < and >.";
+    if (!(k >= 1 && k <= 50)) err.km = "Enter a length between 1 and 50 km.";
+    return { name: n, km: round2(k), err, ok: !err.name && !err.km };
+  }
+
   const api = { KM_PER_MI, MAX_FILE_MB, cleanText, timeTokens, parseDate, parseShot, validateRun,
     parseCsv, numLoose, durMin, parseStamp, sportKind, historyEntry, readHistoryCsv, fileItem, rangeStart, planImport,
     zipEnd, zipList, zipDataOffset,
     gpsDist, parseGpx, parseTcx, parseFit, zipEntry, fileKind, parseActivity, findDuplicate, isRunSport,
-    STRAVA_SCOPE, stravaAuthUrl, stravaScopeOk, stravaEntry, stravaNew, stravaItems };
+    STRAVA_SCOPE, stravaAuthUrl, stravaScopeOk, stravaEntry, stravaNew, stravaItems,
+    WX_HOME, LOOP_DEFAULT, LOOP_KM, LOOP_NAME_MAX, wxUrl, samePlace, placeName, loopName, validateLoop };
   if (typeof module === "object" && module.exports) module.exports = api;
   else root.NFRun = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);

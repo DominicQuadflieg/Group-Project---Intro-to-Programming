@@ -133,6 +133,26 @@ h2.sec{font:700 15px var(--display);letter-spacing:.08em;text-transform:uppercas
 .txtbtn{background:none;border:0;color:var(--accent);font-weight:600;cursor:pointer;padding:8px 4px;min-width:64px;text-align:left}
 .txtbtn.r{text-align:right;color:var(--muted);font-weight:500}
 .exhead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+/* Compact exercise card: picture, name and target in one line, everything else behind ⋯ */
+.exh2{display:flex;align-items:center;gap:10px}
+.exh2 .pic{width:44px;height:44px;flex:none;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.exh2 .pic img{width:100%;height:100%;object-fit:contain}
+.exh2 .pic.lt{background:var(--bg);font:900 20px var(--display);color:var(--ink)}
+.exh2 .nm{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.exh2 .nm b{font-size:16px;font-weight:600;line-height:1.25}
+.exh2 .nm small{font-size:12px;color:var(--muted)}
+.exh2 .more{width:44px;height:44px;flex:none;border:0;background:none;color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:0}
+.exh2 .more:focus-visible,.exfold:focus-visible{outline:3px solid var(--run);outline-offset:2px}
+.firsthint{font-size:13px;color:var(--muted);background:var(--bg);padding:6px 10px}
+.exfold{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);text-align:left;cursor:pointer;font-family:inherit;border-radius:calc(var(--rs) * 10px)}
+.exfold .pic{width:36px;height:36px;flex:none;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#fff}
+.exfold .pic img{width:100%;height:100%;object-fit:contain}
+.exfold .pic.lt{background:var(--bg);font:900 17px var(--display)}
+.exfold span.t{flex:1;min-width:0;font-size:14px}
+.exfold .ok{color:var(--good);font-size:12px;font-weight:800;letter-spacing:.08em}
+.exmenu button{display:flex;justify-content:space-between;align-items:center;gap:10px;text-align:left;padding-left:16px;padding-right:16px}
+.exmenu button span{font-weight:400}
+.exmenu .rm{color:var(--muted)}
 .exhead h3{margin:0;font-size:17px;font-weight:600;line-height:1.25}
 .exhead h3 small{display:block;font-weight:400;font-size:13px;color:var(--muted)}
 .target{flex-shrink:0;text-align:right}
@@ -303,6 +323,26 @@ textarea{width:100%;min-height:64px;border:1px solid var(--line);border-radius:c
 .primary.yoga{background:#6a52c9;color:#fff}
 .tile.yoga b{color:var(--yoga)}
 .yogacard{border-left:4px solid var(--yoga)}
+.ymeta{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;font-weight:600;color:var(--muted)}
+.ylvl{display:inline-flex;align-items:center;gap:5px}
+.ybars{display:inline-flex;align-items:flex-end;gap:2px}.ybars i{width:4px;background:var(--line)}.ybars i:nth-child(1){height:6px}.ybars i:nth-child(2){height:9px}.ybars i:nth-child(3){height:12px}.ybars i.on{background:var(--ink)}
+.ylist{display:flex;flex-direction:column;gap:8px}
+.yvoice{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:8px 12px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);font:600 14px var(--body);text-align:left;cursor:pointer;border-radius:calc(var(--rs) * 10px)}
+.yvoice svg{color:var(--yoga);flex:none}.yvoice span{flex:1}.yvoice b{font-size:13px;color:var(--muted)}.yvoice[aria-pressed="true"] b{color:var(--yoga)}
+.tmeasy{opacity:.92;font-size:.92em}
+.calmscale{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:14px}
+.calmscale button{position:relative;height:54px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);font:800 18px var(--body);cursor:pointer;border-radius:calc(var(--rs) * 10px)}
+.calmscale button:hover,.calmscale button:focus-visible{border-color:var(--yoga);outline:none}
+.calmscale button.was{outline:2px dashed var(--muted);outline-offset:2px}
+.calmscale small{position:absolute;top:-17px;left:0;right:0;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.calmends{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+.calmstat{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px;background:var(--yoga-soft);border-radius:calc(var(--rs) * 10px)}
+.calmstat span{display:flex;flex-direction:column}.calmstat b{font-size:22px}.calmstat small{font-size:12px;color:var(--muted)}
+.yrow{display:flex;align-items:center;gap:12px;width:100%;padding:10px 12px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);text-align:left;font-family:inherit;cursor:pointer;border-radius:calc(var(--rs) * 10px)}
+.yrow:focus-visible{outline:3px solid var(--yoga);outline-offset:2px}
+.yrow .thumb{flex:none}
+.ytxt{display:flex;flex-direction:column;gap:2px;min-width:0}.ytxt b{font-size:15px}.ytxt small{font-size:12px;color:var(--muted);line-height:1.35}
+.ysug{align-self:flex-start;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#fff;background:var(--yoga);padding:2px 6px}
 .intro.yoga{background:var(--yoga-soft)}
 .yogaup{background:var(--yoga-soft)}
 
@@ -313,6 +353,10 @@ textarea{width:100%;min-height:64px;border:1px solid var(--line);border-radius:c
 .flowlist li small{display:block;color:var(--muted);font-size:12px;font-style:italic}
 .flowlist li b{font-weight:500;color:var(--muted);font-size:13px}
 .thumb{width:64px;height:45px;color:var(--yoga);background:var(--yoga-soft);border-radius:calc(var(--rs) * 8px);padding:3px}
+.p2{--pf:var(--surface);--pdot:var(--yoga)}
+.thumb.p2{color:var(--ink);--pf:var(--surface)}
+#timerlayer .p2{--pf:var(--ink);--pdot:currentColor}
+#timerlayer.fast .p2{--pf:var(--hl, var(--accent))}#timerlayer.slow .p2{--pf:var(--run)}#timerlayer.yoga .p2{--pf:var(--yoga)}
 .tmpose{width:min(86%,340px);height:auto;max-height:30vh;align-self:center;margin-bottom:4px}
 #timerlayer.yoga{background:#5b45b8;color:#fff}
 .tmsub{margin:-6px 0 0;font-size:16px;font-style:italic;opacity:.85}
@@ -723,6 +767,63 @@ h2.sec::after{content:"";display:block;width:36px;height:6px;margin-top:9px;back
 /* ===== v2.2 Nova-Design: Fotos, Karten mit Bild, Farbblöcke, Menü, Footer ===== */
 .nf .iconbtn.hb{border:0;border-radius:0;background:none;width:46px;color:#000}
 .nf .iconbtn.hb svg{width:30px;height:24px}
+/* ===== Layout A: Today · Train · Progress tabs, "You" page ===== */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;justify-content:center;background:var(--surface);border-top:1px solid var(--line);padding:0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+.tabbar button{flex:1;max-width:186px;display:flex;flex-direction:column;align-items:center;gap:3px;min-height:58px;padding:7px 0 6px;border:0;border-top:3px solid transparent;background:none;color:var(--muted);font:600 11px var(--num);cursor:pointer}
+.tabbar button[aria-current="page"]{color:var(--ink);font-weight:800;border-top-color:var(--ink)}
+.tabbar svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tabbar button:focus-visible{outline:3px solid var(--run);outline-offset:-3px}
+.app:has(.tabbar) .pfoot{padding-bottom:calc(100px + env(safe-area-inset-bottom))}
+.app:has(.tabbar) ~ .toast,.app:has(.tabbar) .toast{bottom:calc(env(safe-area-inset-bottom) + 84px)}
+.counters{display:flex;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:14px 0;margin:0 -4px}
+.ctr{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;padding:0 10px;border:0;border-left:1px solid var(--line);background:none;color:var(--ink);text-align:left;font:inherit}
+.ctr:first-child{border-left:0}
+button.ctr{cursor:pointer}
+.ctr b{font:900 28px/1.1 var(--display)}
+.ctr span{font-size:11px;line-height:1.3;color:var(--muted)}
+.sechead{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.sechead .more{border:0;background:none;color:var(--ink);font:800 11px var(--num);letter-spacing:.14em;text-transform:uppercase;cursor:pointer;padding:8px 0;min-height:44px}
+.ntiles{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.ntile,.ttile{display:flex;flex-direction:column;gap:6px;padding:0;border:0;background:none;color:var(--ink);text-align:left;font:inherit;cursor:pointer;min-width:0}
+.ntile img,.ttile img{width:100%;height:92px;object-fit:cover;display:block;background:var(--line)}
+.ttile img{height:108px}
+.nmeta{display:flex;justify-content:space-between;gap:6px;font:800 10px var(--num);letter-spacing:.14em;text-transform:uppercase;color:var(--run)}
+.nmeta span+span{color:var(--muted)}
+.nmeta .up{color:var(--hl, var(--run))}
+.ntile b,.ttile b{font-size:14px;line-height:1.3}
+.ttile b{font-size:16px}
+.ttile small{font-size:12px;color:var(--muted)}
+.ttile .go{font:800 10px var(--num);letter-spacing:.14em;text-transform:uppercase}
+.ttiles{display:grid;grid-template-columns:1fr 1fr;gap:18px 14px}
+.tlinks{display:flex;flex-direction:column;gap:8px;margin-top:16px}
+.note{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;margin-top:14px;padding:11px 12px;border:0;background:var(--accent-soft, var(--bg));color:var(--ink);text-align:left;font:13px/1.4 var(--body);cursor:pointer;min-height:44px}
+.lastrow{display:flex;justify-content:space-between;align-items:center;width:100%;padding:12px 0;border:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:none;color:var(--ink);text-align:left;font:inherit;cursor:pointer}
+.lastrow span{display:flex;flex-direction:column;gap:2px}
+.lastrow small{font:800 10px var(--num);letter-spacing:.14em;text-transform:uppercase;color:var(--run)}
+.lastrow b{font-size:15px}
+.tabhead{display:flex;flex-direction:column;gap:4px}
+.tabhead .eyebrow{font:800 11px var(--num);letter-spacing:.16em;text-transform:uppercase}
+.tabhead h1{margin:0;font:900 32px/1.1 var(--display)}
+.revlist{display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.revrow{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:10px;min-height:52px;padding:6px 0;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink);text-align:left;font:inherit;cursor:pointer}
+.revrow b{font:700 17px var(--display)}
+.revrow span{font-size:12px;color:var(--muted)}
+.mehead{display:flex;align-items:center;gap:16px}
+.mehead h1{margin:0;font:900 26px/1.15 var(--display)}
+.mehead p{margin:2px 0 0;font-size:13px;color:var(--muted)}
+.meav{position:relative;width:72px;height:72px;flex:none;display:grid;place-items:center}
+.meav svg{position:absolute;inset:0;width:72px;height:72px;transform:rotate(-90deg)}
+.meav circle{fill:none;stroke-width:3.5}
+.meav .trk{stroke:var(--line)}
+.meav .val{stroke:var(--run);stroke-linecap:round}
+.meav b{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;background:var(--ink);color:var(--bg);font:800 21px var(--num)}
+.megrp h2.eyeb{margin:0 0 6px;font:800 11px var(--num);letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.megrp > div{border-top:1px solid var(--line)}
+.merow{display:flex;align-items:center;gap:10px;width:100%;min-height:50px;padding:0 2px;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink);text-align:left;font:15px var(--body);cursor:pointer}
+.merow > span:first-child{flex:1}
+.merow small{font-size:13px;color:var(--muted)}
+.merow .chev{color:var(--muted);font-size:18px}
+.merow:focus-visible,.revrow:focus-visible,.ntile:focus-visible,.ttile:focus-visible,.ctr:focus-visible,.note:focus-visible,.lastrow:focus-visible{outline:3px solid var(--run);outline-offset:2px}
 .hero.photo{min-height:360px;background:#0b1d33;padding-bottom:50px}
 .hero .hph img{filter:none}
 .hero .hph .hblur{display:none}
@@ -859,6 +960,43 @@ section[id]{scroll-margin-top:calc(var(--nf-hmin) + 14px)}
 .cxf .inp[aria-invalid="true"]{border-color:var(--hl,#ED1B34)}
 .cxf .row2{margin-top:10px}
 .ob .splits{display:grid;gap:10px}
+/* Build my own: strength mode, own days, exercise list with drawings */
+.ob .stmode{display:grid;gap:12px}
+.ob .split.custom{border-style:dashed;background:var(--bg)}
+.ownday{border:1.5px solid var(--line);padding:14px;display:flex;flex-direction:column;gap:10px;background:var(--surface)}
+.ownday .od-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.ownday .od-h b{font:700 20px/1.2 var(--display)}
+.ownday .od-h small{font:700 11px var(--num,var(--body));letter-spacing:.1em;color:var(--muted)}
+.ownday .od-name{font:700 18px var(--display)}
+.odseg{display:grid;grid-template-columns:1fr 1fr}
+.odseg button{height:40px;border:1.5px solid var(--ink);background:var(--surface);color:var(--ink);font:700 12px var(--body);cursor:pointer;border-radius:0}
+.odseg button+button{border-left:0}
+.odseg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.od-prev{margin:0;font-size:13px;line-height:1.5;color:var(--muted)}
+.od-ex{display:flex;flex-direction:column}
+.od-ex .oe{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line);font-size:14px}
+.od-ex .oe span:nth-child(2){flex:1;min-width:0}
+.od-ex .oe button{width:44px;height:44px;border:0;background:none;color:var(--muted);cursor:pointer;font-size:18px}
+.od-add{height:44px;border:1.5px dashed var(--ink);background:var(--bg);color:var(--ink);font:700 13px var(--body);cursor:pointer;border-radius:0}
+.lth{width:52px;height:52px;flex:none;display:flex;align-items:center;justify-content:center;background:#fff;overflow:hidden}
+.lth img{width:100%;height:100%;object-fit:contain}
+.lth.lt{background:var(--bg);font:900 24px var(--display);color:var(--ink)}
+.od-ex .lth{width:40px;height:40px}
+.od-ex .lth.lt{font-size:18px}
+.lsec{margin:0;padding:12px 2px 6px;font:800 12px var(--body);letter-spacing:.08em;color:var(--muted);border-bottom:1px solid var(--line)}
+.librow2{display:flex;align-items:center;gap:4px;border-bottom:1px solid var(--line)}
+.librow2.on{background:var(--run-soft,#e7f1f0)}
+.librow2 .lr-main{flex:1;min-width:0;display:flex;align-items:center;gap:12px;padding:8px 2px;border:0;background:none;color:var(--ink);text-align:left;cursor:pointer;font-family:inherit}
+.librow2 .lr-main[aria-disabled="true"]{opacity:.5;cursor:default}
+.librow2 .lr-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.librow2 .lr-t b{font-weight:600;font-size:15px;line-height:1.25}
+.librow2 .lr-t small{color:var(--muted);font-size:12px}
+.librow2 .lr-ck{width:24px;height:24px;flex:none;border:1.5px solid var(--ink);display:flex;align-items:center;justify-content:center;color:var(--bg)}
+.librow2.on .lr-ck{background:var(--ink)}
+.librow2 .lr-info{width:44px;height:44px;flex:none;border:0;background:none;color:var(--run);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.libtop{display:flex;justify-content:space-between;align-items:center;gap:10px;position:sticky;top:-18px;z-index:2;background:var(--surface);padding:18px 0 8px;margin-top:-18px}
+.libtop .primary{width:auto;padding:0 18px;min-height:44px}
+.lr-main:focus-visible,.lr-info:focus-visible,.odseg button:focus-visible,.od-add:focus-visible{outline:3px solid var(--run);outline-offset:2px}
 .ob .split{display:flex;flex-direction:column;gap:7px;width:100%;text-align:left;padding:12px 14px;border:1.5px solid var(--ink);background:var(--surface);color:var(--ink);cursor:pointer;border-radius:0;font-family:inherit}
 .ob .split[aria-checked="true"]{background:var(--ink);color:var(--bg)}
 .ob .split .sp-h{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;width:100%}
@@ -892,6 +1030,8 @@ section[id]{scroll-margin-top:calc(var(--nf-hmin) + 14px)}
 <script src="exercises.js"></script>
 <script src="plan.js"></script>
 <script src="run.js"></script>
+<script src="muscles.js"></script>
+<script src="yoga.js"></script>
 <script>
 /* ================= Plan ================= */
 /* Strength workouts come from the templates in exercises.js (NFEx), exercises from its library */
@@ -912,7 +1052,7 @@ NFEx.TEMPLATE_ORDER.forEach(k => {
   W[k] = {name:t.name, kind:"gym", group:t.group, intro:INTRO[t.group], ex,
     desc:ex.filter(e => !e.opt).slice(0, 4).map(e => e.n.replace(/ \(.*\)$/, "")).join(" · ") || "Build your own session"};
 });
-W.lauf = {name:"Run", kind:"run", desc:"Alster loop or treadmill"};
+W.lauf = {name:"Run", kind:"run", desc:"Outside or on the treadmill"};
 W.yoga = {name:"Yoga", kind:"yoga", desc:"Vinyasa flow or mobility",
   intro:"Guided vinyasa flow. A different sequence every time, you choose the length below. A bell counts down the last 3 seconds and rings at each change. Get your mat ready and keep the sound on."};
 // Home screen order without a plan; ALL_W lists every workout (history, weekly review)
@@ -947,10 +1087,23 @@ const YOGA = [
   {n:"Final Relaxation", s:"Savasana", i:"Lie long on your back, arms by your sides, eyes closed. Do nothing at all. Namaste.", d:240}
 ];
 const YOGA_MIN = Math.round(YOGA.reduce((a,x) => a+x.d, 0)/60);
-const ALSTER_KM = 7.4;
+// Your usual running loop (the stored mode id stays "alster" so older data keeps working)
+const LN = () => NFRun.loopName(S.settings.loopName);
 /* Every exercise by id: the library plus the user's own exercises (added after loading, see addCustomToEXN) */
 const EXN = {}; NFEx.LIBRARY.forEach(e => EXN[e.id] = exFromLib(e));
 const customList = () => (S && S.settings && Array.isArray(S.settings.custom)) ? S.settings.custom : [];
+/* Own workouts from "Build my own" (S.settings.ownW: key → {name, ex}). Kept after a plan change so
+   older sessions still show their name; unknown types in the history get a plain fallback. */
+function registerOwn(){
+  const m = (S && S.settings && S.settings.ownW) || {};
+  Object.keys(m).forEach(k => {
+    const d = m[k] || {}, ex = (d.ex||[]).map(id => EXN[id] ? Object.assign(exFromLib(EXN[id]), {opt:false}) : null).filter(Boolean);
+    W[k] = {name:d.name || "Own workout", kind:"gym", group:"free", own:true, intro:"Your own workout. You can still swap, add or remove exercises.", ex,
+      desc:ex.slice(0, 4).map(e => e.n.replace(/ \(.*\)$/, "")).join(" · ") || "Your own workout"};
+    if(!ALL_W.includes(k)) ALL_W.splice(ALL_W.indexOf("lauf"), 0, k);
+  });
+  ((S && S.history) || []).forEach(e => { if(e && e.type && !W[e.type]){ W[e.type] = {name:"Workout", kind:"gym", group:"free", ex:[], desc:""}; if(!ALL_W.includes(e.type)) ALL_W.splice(ALL_W.indexOf("lauf"), 0, e.type); } });
+}
 function addCustomToEXN(){ customList().forEach(c => { if(c && c.id && !NFEx.BY_ID[c.id]) EXN[c.id] = exFromLib(c); }); }
 const exType = id => (EXN[id] && EXN[id].type) || "w";
 const exUnit = id => EXN[id] ? NFEx.unitOf(EXN[id]) : "kg";
@@ -976,7 +1129,10 @@ function normalize(s){
 }
 let S = (() => { try{ return normalize(JSON.parse(localStorage.getItem(LS)||"null")); }catch(e){ return clone(DEF); } })();
 addCustomToEXN();
+registerOwn();
 let screen = "home", summary = null, rest = null;
+// Home tabs: today · train · progress (kept for this visit only)
+let TAB = (() => { try{ return sessionStorage.getItem("nf-tab") || "today"; }catch(e){ return "today"; } })();
 
 let ref = null, saveTimer = null, writing = false, dirty = false, lastSent = "";
 /* Speicherort: device = installierte App (auf dem Handy), checking, cloud = Claude-Konto, local = Claude-Link ohne Schreibrecht */
@@ -1047,7 +1203,8 @@ const isTyping = () => document.activeElement && /INPUT|TEXTAREA/.test(document.
 const $ = s => document.querySelector(s);
 const esc = s => String(s==null?"":s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const num = v => { const n = parseFloat(String(v==null?"":v).replace(",", ".")); return isFinite(n) ? n : 0; };
-const fmt = (n,d=1) => Number(n).toLocaleString("en-GB",{maximumFractionDigits:d, useGrouping:false});
+// Display only: thousands separators (16,440 kg). Never feed this back into an input that num() reads, use plain numbers there.
+const fmt = (n,d=1) => Number(n).toLocaleString("en-GB",{maximumFractionDigits:d, useGrouping:true});
 const filled = s => s && String(s.r==null?"":s.r).trim()!=="";
 /* Ein Satz zählt, wenn sie ihn abhakt oder selbst etwas einträgt. Vorausgefüllte Werte vom letzten Mal zählen erst danach. */
 const isDone = s => s && (s.ok===true || (s.ok===undefined && filled(s)));
@@ -1065,7 +1222,10 @@ const GYM_MAX = 60*60000;
 function isGym(t){ return !!(W[t] && W[t].kind==="gym"); }
 function elapsedOf(a){ const d = Date.now()-a.start; return isGym(a.type) ? Math.min(d, GYM_MAX) : d; }
 function elapsedTxt(a){ const c = clock(elapsedOf(a)); return isGym(a.type) && Date.now()-a.start>=GYM_MAX ? c+" · stopped" : c; }
-/* Kalorien-Schätzung (MET-Werte bzw. ~1 kcal pro kg und km beim Laufen) */
+/* Kalorien-Schätzung (MET-Werte bzw. ~1 kcal pro kg und km beim Laufen).
+   MET-Teile werden mit dem persönlichen Ruheumsatz aus Geschlecht, Alter, Gewicht und Größe
+   angepasst (NFPlan.kcalFactor, getestet in tests/plan.test.js). Laufen nach Strecke und das
+   Laufband nach ACSM bleiben, wie sie sind: sie rechnen schon mit Gewicht und Tempo. */
 function kcalOn(){ return S.settings.showKcal!==false && num(S.settings.bodyKg)>0; }
 function distKcal(km, min, kg){ const v = min>0 ? km/(min/60) : 10; return km*kg*(v<7 ? 0.6 : 1.0); }
 /* Laufband: ACSM-Formel mit Steigung (Gehen bis ~7,2 km/h, darüber Laufen) */
@@ -1077,14 +1237,15 @@ function treadKcal(km, min, incl, kg){
 }
 function kcalOf(e){
   const kg = num(S.settings.bodyKg); if(!(kg>0)) return 0;
+  const f = NFPlan.kcalFactor(Object.assign({}, S.settings.body, {kg}));
   let k = 0;
-  if(e.run){ const km = num(e.run.km), mn = num(e.run.min); k += e.run.mode==="band" && km>0 && mn>0 ? treadKcal(km, mn, e.run.incline, kg) : km>0 ? distKcal(km, mn, kg) : mn*kg*9.8/60; }
-  if(e.yoga) k += num(e.yoga.min)*kg*(e.yoga.flow ? 3.5 : 3.0)/60;
+  if(e.run){ const km = num(e.run.km), mn = num(e.run.min); k += e.run.mode==="band" && km>0 && mn>0 ? treadKcal(km, mn, e.run.incline, kg) : km>0 ? distKcal(km, mn, kg) : mn*kg*9.8/60*f; }
+  if(e.yoga) k += num(e.yoga.min)*kg*yogaMet(e.yoga)/60*f;
   if(isGym(e.type)){
     const nSets = Object.values(e.sets||{}).reduce((x,a) => x+a.length, 0);
     const tot = Math.min(60, Math.max(((e.end||e.start)-e.start)/60000, nSets*3)), tm = e.tread ? num(e.tread.min) : 0;
-    if(e.tread) k += num(e.tread.km)>0 && tm>0 ? treadKcal(num(e.tread.km), tm, e.tread.incline, kg) : tm*kg*(6 + num(e.tread.incline)*.45)/60;
-    if(e.sets) k += Math.max(0, tot-tm)*kg*5/60;
+    if(e.tread) k += num(e.tread.km)>0 && tm>0 ? treadKcal(num(e.tread.km), tm, e.tread.incline, kg) : tm*kg*(6 + num(e.tread.incline)*.45)/60*f;
+    if(e.sets) k += Math.max(0, tot-tm)*kg*5/60*f;
   }
   return Math.round(k/5)*5;
 }
@@ -1223,6 +1384,25 @@ try{ matchMedia("(prefers-reduced-motion: reduce)").addEventListener("change", (
 /* Campus-Fotos für den großen Kasten oben. Eigene Fotos (Einstellungen → Fotos) haben Vorrang.
    Zum Austauschen: Bilder nach app/img legen und hier eintragen. */
 const CAMPUS_PHOTOS = [{url:"img/campus-1.svg"}, {url:"img/campus-2.svg"}];
+/* Standard-Fotopaket für Startseite und Rückblicke (img/pack/, siehe img/pack/README.txt).
+   Gilt, solange keine eigenen Fotos in den Einstellungen sind. Fehlende Dateien werden übersprungen;
+   fehlt das ganze Paket, zeigt die Startseite CAMPUS_PHOTOS und die Rückblicke bleiben ohne Foto.
+   pos = Bildausschnitt (wie CSS object-position), damit im Hochformat das Wichtige sichtbar bleibt. */
+const PHOTO_PACK = [
+  {url:"img/pack/campus-plaza.jpg", pos:"62% 50%"},
+  {url:"img/pack/campus-terrace.jpg", pos:"86% 55%"},
+  {url:"img/pack/campus-glass-hall.jpg", pos:"62% 55%"},
+  {url:"img/pack/gym-cardio.jpg", pos:"40% 60%"},
+  {url:"img/pack/gym-weights.jpg", pos:"55% 60%"}
+];
+let PACK = null;
+function packPhotos(){
+  return PACK || (PACK = Promise.all(PHOTO_PACK.map(p => new Promise(ok => {
+    const im = new Image(); im.onload = () => ok(p); im.onerror = () => ok(null); im.src = p.url;
+  }))).then(a => a.filter(Boolean)));
+}
+// Eigene Fotos haben Vorrang, sonst das Paket
+function defaultPhotos(){ return photoUrls().catch(() => []).then(ps => ps.length ? ps : packPhotos()); }
 let HERO_STEP = null, REVEALED = false;
 const smoothOk = () => !(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
 const HB_ICON = '<svg viewBox="0 0 30 24" aria-hidden="true"><rect y="1" width="30" height="4.5" fill="currentColor"/><rect y="9.75" width="30" height="4.5" fill="currentColor"/><rect y="18.5" width="30" height="4.5" fill="currentColor"/></svg>';
@@ -1234,18 +1414,29 @@ const PICO = {
   kraft: pico('<path d="M4 15h26M7 9v12M11 7v16M23 7v16M27 9v12"/>')
 };
 const NF_MINI = `<svg class="pf-mark" viewBox="0 -10 469 110" role="img" aria-label="NOVAFit"><path fill="currentColor" d="M0 100V0H22L58 60V0H80V100H58L22 40V100Z"/><rect fill="currentColor" x="92" y="78" width="80" height="22"/><circle cx="132" cy="32" r="30.5" fill="none" stroke="#4d9be6" stroke-width="19"/><g fill="currentColor" transform="translate(184 0)"><path d="M0 0H23L43 66L63 0H86L54 100H32Z"/><path d="M100 0H122L154 100H131L111 34L91 100H68Z"/><g transform="translate(172 0)"><rect x="0" y="0" width="7" height="100"/><rect x="0" y="0" width="50" height="7"/><rect x="0" y="45" width="42" height="7"/><rect x="64" y="34" width="7" height="66"/><circle cx="67.5" cy="15" r="5.5"/><rect x="94" y="8" width="7" height="92"/><rect x="83" y="34" width="30" height="7"/></g></g></svg>`;
-function menuSheet(){
-  sheet(`<h3>Menu</h3><nav class="pmenu" aria-label="Menu">
-    <button data-act="settings">Settings <small>Goal, profile, reminders</small></button>
-    <button data-act="ob" data-do="edit">My plan <small>Goals, split and training week</small></button>
-    <button data-act="library">Exercise library <small>${NFEx.LIBRARY.filter(e => !e.hidden).length + customList().length} exercises, add your own</small></button>
-    <button data-act="workouts">All workouts <small>Full body, upper, lower, push, pull, legs</small></button>
-    <button data-act="runplan">Running plan <small>Goal and weeks</small></button>
-    <button data-act="goto" data-id="sec-cal">Calendar <small>Training days</small></button>
-    <button data-act="goto" data-id="sec-badges">Badges</button>
-    <button data-act="export">Create backup <small>Export your data</small></button>
-    <button data-act="menutheme">Dark mode <small>${isDark() ? "on" : "off"}</small></button>
-  </nav><button class="secondary" data-act="closesheet">Close</button>`);
+/* ================= "You": profile and settings (opened with the button top right) ================= */
+function initials(n){ const w = String(n||"").trim().split(/\s+/).filter(Boolean); return ((w[0]||"Y")[0] + (w.length>1 ? w[w.length-1][0] : "")).toUpperCase(); }
+function renderMe(){
+  const st = stats(), set = S.settings, pr = set.profile || {}, name = pr.name || "You";
+  const pct = Math.min(1, st.thisWeek / Math.max(1, st.goal)), C = 2*Math.PI*33;
+  const got = BADGES.filter(x => S.badges && S.badges[x.id]).length;
+  const row = (attrs, label, val) => `<button class="merow" ${attrs}><span>${label}</span>${val!=null && val!=="" ? `<small>${esc(String(val))}</small>` : ""}<span class="chev" aria-hidden="true">›</span></button>`;
+  const grp = (t, rows) => `<section class="megrp"><h2 class="eyeb">${t}</h2><div>${rows}</div></section>`;
+  const sp = k => `data-act="setp" data-p="${k}"`;
+  const nPh = (PHOTOS||[]).length;
+  let h = nfHeadHtml();
+  h += `<section class="mehead"><span class="meav" role="img" aria-label="${st.thisWeek} of ${st.goal} sessions this week"><svg viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="33" class="trk"/><circle cx="36" cy="36" r="33" class="val" stroke-dasharray="${(C*pct).toFixed(1)} ${C.toFixed(1)}"/></svg><b>${esc(initials(name))}</b></span>
+    <div><h1>${esc(name)}</h1><p>Nova SBE${set.plan ? " · " + esc(set.plan.name) : ""}</p><button class="linkbtn" data-act="ob" data-do="edit">Edit profile and plan</button></div></section>`;
+  h += countersHtml([[`${st.thisWeek}/${st.goal}`, "this week"], [st.streak, st.streak===1 ? "week in a row" : "weeks in a row"], [got, got===1 ? "badge" : "badges"]]);
+  h += grp("You", row(sp("account"), "Account", pr.email || "") + row(sp("profile"), "Profile and body", [num(set.bodyKg)>0 ? fmt(num(set.bodyKg)) + " kg" : "", set.body && set.body.cm ? set.body.cm + " cm" : ""].filter(Boolean).join(" · ")) + row(sp("goal"), "Weekly goal", `${set.goal}×`) + row('data-act="ob" data-do="edit"', "My plan", set.plan ? set.plan.name : "Not set") + row('data-act="runplan"', "Running plan", set.runPlan ? "Active" : "Not set"));
+  h += grp("Training", row('data-act="library"', "Exercise library", `${NFEx.LIBRARY.filter(e => !e.hidden).length + customList().length}`) + row('data-act="workouts"', "All workouts", "") + row('data-act="goto" data-id="sec-cal"', "Calendar", "") + row('data-act="goto" data-id="sec-badges"', "Badges", `${got} / ${BADGES.length}`));
+  h += grp("Connected", (stravaSettings() ? row(sp("strava"), "Strava", stGet() ? "Connected" : "Not connected") : "") + row(sp("push"), "Notifications", push==="on" ? "On" : "Off") + row(sp("cal"), "Calendar reminders", ""));
+  h += grp("App", row(sp("theme"), "Appearance", {auto:"Automatic", light:"Light", dark:"Dark"}[set.theme] || "Automatic") + row(sp("sound"), "Sound", set.restSound===false ? "Off" : "On") + row(sp("weather"), "Running weather", set.wxGeo===true ? "Where I am" : NFRun.WX_HOME.place) + row(sp("photos"), "Your photos", nPh ? `${nPh} ${nPh===1?"photo":"photos"}` : "Nova photos"));
+  h += grp("Your data", row('data-act="impsheet"', "Import runs from other apps", "Garmin, Strava, files") + row(sp("data"), "Back up and restore", ""));
+  h += footerHtml() + tabBarHtml();
+  $("#app").innerHTML = h;
+  nfMount();
+  if(!PHOTOS) photoUrls().then(ps => { if(ps.length && screen==="me") renderMe(); }).catch(() => {});
 }
 function footerHtml(){
   return `<footer class="pfoot"><div class="pf-in">${NF_MINI}<div class="pf-cols">
@@ -1268,10 +1459,58 @@ window.addEventListener("scroll", () => { const b = document.querySelector(".btt
 function renderHome(){
   wxLoad();
   const st = stats();
-  let h = `<header class="nf" id="nfhead"><div class="nf-in">${NF_MARK}
-    <div class="topbtns nf-btns"><button class="iconbtn hb" data-act="menu" aria-label="Menu" aria-haspopup="dialog">${HB_ICON}</button></div></div></header>`;
-  h += heroHtml(st);
-
+  let h = nfHeadHtml();
+  if(TAB==="train") h += trainTabHtml(st);
+  else if(TAB==="progress") h += progressTabHtml(st);
+  else h += todayTabHtml(st);
+  h += footerHtml() + tabBarHtml();
+  $("#app").innerHTML = h;
+  nfMount();
+  if(TAB==="today") heroPhotos();
+  revealOnce();
+}
+// The NOVAFit header: the sign shrinks while scrolling; the button opens "You" (profile and settings)
+function nfHeadHtml(){
+  return `<header class="nf" id="nfhead"><div class="nf-in">${NF_MARK}
+    <div class="topbtns nf-btns"><button class="iconbtn hb" data-act="menu" aria-label="${screen==="me" ? "Close profile and settings" : "You: profile and settings"}" aria-expanded="${screen==="me"}">${HB_ICON}</button></div></div></header>`;
+}
+const TAB_ICO = {
+  today:'<path d="M4 5h16v15H4z"/><path d="M4 10h16M9 3v4M15 3v4"/>',
+  train:'<path d="M6 8v8M18 8v8M3 10v4M21 10v4M6 12h12"/>',
+  progress:'<path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/>'
+};
+function tabBarHtml(){
+  return `<nav class="tabbar" aria-label="Main">${[["today","Today"],["train","Train"],["progress","Progress"]].map(([k,l]) =>
+    `<button data-act="tab" data-t="${k}" aria-current="${screen==="home" && TAB===k ? "page" : "false"}"><svg viewBox="0 0 24 24" aria-hidden="true">${TAB_ICO[k]}</svg>${l}</button>`).join("")}</nav>`;
+}
+// A row of big numbers, like the research figures on the Nova website
+function countersHtml(items){
+  return `<div class="counters">${items.map(([n, l, act]) => act
+    ? `<button class="ctr" ${act}><b class="tnum">${n}</b><span>${l}</span></button>`
+    : `<div class="ctr"><b class="tnum">${n}</b><span>${l}</span></div>`).join("")}</div>`;
+}
+// Fixed photo per kind of training for the small tiles (your own photos stay on the big card and in reviews)
+const KIND_PHOTO = {s:"img/pack/gym-weights.jpg", r:"img/pack/campus-terrace.jpg", y:"img/pack/campus-glass-hall.jpg"};
+const kindOfW = t => { const k = (W[t]||{}).kind; return k==="run" ? "r" : k==="yoga" ? "y" : "s"; };
+const KIND_LBL = {s:"Strength", r:"Running", y:"Yoga"};
+// The next sessions of the plan after today, for "What's next"
+function upcoming(n){
+  const p = S.settings.plan; if(!p || !Array.isArray(p.sessions) || !p.sessions.length) return [];
+  const out = []; let t = Date.now() + 864e5;
+  for(let i=0; i<7 && out.length<n; i++, t += 864e5){
+    const se = NFPlan.sessionOn(p, t); if(se) out.push(Object.assign({at:t}, se));
+  }
+  return out;
+}
+function examNoteHtml(){
+  const now = Date.now();
+  if(NFYoga.examWeek(now)) return `<button class="note" data-act="study"><span><b>Exam weeks.</b> Take a 5-minute study break at your desk.</span><span aria-hidden="true">›</span></button>`;
+  const first = NFYoga.EXAM_WEEKS.map(([a]) => new Date(a + "T00:00").getTime()).filter(t => t > now).sort((a,b) => a-b)[0];
+  const days = first ? Math.ceil((first - now)/864e5) : 0;
+  return days>0 && days<=21 ? `<button class="note" data-act="study"><span><b>Finals start in ${days} ${days===1?"day":"days"}.</b> 5-minute study breaks are ready.</span><span aria-hidden="true">›</span></button>` : "";
+}
+function todayTabHtml(st){
+  let h = heroHtml(st);
   if(push==="install" && !S.settings.hideInstall){
     h += `<section class="card nudge"><b>Install as an app</b><p class="small muted" style="margin:0">In Safari, tap <b>Share</b> at the bottom and then <b>“Add to Home Screen”</b>. The app then opens full screen and can remind you to train.</p><button class="addset" data-act="hideinstall" style="align-self:flex-end">Hide</button></section>`;
   }else if(push==="off" && !S.settings.hidePush){
@@ -1279,26 +1518,50 @@ function renderHome(){
       <div class="row2"><button class="secondary" data-act="hidepush">Later</button><button class="primary" style="height:48px;font-size:17px" data-act="pushon">Allow</button></div></section>`;
   }
 
-  const left = Math.max(0, st.goal - st.thisWeek);
-  const title = left===0 ? "Weekly goal reached" : `${left} ${left===1?"session":"sessions"} to go`;
-  const sub = left===0 && st.thisWeek>0 ? "Everything from here on is a bonus." : `Goal: ${st.goal} sessions this week`;
-  h += `<section class="card goal">${ring(st.thisWeek, st.goal)}<div><h3>${title}</h3><p>${sub} · <button class="linkbtn" data-act="week" data-ws="${mondayOf(Date.now())}">Weekly review ›</button></p><div class="pills">
-    ${st.streak>0?`<span class="pill good">${st.streak} ${st.streak===1?"week":"weeks"} in a row</span>`:""}
-    ${ALL_W.map(t => st.typesWeek.has(t)?`<span class="pill ${kc(t)}">${W[t].name} ✓</span>`:"").join("")}
-  </div></div></section>`;
-
+  h += weekCardHtml() + recapCardHtml() + yearCardHtml();
+  const lr = S.history.filter(e => e.run && num(e.run.km)>0).slice(-1)[0];
+  h += countersHtml([
+    [`${st.thisWeek}/${st.goal}`, "sessions this week", `data-act="week" data-ws="${mondayOf(Date.now())}" aria-label="This week: ${st.thisWeek} of ${st.goal} sessions. Open weekly review"`],
+    lr ? [fmt(num(lr.run.km)), `km on ${WDAY[new Date(lr.start).getDay()]}`] : [fmt(st.kmMonth), "km this month"],
+    [st.streak, st.streak===1 ? "week in a row" : "weeks in a row"]
+  ]);
+  const up = upcoming(2);
+  const tiles = up.length ? up.map(se => `<button class="ntile" data-act="planday" data-d="${se.day}"><img src="${KIND_PHOTO[se.kind]||KIND_PHOTO.s}" alt="" loading="lazy"><span class="nmeta"><span>${KIND_LBL[se.kind]||""}</span><span>${new Date(se.at).toLocaleDateString("en-GB",{weekday:"short", day:"numeric"})}</span></span><b>${esc(se.title)} · ${se.min} min</b></button>`).join("")
+    : startKeys().slice(0,2).map(t => `<button class="ntile" data-act="start" data-t="${t}"><img src="${KIND_PHOTO[kindOfW(t)]}" alt="" loading="lazy"><span class="nmeta"><span>${KIND_LBL[kindOfW(t)]}</span><span>${st.lastBy[t] ? "last " + ago(st.lastBy[t]) : "new"}</span></span><b>${esc(W[t].name)}</b></button>`).join("");
+  h += `<section class="nextsec"><div class="sechead"><h2 class="sec">What's next</h2><button class="more" data-act="tab" data-t="train">${up.length ? "Full week" : "All sessions"} ›</button></div><div class="ntiles">${tiles}</div>${examNoteHtml()}</section>`;
+  const last = S.history.slice(-1)[0];
+  if(last){
+    const w = W[last.type]; let m = last.yoga ? `${fmt(num(last.yoga.min),0)} min${yogaLabel(last.yoga) ? " " + yogaLabel(last.yoga) : ""}` : last.run ? `${fmt(num(last.run.km))} km · ${hms(num(last.run.min))}` : `${fmt(Math.round(volOf(last)),0)} kg moved`;
+    h += `<section><div class="sechead"><h2 class="sec">Last time</h2><button class="more" data-act="tab" data-t="progress">Progress ›</button></div><button class="lastrow" data-act="hist" data-id="${last.id}"><span><small>${KIND_LBL[kindOfW(last.type)]} · ${dShort(last.start)}</small><b>${esc(w.name)} · ${m}</b></span><span aria-hidden="true">›</span></button></section>`;
+  }
+  return h;
+}
+function trainTabHtml(st){
+  let h = `<section class="tabhead"><p class="eyebrow">Choose your session</p><h1>Train</h1></section>`;
   h += planCardHtml();
-
-  h += `<section><h2 class="sec">Start training</h2><div class="starts">${startKeys().map(t => {
-    const w = W[t], last = st.lastBy[t];
-    return `<button class="start ${t===st.next?"next":""}" data-kind="${w.kind}" data-act="start" data-t="${t}">
-      <span class="simg simg-${w.kind}" aria-hidden="true"></span><span class="stripe"></span><span><b>${w.name}${t===st.next?`<span class="tag">Up next</span>`:""}</b><small>${t==="lauf" && S.settings.runPlan && planNext() ? `${planNext().today ? "Today per plan" : "Up next"}: ${esc(planNext().label)}` : w.desc}</small>
-      <small>${last?"Last done "+ago(last):"Not done yet"}</small>${t==="lauf"?`<small class="wxs" data-wx="short"${WX?"":" hidden"}>${wxShort()}</small>`:""}<span class="obtn" aria-hidden="true">Start</span></span></button>`;
-  }).join("")}</div><button class="optrow morew" data-act="workouts"><span>+ <b>More workouts</b> · full body, push, pull, legs or an empty session</span><span>${ALL_W.length - startKeys().length}</span></button>
-  <button class="optrow morew" data-act="library"><span>📚 <b>Exercise library</b> · ${NFEx.LIBRARY.filter(e => !e.hidden).length + customList().length} exercises</span><span>›</span></button></section>`;
-
-  h += yearCardHtml();
-
+  h += `<section><h2 class="sec">Start a session</h2><div class="ttiles">${startKeys().map(t => {
+    const w = W[t], last = st.lastBy[t], k = kindOfW(t);
+    return `<button class="ttile" data-act="start" data-t="${t}"><img src="${KIND_PHOTO[k]}" alt="" loading="lazy"><span class="nmeta"><span>${KIND_LBL[k]}</span>${t===st.next?`<span class="up">Up next</span>`:""}</span><b>${esc(w.name)}</b><small>${t==="lauf" ? `<span class="wxs" data-wx="short"${WX?"":" hidden"}>${wxShort()}</span>` : last ? "Last done " + ago(last) : "Not done yet"}</small><span class="go">Start ›</span></button>`;
+  }).join("")}</div>
+  <div class="tlinks"><button class="optrow morew" data-act="workouts"><span>+ <b>More workouts</b> · full body, push, pull, legs or an empty session</span><span>${ALL_W.length - startKeys().length}</span></button>
+  <button class="optrow morew" data-act="library"><span>📚 <b>Exercise library</b> · ${NFEx.LIBRARY.filter(e => !e.hidden).length + customList().length} exercises</span><span>›</span></button>
+  <button class="optrow morew" data-act="runplan"><span>🏃 <b>Running plan</b> · ${S.settings.runPlan ? "your goal and weeks" : "set a goal"}</span><span>›</span></button>
+  <button class="optrow morew" data-act="start" data-t="yoga"><span>🧘 <b>Yoga and short routines</b> · study break, mobility</span><span>›</span></button></div></section>`;
+  return h;
+}
+function progressTabHtml(st){
+  let h = `<section class="tabhead"><p class="eyebrow">How it's going</p><h1>Progress</h1></section>`;
+  const now = new Date(), mr = recapData(now.getFullYear(), now.getMonth());
+  h += countersHtml([[mr.n, `sessions in ${MONTHS[now.getMonth()]}`], [fmt(st.kmMonth), "km this month"], [tons(st.vol), "moved in total"]]);
+  // Reviews always reachable here; on Sunday evening they also show up on Today
+  const ws = mondayOf(Date.now()), pm = new Date(now.getFullYear(), now.getMonth()-1, 1);
+  const rows = [[`data-act="week" data-ws="${ws}"`, "This week", `${st.thisWeek} of ${st.goal} sessions`],
+    [`data-act="week" data-ws="${ws-WEEK}"`, "Last week", "and every week before"],
+    [`data-act="recap" data-y="${now.getFullYear()}" data-m="${now.getMonth()}"`, `${MONTHS[now.getMonth()]} so far`, "monthly review"],
+    [`data-act="recap" data-y="${pm.getFullYear()}" data-m="${pm.getMonth()}"`, `${MONTHS[pm.getMonth()]}`, "monthly review"]];
+  const yy = now.getMonth()===0 ? now.getFullYear()-1 : now.getFullYear();
+  if(yearData(yy).n) rows.push([`data-act="year" data-y="${yy}"`, `${yy}`, "your year in review"]);
+  h += `<section id="sec-reviews"><h2 class="sec">Reviews</h2><div class="revlist">${rows.map(([a, t, sub]) => `<button class="revrow" ${a}><b>${t}</b><span>${sub}</span><span aria-hidden="true">›</span></button>`).join("")}</div></section>`;
   // Stärker geworden + Diagramme
   h += `<section class="pblock c-kraft"><h2 class="sec">Getting stronger</h2><div class="card">${PICO.kraft}`;
   if(st.gains.length){
@@ -1320,9 +1583,9 @@ function renderHome(){
   // Laufen
   h += `<section class="pblock c-run"><h2 class="sec">Running</h2><div class="card"><div class="tiles">
     <div class="tile run">${PICO.km}<small>This month</small><b class="tnum">${fmt(st.kmMonth)} km</b></div>
-    <button class="tile run tbtn" data-act="runchart" data-k="alster">${PICO.runde}<small>Best Alster loop</small><b class="tnum">${st.bestAlster?hms(st.bestAlster):"–"}</b></button>
+    <button class="tile run tbtn" data-act="runchart" data-k="alster">${PICO.runde}<small>Best ${esc(LN())}</small><b class="tnum">${st.bestAlster?hms(st.bestAlster):"–"}</b></button>
     <button class="tile run tbtn" data-act="runchart" data-k="pace">${PICO.tempo}<small>Best pace</small><b class="tnum">${st.bestPace?mmss(st.bestPace):"–"}</b></button>
-  </div>${runGoalsHtml(st)}<p class="small muted" style="margin:0">Total <b class="tnum" style="color:var(--ink)">${fmt(st.km)} km</b>${st.longest?` · longest run ${fmt(st.longest)} km`:""}</p>${st.alsterN?`<p class="alsterc">🌊 You've run around the Alster <b class="tnum">${st.alsterN}×</b>.</p>`:""}</div></section>`;
+  </div>${runGoalsHtml(st)}<p class="small muted" style="margin:0">Total <b class="tnum" style="color:var(--ink)">${fmt(st.km)} km</b>${st.longest?` · longest run ${fmt(st.longest)} km`:""}</p>${st.alsterN?`<p class="alsterc">🔁 You've run your ${esc(LN())} <b class="tnum">${st.alsterN}×</b>.</p>`:""}</div></section>`;
 
   // Kalender
   h += `<section id="sec-cal"><h2 class="sec">Calendar</h2><div class="card" id="calcard">${calendarHtml()}</div>${yearLinkHtml()}</section>`;
@@ -1335,18 +1598,14 @@ function renderHome(){
   const recent = S.history.slice(-8).reverse();
   h += `<section><h2 class="sec">History</h2><div class="card hist">${recent.length ? recent.map(e => {
     const w = W[e.type]; let m = "";
-    if(e.yoga) m = `${fmt(num(e.yoga.min),0)} min${e.yoga.flow?" Vinyasa Flow":""}`;
+    if(e.yoga) m = `${fmt(num(e.yoga.min),0)} min${yogaLabel(e.yoga) ? " " + yogaLabel(e.yoga) : ""}`;
     else if(e.run) m = `${fmt(num(e.run.km))} km · ${hms(num(e.run.min))}`;
     else m = `${fmt(Math.round(volOf(e)),0)} kg volume`;
     if(e.tread) m += ` · Treadmill ${fmt(num(e.tread.min),0)} min${num(e.tread.incline)?" · "+fmt(num(e.tread.incline))+" %":""}`;
     return `<button class="hrow" data-act="hist" data-id="${e.id}"><span class="dot ${kc(w)}"></span><span><b>${w.name}</b><small>${dShort(e.start)} · ${m}</small></span><span class="muted">›</span></button>`;
   }).join("") : `<p class="empty">Your sessions show up here once you finish your first one.</p>`}</div></section>`;
 
-  h += footerHtml();
-  $("#app").innerHTML = h;
-  nfMount();
-  heroPhotos();
-  revealOnce();
+  return h;
 }
 
 /* ================= Training ================= */
@@ -1387,8 +1646,23 @@ function setRows(ex){
   }).join("");
 }
 
+const MORE_ICO = '<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/></svg>';
+// Small drawing of an exercise (end position), else its first letter
+function cardPic(e){
+  return e && Array.isArray(e.img) && e.img.length && !e.custom
+    ? `<span class="pic"><img src="img/ex/${e.id}-${e.img.length}.svg" alt="" loading="lazy"></span>`
+    : `<span class="pic lt" aria-hidden="true">${esc(((e && e.n) || "?").charAt(0).toUpperCase())}</span>`;
+}
+// How often an exercise was done before: the instructions show for the first 3 times, later behind ⋯ › How to
+const timesDone = id => S.history.reduce((n, e) => n + (e.sets && e.sets[id] && e.sets[id].length ? 1 : 0), 0);
+const allDone = id => { const a = (S.active.sets||{})[id] || []; return a.length>0 && a.every(isDone); };
 function exCard(ex, base, pos){
   base = base || ex; pos = pos || {};
+  // finished exercises fold into one line (tap to open again)
+  if(allDone(ex.id) && !(S.active.unfold||{})[ex.id]){
+    const a = S.active.sets[ex.id], top = Math.max(...a.map(x => num(x.kg)));
+    return `<button class="exfold" data-act="exunfold" data-ex="${ex.id}" aria-label="${esc(ex.n)}: all sets done, tap to open">${cardPic(ex)}<span class="t"><b>${esc(ex.n.replace(/ \(.*\)$/, ""))}</b> · ${a.length} ${a.length===1?"set":"sets"}${top>0 ? ` · ${fmt(top)} kg` : ""}</span><span class="ok">✓ DONE</span></button>`;
+  }
   const last = lastSets(ex.id);
   let ll = "", hint = "";
   if(last){
@@ -1399,20 +1673,30 @@ function exCard(ex, base, pos){
       hint = `<div class="hint">💪 You completed all sets last time. Try <b>${fmt(up)} kg</b> today (+${fmt(stepOf(ex.id))} kg).${applied?` <span>✓ applied</span>`:` <button class="linkbtn" data-act="applyup" data-ex="${ex.id}" data-kg="${up}">Apply</button>`}</div>`;
     }
   }
-  const opt = ex.opt;
+  if(!last && (ex.type||"w")==="w") hint = `<div class="firsthint">First time? Pick a weight you can lift ${String(rangeTxt(ex)).split(/[–-]/).pop()}× cleanly.</div>`;
+  const opt = ex.opt, rest = ex.rest>=120 ? "2 min" : ex.rest+" s";
+  const menu = `data-act="exmenu" data-ex="${ex.id}" data-base="${base.id}" data-first="${pos.first?1:""}" data-last="${pos.last?1:""}" data-added="${pos.added?1:""}" data-opt="${opt?1:""}"`;
   return `<article class="card ${opt?"opt":""}">
-    <div class="exhead"><h3>${ex.n}<button class="infobtn" data-act="guide" data-ex="${ex.id}" aria-label="How to do ${esc(ex.n)}">i</button>${ex.de?`<small>${ex.de}</small>`:""}</h3>
-      <div class="target"><b>${ex.s} × ${rangeTxt(ex)}</b><span>Rest ${ex.rest>=120?"2 min":ex.rest+" s"}</span></div></div>
-    ${ex.cue?`<p class="cue">${ex.cue}</p>`:""}${ll}${hint}
+    <div class="exh2">${cardPic(ex)}<span class="nm"><b>${ex.n}</b><small>${ex.s} × ${rangeTxt(ex)} · rest ${rest}${ex.de?` · ${ex.de}`:""}</small></span>
+      <button class="more" ${menu} aria-haspopup="dialog" aria-label="Options for ${esc(ex.n)}">${MORE_ICO}</button></div>
+    ${ex.cue && timesDone(ex.id) < 3 ? `<p class="cue">${ex.cue}</p>` : ""}${ll}${hint}
     <div class="colhead"><span>Set</span><span>${COLS[ex.type||"w"][0]}</span><span>${COLS[ex.type||"w"][1]}</span><span></span></div>
     <div class="sets">${setRows(ex)}</div>
-    <div class="exfoot">
-      <button class="addset" data-act="addset" data-ex="${ex.id}">+ Set</button>
-      ${pos.first&&pos.last?"":`<span class="mv">${pos.first?"":`<button data-act="move" data-base="${base.id}" data-d="-1" aria-label="Move ${esc(ex.n)} up">↑</button>`}${pos.last?"":`<button data-act="move" data-base="${base.id}" data-d="1" aria-label="Move ${esc(ex.n)} down">↓</button>`}</span>`}
-      ${!pos.added && altsOf(base.id).length?`<button class="addset" data-act="swap" data-base="${base.id}">⇄ Swap</button>`:""}
-      ${opt?`<button class="addset" data-act="closeopt" data-ex="${base.id}">Skip</button>`:`<button class="addset rmex" data-act="rmex" data-base="${base.id}" data-added="${pos.added?1:""}" aria-label="Remove ${esc(ex.n)} from this session">✕ Remove</button>`}
-    </div>
   </article>`;
+}
+// ⋯ per exercise: everything that used to sit under each card
+function exMenu(d){
+  const ex = EXN[d.ex] || {n:"Exercise"}, it = (act, label, attrs, sub) => `<button class="secondary" data-act="exm" data-go="${act}" ${attrs}>${label}${sub ? `<span class="muted small">${sub}</span>` : ""}</button>`;
+  const base = `data-base="${d.base}"`, exa = `data-ex="${d.ex}"`;
+  sheet(`<div class="exh2" style="margin-bottom:6px">${cardPic(ex)}<span class="nm"><b>${esc(ex.n)}</b><small>${esc(ex.part || "")}${ex.eq ? " · " + esc(ex.eq) : ""}</small></span></div>
+    <div class="exmenu" style="display:flex;flex-direction:column;gap:8px">
+    ${it("guide", "How to do it", exa, "pictures and tips")}
+    ${it("addset", "Add a set", exa)}
+    ${!d.added && altsOf(d.base).length ? it("swap", "Swap exercise", base, "e.g. machine instead") : ""}
+    ${d.first ? "" : it("move", "Move up", `${base} data-d="-1"`)}
+    ${d.last ? "" : it("move", "Move down", `${base} data-d="1"`)}
+    ${d.opt ? it("closeopt", "Skip this exercise", `data-ex="${d.base}"`) : it("rmex", "Remove from today", `${base} data-added="${d.added||""}"`).replace('class="secondary"', 'class="secondary rm"')}
+    </div><button class="secondary" data-act="closesheet">Close</button>`);
 }
 
 function treadBlock(){
@@ -1432,7 +1716,7 @@ function treadBlock(){
 }
 
 /* ================= Lauf: schnell eintragen ================= */
-function alsterKm(){ const lr = lastRun("alster"); return lr && num(lr.km)>0 ? num(lr.km) : ALSTER_KM; }
+function alsterKm(){ if(num(S.settings.loopKm)>0) return num(S.settings.loopKm); const lr = lastRun("alster"); return lr && num(lr.km)>0 ? num(lr.km) : NFRun.LOOP_KM; }
 function fmtTimeDigits(v){
   const d = String(v||"").replace(/\D/g, "").replace(/^0+(?=\d{3})/, "").slice(0,6);
   if(d.length<=2) return d;
@@ -1449,7 +1733,7 @@ function runInfoHtml(){
   if(lr && num(lr.min)>0) parts.push(`Last time ${hms(num(lr.min))}`);
   if(!(min>0) && best) parts.push(`Best time ${hms(best)}`);
   let win = "";
-  if(min>0 && isAl && best && min < best - 1e-9) win = `<div class="runwin">${rico("race")}<div>New Alster personal best! ${mmss(best-min)} faster than your previous record.</div></div>`;
+  if(min>0 && isAl && best && min < best - 1e-9) win = `<div class="runwin">${rico("race")}<div>New ${esc(LN())} best! ${mmss(best-min)} faster than your previous record.</div></div>`;
   else if(min>0 && lr && num(lr.min)>0 && min < num(lr.min) - 1e-9 && Math.abs(km - num(lr.km)) < .3) win = `<div class="runwin soft">${rico("tempo")}<div>${mmss(num(lr.min)-min)} faster than last time.</div></div>`;
   if(r.mode!=="band" && !(S.active.runAt && S.active.runAt < mondayOf(Date.now()))) win += planHint(km, min);
   return {line:parts.join(" · ") || "Enter the time from your running app.", win};
@@ -1458,14 +1742,14 @@ function runBlock(){
   wxLoad();
   const a = S.active, r = a.run, band = r.mode==="band", inf = runInfoHtml(), nx = band ? null : planNext();
   const timeBox = `<label class="runtime" for="run-min"><small>${band ? "Time" : "Your time"}</small><input id="run-min" inputmode="numeric" autocomplete="off" data-in="run" data-f="min" value="${esc(r.min)}" placeholder="00:00" aria-label="Time"><span class="ri tnum" id="runinfo">${inf.line}</span></label>`;
-  const kmBox = `<label class="runkm" for="run-km"><small>Distance</small><span><input id="run-km" inputmode="decimal" data-in="run" data-f="km" value="${esc(r.km)}" placeholder="${band?"e.g. 3":"e.g. 7.7"}"><em>km</em></span>${band ? "" : `<button type="button" class="kmchip" data-act="kmalster">Alster loop ${fmt(alsterKm())} km</button>`}</label>`;
+  const kmBox = `<label class="runkm" for="run-km"><small>Distance</small><span><input id="run-km" inputmode="decimal" data-in="run" data-f="km" value="${esc(r.km)}" placeholder="${band?"e.g. 3":"e.g. 7.7"}"><em>km</em></span>${band ? "" : `<button type="button" class="kmchip" data-act="kmalster">${esc(LN())} ${fmt(alsterKm())} km</button>`}</label>`;
   const note = `<details class="runnote"${r.note?" open":""}><summary>+ Add note</summary><textarea id="run-note" data-in="run" data-f="note" placeholder="e.g. easy pace, headwind, lovely sunset …">${esc(r.note)}</textarea></details>`;
   const incBox = `<label class="runkm" for="run-inc"><small>Incline · number from the display</small><span><input id="run-inc" inputmode="decimal" data-in="run" data-f="incline" value="${esc(r.incline||"")}" placeholder="0"><em>%</em></span></label>`;
   if(band) return `<div class="runwrap"><p class="runlead">Enter what the treadmill shows.</p>${kmBox}${timeBox}${incBox}<div id="runwin">${inf.win}</div>
     <button class="secondary" data-act="interval" data-target="run">Start interval timer</button>${note}</div>`;
   return `<div class="runwrap">
     ${nx ? `<div class="plantoday">${rico(nx.type)}<div><small>${nx.today ? "Today per plan" : "Up next in your plan"}</small><b>${esc(nx.label)}</b><span>${esc(nx.desc)}</span></div></div>` : ""}
-    <div class="wx1" data-wx="plain"${WX?"":" hidden"}>${wxPlain()}</div>
+    <div class="wx1" data-wx="plain"${WX?"":" hidden"}>${wxPlain()}</div>${S.settings.wxGeo===true ? "" : `<button type="button" class="linkbtn small" data-act="wxhere" style="align-self:flex-start">📍 Show the weather where I am</button>`}
     <label class="shotcta"><input type="file" accept="image/*" id="runshot" hidden>${rico("cam")}<span>Upload screenshot</span></label>
     <label class="filebtn"><input type="file" id="runfile" hidden>${rico("watch")}<span><b>Import from your watch</b><small>GPX, FIT or TCX file · also the ZIP from Garmin Connect</small></span></label>
     <details class="runnote filehelp"><summary>How do I get the file?</summary><ul>
@@ -1496,9 +1780,9 @@ const RSVG = {
   hm:`<circle cx="12" cy="14" r="6"/><path d="M9 3l3 5 3-5"/>`
 };
 const rico = (k, cls) => `<span class="rico ${cls||""}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${RSVG[k]||RSVG.out}</svg></span>`;
-const runName = m => m==="alster" ? "Alster loop" : m==="band" ? "Treadmill" : "Run";
+const runName = m => m==="alster" ? LN() : m==="band" ? "Treadmill" : "Run";
 const noEmo = s => String(s||"").replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]️?/gu, "").replace(/\s+/g, " ").trim();
-function wxPlain(){ const w = wxInfo(); return w ? noEmo(`Alster ${Math.round(w.t)}° · ${w.v}`) : ""; }
+function wxPlain(){ const w = wxInfo(); return w ? noEmo(`${esc(wxPlace())} ${Math.round(w.t)}° · ${w.v}`) : ""; }
 
 function runSheet(){
   const p = S.settings.runPlan, nx = p ? planNext() : null;
@@ -1525,7 +1809,7 @@ function predict(d){ const f = runForm(); return f ? riegel(f.min, f.km, d) : 0;
 function planTitle(p){
   if(p.goal==="k10") return `10 km under ${hms(p.target)}`;
   if(p.goal==="hm") return p.target ? `Half marathon under ${hms(p.target)}` : "Finish a half marathon";
-  if(p.goal==="alster") return `Alster loop under ${hms(p.target)}`;
+  if(p.goal==="alster") return `${LN()} under ${hms(p.target)}`;
   return "Stay fit";
 }
 function planDist(p){ return p.goal==="k10" ? 10 : p.goal==="hm" ? 21.1 : p.goal==="alster" ? alsterKm() : 0; }
@@ -1546,15 +1830,15 @@ function planWeeks(p){
     const longKm = p.goal==="k10" ? Math.round((7 + 4*f)*2)/2 : p.goal==="hm" ? Math.round((8 + 10*Math.min(1, f/.85))*2)/2 : ak;
     const mk = {
       easy:(km) => ({type:"easy", km, pace:easy, label:`Easy · ${fmt(km)} km`, desc:`about ${mmss(easy)} /km, totally relaxed`}),
-      tempo:() => ({type:"tempo", km:ak, target:tp*ak, label:"Tempo · Alster loop", desc:`Target under ${hms(tp*ak)} (${mmss(tp)} /km)`}),
+      tempo:() => ({type:"tempo", km:ak, target:tp*ak, label:`Tempo · ${LN()}`, desc:`Target under ${hms(tp*ak)} (${mmss(tp)} /km)`}),
       int:() => { const r = 4 + Math.round(f*3); return {type:"int", km:6, label:`Intervals · ${r} × 3 min`, desc:`brisk at about ${mmss(Math.max(3.5, gp-.15))} /km, 2 min easy in between`}; },
-      long:(km) => ({type:"long", km, pace:easy+.1, label:`Long · ${fmt(km)} km`, desc:`very easy, about ${mmss(easy+.1)} /km${km>=8.5 && km<=10.5 ? " · Alster + Binnenalster" : ""}`}),
-      race:() => p.goal==="alster" ? {type:"race", km:ak, target:p.target, label:"Alster test", desc:`Target under ${hms(p.target)}`} : {type:"race", km:planDist(p), target:p.target, label:p.goal==="hm" ? "Race day · half marathon" : "Race day · 10 km", desc:p.target ? `Target under ${hms(p.target)}` : "Finish and enjoy it"}
+      long:(km) => ({type:"long", km, pace:easy+.1, label:`Long · ${fmt(km)} km`, desc:`very easy, about ${mmss(easy+.1)} /km`}),
+      race:() => p.goal==="alster" ? {type:"race", km:ak, target:p.target, label:`${LN()} test`, desc:`Target under ${hms(p.target)}`} : {type:"race", km:planDist(p), target:p.target, label:p.goal==="hm" ? "Race day · half marathon" : "Race day · 10 km", desc:p.target ? `Target under ${hms(p.target)}` : "Finish and enjoy it"}
     };
     let plan;
-    if(p.goal==="fit") plan = p.perWeek===2 ? [mk.easy(5), {...mk.easy(ak), label:"Locker · Alsterrunde"}] : [{...mk.easy(ak), label:"Locker · Alsterrunde"}];
+    if(p.goal==="fit") plan = p.perWeek===2 ? [mk.easy(5), {...mk.easy(ak), label:`Easy · ${LN()}`}] : [{...mk.easy(ak), label:`Easy · ${LN()}`}];
     else if(last) plan = p.perWeek===2 ? [mk.easy(5), mk.race()] : [mk.race()];
-    else if(p.perWeek===2) plan = [i%2===0 ? mk.tempo() : mk.int(), p.goal==="alster" ? {...mk.easy(ak), label:"Locker · Alsterrunde"} : mk.long(longKm)];
+    else if(p.perWeek===2) plan = [i%2===0 ? mk.tempo() : mk.int(), p.goal==="alster" ? {...mk.easy(ak), label:`Easy · ${LN()}`} : mk.long(longKm)];
     else plan = [i%2===0 ? (p.goal==="alster" ? mk.tempo() : mk.long(longKm)) : mk.tempo()];
     plan.forEach((r, j) => {
       const d = days[j] ?? days[days.length-1];
@@ -1592,7 +1876,7 @@ let PLW = null, planAll = false;
 const GOALS = [
   ["k10", "10 km in a target time", "e.g. 10 km under 55 minutes", "tempo"],
   ["hm", "Finish a half marathon", "21.1 km, with a plan up to race day", "hm"],
-  ["alster", "Faster Alster loop", "e.g. under 40 minutes", "alster"],
+  ["alster", "Faster on your loop", "your usual route, set it under Running goals", "alster"],
   ["fit", "Just stay fit", "Easy running, no pressure", "fit"]
 ];
 function plwDefaults(g){
@@ -1618,7 +1902,7 @@ function planWizard(){
   const tgt = parseMin(w.target), pred = w.goal==="fit" ? 0 : predict(dist), f = runForm();
   const weeks = w.date ? Math.round((new Date(w.date).getTime() - Date.now())/WEEK) : 0;
   let info = "";
-  if(f) info = `Your current form: <b>${fmt(f.km)} km in ${hms(f.min)}</b>${pred ? ` → ${w.goal==="k10"?"10 km":w.goal==="hm"?"a half marathon":"the Alster loop"} would take about <b>${hms(pred)}</b>.` : "."}`;
+  if(f) info = `Your current form: <b>${fmt(f.km)} km in ${hms(f.min)}</b>${pred ? ` → ${w.goal==="k10"?"10 km":w.goal==="hm"?"a half marathon":"your loop"} would take about <b>${hms(pred)}</b>.` : "."}`;
   else info = "Once you've uploaded a few runs, the plan adapts to your form.";
   let verdict = "";
   if(pred && tgt){ verdict = tgt >= pred ? " Your goal is well within reach." : tgt >= pred*.94 ? " Very doable with the plan." : " That's ambitious – consider allowing a bit more time."; }
@@ -1894,7 +2178,7 @@ async function stravaSheet(){
   catch(e){ return shotErr("Strava", stErrTxt(e)); }
   if(!ST_LIST.length) return sheet(`<h3>All up to date</h3><p class="muted">All your Strava runs from the last ${STRAVA_DAYS} days are already in NOVAFit.</p><button class="primary run" data-act="closesheet">Okay</button>`);
   sheet(`<h3>New on Strava</h3><p class="small muted" style="margin:0">Runs from the last ${STRAVA_DAYS} days that aren't in NOVAFit yet.</p>
-    <div class="stlist">${ST_LIST.map((e, i) => `<label class="strow"><input type="checkbox" data-st="${i}" checked><span><b>${fmt(e.run.km, 2)} km · ${hms(e.run.min)}</b><small>${new Date(e.start).toLocaleDateString("en-GB", {weekday:"short", day:"numeric", month:"short"})}, ${new Date(e.start).toLocaleTimeString("en-GB", {hour:"2-digit", minute:"2-digit"})}${e.run.mode==="band" ? " · Treadmill" : e.run.mode==="alster" ? " · Alster loop" : ""}${e.run.note ? " · " + esc(e.run.note) : ""}</small></span></label>`).join("")}</div>
+    <div class="stlist">${ST_LIST.map((e, i) => `<label class="strow"><input type="checkbox" data-st="${i}" checked><span><b>${fmt(e.run.km, 2)} km · ${hms(e.run.min)}</b><small>${new Date(e.start).toLocaleDateString("en-GB", {weekday:"short", day:"numeric", month:"short"})}, ${new Date(e.start).toLocaleTimeString("en-GB", {hour:"2-digit", minute:"2-digit"})}${e.run.mode==="band" ? " · Treadmill" : e.run.mode==="alster" ? " · " + esc(LN()) : ""}${e.run.note ? " · " + esc(e.run.note) : ""}</small></span></label>`).join("")}</div>
     <button class="primary run" data-act="stadd">Add selected runs</button>
     <button class="secondary" data-act="closesheet">Cancel</button>`);
 }
@@ -2033,29 +2317,132 @@ function shotUse(){
   toast(`Added: ${x.km>0 ? fmt(x.km,2)+" km in " : ""}${hms(x.min)} 🏃‍♀️`);
 }
 
+/* ================= Yoga: pick a session (sessions in yoga.js) ================= */
+const YLEVEL = ["", "Calm", "Medium", "Strong"];
+Object.assign(W.yoga, {desc:"Study break, wind down, flow and more",
+  intro:"Pick a session below: a 5-minute study break on your chair, a calm wind-down, beginner basics or a sweaty flow. A bell counts down the last 3 seconds and rings at each change, so keep the sound on."});
+// Label for a logged yoga session: the session's name, "Vinyasa Flow" for older guided flows, else ""
+function yogaLabel(y){
+  if(!y) return "";
+  const s = y.sid && NFYoga.byId(y.sid);
+  return s ? s.n : y.flow ? "Vinyasa Flow" : "";
+}
+// MET values for calories: calm sessions burn less than a flow
+function yogaMet(y){ const s = y && y.sid && NFYoga.byId(y.sid); return s ? [3, 2.5, 3, 3.5][s.level] : y && y.flow ? 3.5 : 3.0; }
+const ranToday = () => { const d = new Date().toDateString(); return S.history.some(e => e.run && new Date(e.start).toDateString()===d); };
+const ySuggest = () => NFYoga.suggest(Date.now(), ranToday());
+function ySid(){ const a = S.active && S.active.yoga; return (a && a.sid) || S.settings.yogaSid || ySuggest() || "vinyasa"; }
+function yLen(id){ return id==="vinyasa" ? yogaLen() : NFYoga.lengthFor(id, (S.settings.yogaLens||{})[id]); }
+// The steps of a session at its chosen length (vinyasa: the flows taking turns)
+function ySteps(id){ return id==="vinyasa" ? NFYoga.expandSun(flowSteps(curFlow())) : NFYoga.stepsFor(id, yLen(id)); }
+const yPose = id => { const s = NFYoga.byId(id); return id==="vinyasa" ? "dog" : s.steps[Math.min(2, s.steps.length-1)].pose; };
+// "new": instructions and an easier option per pose; "known": just the pose names. Default: new until 5 yoga sessions
+const yLevel = () => S.settings.yogaLevel || (S.history.filter(e => e.yoga).length >= 5 ? "known" : "new");
+const canSpeak = () => "speechSynthesis" in window && typeof SpeechSynthesisUtterance === "function";
+const yVoice = () => S.settings.yogaVoice===true && canSpeak();
+// Reads a cue aloud and lowers the music while it speaks
+function say(text){
+  try{
+    if(!text || !canSpeak()) return;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text), vs = speechSynthesis.getVoices();
+    u.lang = "en-GB"; u.rate = .95;
+    const v = vs.find(x => /^en[-_]GB/i.test(x.lang)) || vs.find(x => /^en/i.test(x.lang)); if(v) u.voice = v;
+    duck(true); u.onend = u.onerror = () => duck(false);
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+// iPhones only allow speech that starts from a tap: speak an empty line right when Start is tapped
+function primeVoice(){ if(yVoice()) try{ speechSynthesis.speak(new SpeechSynthesisUtterance("")); }catch(e){} }
+const VOICE_ICO = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg>';
+function yMeta(s, min){
+  const bars = [1,2,3].map(i => `<i class="${i<=s.level?"on":""}"></i>`).join("");
+  return `<span class="ymeta"><span>${min} min</span><span>${esc(s.where)}</span><span class="ylvl"><span class="ybars" aria-hidden="true">${bars}</span>${YLEVEL[s.level]}</span></span>`;
+}
 function yogaBlock(){
-  const y = S.active.yoga, fl = curFlow(), FS = flowSteps(fl), FM = stepsMin(FS);
+  const y = S.active.yoga, sid = ySid(), s = NFYoga.byId(sid), FS = ySteps(sid), FM = stepsMin(FS), sug = ySuggest();
   const n = S.history.filter(e => e.yoga).length;
+  // breath-by-breath Sun Salutation steps don't count as separate poses
+  const np = FS.filter(x => !x.fix).length, sun = FS.some(x => x.fix) ? " + Sun Salutations, one breath per step" : "";
+  const sub = (sid==="vinyasa" ? `Today: ${esc(curFlow().n)} · ` : "") + `${np} poses${sun}`;
+  const others = NFYoga.SESSIONS.filter(x => x.id!==sid).map(x => `<button class="yrow" data-act="yogapick" data-id="${x.id}">${poseSvg(yPose(x.id),"thumb")}<span class="ytxt">${x.id===sug?`<span class="ysug">Suggested now</span>`:""}<b>${esc(x.n)}</b><small>${esc(x.desc)}</small>${yMeta(x, x.id==="vinyasa" ? yogaLen() : yLen(x.id))}</span></button>`).join("");
   return `<article class="card yogacard">
-    <div class="exhead"><h3>Vinyasa Flow<small>${esc(fl.n)} · ${FS.length} poses · ${FM} minutes</small></h3>
-      ${y.flow?`<span class="pill yoga">✓ done</span>`:""}</div>
-    <button class="primary yoga" data-act="yogago">${y.flow?"Start flow again":"Start flow"}</button>
-    <div class="lenseg" role="group" aria-label="Length">${[15,30,45].map(m => `<button data-act="yogalen" data-m="${m}" class="${yogaLen()===m?"on":""}">${m} min</button>`).join("")}</div>
-    <details class="flowlist"><summary>View sequence</summary><ol>${FS.map((x,i) => `<li>${poseSvg(x.pose,"thumb")}<span>${esc(x.n)}<small>${esc(x.s)}</small></span><b class="tnum">${x.d>=60?mmss(x.d/60)+" min":x.d+" s"}</b></li>`).join("")}</ol></details>
+    <div class="exhead"><h3>${esc(s.n)}<small>${sid===sug?"Suggested now · ":""}${esc(s.desc)}</small></h3>
+      ${y.flow && y.sid===sid?`<span class="pill yoga">✓ done</span>`:""}</div>
+    ${yMeta(s, FM)}<p class="small muted" style="margin:0">${sub}</p>
+    <button class="primary yoga" data-act="yogago">${y.flow && y.sid===sid?"Start again":"Start"}</button>
+    ${s.lens.length>1?`<div class="lenseg" role="group" aria-label="Length" style="grid-template-columns:repeat(${s.lens.length},1fr)">${s.lens.slice().sort((a,b) => a-b).map(m => `<button data-act="yogalen" data-m="${m}" aria-pressed="${yLen(sid)===m}" class="${yLen(sid)===m?"on":""}">${m} min</button>`).join("")}</div>`:""}
+    <div><span class="lbl">Level</span><div class="lenseg" role="group" aria-label="Level" style="grid-template-columns:1fr 1fr">${[["new","New to yoga"],["known","I know the poses"]].map(([k,l]) => `<button data-act="yogalevel" data-v="${k}" aria-pressed="${yLevel()===k}" class="${yLevel()===k?"on":""}">${l}</button>`).join("")}</div>
+      <p class="small muted" style="margin:6px 0 0">${yLevel()==="new" ? "Every pose explained, with an easier option." : "Just the pose names, less to read."}</p></div>
+    ${canSpeak() ? `<button class="yvoice" data-act="yogavoice" aria-pressed="${yVoice()}">${VOICE_ICO}<span>Read the poses aloud</span><b>${yVoice() ? "On" : "Off"}</b></button>` : ""}
+    <button class="yvoice" data-act="calmtoggle" aria-pressed="${calmOn()}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg><span>Ask how tense I feel, before and after</span><b>${calmOn() ? "On" : "Off"}</b></button>
+    <details class="flowlist"><summary>View sequence</summary><ol>${FS.map((x,i) => `<li>${poseSvg(x.pose,"thumb")}<span>${esc(x.n)}<small>${esc(x.s||"")}</small></span><b class="tnum">${x.d>=60?mmss(x.d/60)+" min":x.d+" s"}</b></li>`).join("")}</ol></details>
   </article>
+  <section class="ylist" aria-label="Other yoga sessions"><p class="exn" style="margin:0">Or choose another session</p>${others}</section>
   <article class="card">
     <div class="rungrid"><div><label class="lbl" for="yo-min">Duration</label><div class="field"><input inputmode="decimal" id="yo-min" data-in="yoga" data-f="min" value="${esc(y.min)}" placeholder="${FM}"><span class="u">min</span></div></div>
       <div class="pace" style="background:var(--yoga-soft)"><span>Yoga total</span><b class="tnum" style="color:var(--yoga)">${n}×</b></div></div>
-    <p class="small muted" style="margin:0">After the flow, the app logs the minutes for you. If you went to a class, enter the duration yourself.</p>
+    <p class="small muted" style="margin:0">After the session, the app logs the minutes for you. If you went to a class, enter the duration yourself.</p>
     <div><label class="lbl" for="yo-note">How did you feel?</label><textarea id="yo-note" data-in="yoga" data-f="note" placeholder="e.g. open hips, relaxed, pigeon was tough …">${esc(y.note)}</textarea></div>
   </article>`;
 }
-function startYoga(){
-  const startedAt = Date.now();
-  const FS = flowSteps(curFlow()), FM = stepsMin(FS);
-  startTimer({title:"Yoga", flow:curFlow().n, calm:true, prep:true, steps:FS.map(x => Object.assign({c:"yoga"}, x)),
-    onDone:() => { S.settings.yogaFlow = ((S.settings.yogaFlow||0) + 1) % YOGA_FLOWS.length; if(S.active && S.active.yoga){ S.active.yoga.flow = true; S.active.yoga.min = String(FM); } save(); if(S.active && S.active.yoga) renderSession(); toast("Namaste. Flow done."); },
+/* ---- Tension check: "How tense do you feel?" 1–5 before and after a yoga session or study break ---- */
+let CALM = null;
+const calmOn = () => S.settings.calmCheck !== false;
+// every check with an answer: yoga sessions in the history and study breaks from the home screen
+function calmEntries(){
+  return S.history.filter(e => e.yoga && e.yoga.calm).map(e => Object.assign({t:e.start}, e.yoga.calm))
+    .concat((S.settings.breaks||[]).filter(x => x && typeof x==="object"));
+}
+function calmScale(was){
+  return `<div class="calmscale" role="group" aria-label="1 relaxed, 5 very tense">${[1,2,3,4,5].map(v => `<button data-act="calmpick" data-v="${v}" class="${v===was?"was":""}" aria-label="${v}${v===was?", before":""}">${v===was?`<small>before</small>`:""}${v}</button>`).join("")}</div>
+    <div class="calmends"><span>1 · relaxed</span><span>5 · very tense</span></div>`;
+}
+// before: asks, then cb(answer or null). Skipped right away when the check is turned off.
+function askBefore(cb){
+  if(!calmOn()){ cb(null); return; }
+  CALM = {stage:"before", cb};
+  sheet(`<h3>Before you start</h3><p style="margin:0">How tense do you feel right now?</p>${calmScale(0)}
+    <button class="secondary" data-act="calmskip">Skip</button><button class="txtbtn" data-act="calmoff" style="align-self:center">Don't ask me again</button>`);
+}
+// after: only when there was an answer before; cb(answer) then shows the result
+function askAfter(b, cb){
+  if(!NFYoga.validTension(b)){ cb(null); return; }
+  CALM = {stage:"after", cb, b};
+  sheet(`<h3>Done. How tense do you feel now?</h3>${calmScale(b)}<button class="secondary" data-act="calmskip">Skip</button>`);
+}
+// pending: the answer of a yoga session that isn't saved to the history yet
+function calmResult(b, a, pending){
+  const st = NFYoga.tension(calmEntries().concat(pending ? [{t:Date.now(), b, a}] : []).filter(x => x.t > Date.now() - 60*864e5));
+  sheet(`<h3>${esc(NFYoga.tensionText(b, a))}</h3>
+    ${st && st.n>=2 ? `<div class="calmstat"><span><b class="tnum">${st.n}</b><small>checks in the last 60 days</small></span><span><b class="tnum">${fmt(st.before)} → ${fmt(st.after)}</b><small>average tension, before → after</small></span></div>` : `<p class="small muted" style="margin:0">After a few sessions you'll see your average here and in your monthly review.</p>`}
+    <button class="primary yoga" data-act="closesheet">Done</button>`);
+}
+function startYoga(){ askBefore(b => runYoga(b)); }
+function runYoga(before){
+  const startedAt = Date.now(), sid = ySid(), s = NFYoga.byId(sid), FS = ySteps(sid), FM = stepsMin(FS);
+  startTimer({title:s.n, flow:sid==="vinyasa" ? curFlow().n : `${FM} min`, calm:true, prep:true, steps:FS.map(x => Object.assign({c:"yoga"}, x)),
+    onDone:() => {
+      if(sid==="vinyasa") S.settings.yogaFlow = ((S.settings.yogaFlow||0) + 1) % YOGA_FLOWS.length;
+      if(S.active && S.active.yoga){ Object.assign(S.active.yoga, {flow:true, sid, min:String(FM)}); }
+      save(); if(S.active && S.active.yoga) renderSession();
+      askAfter(before, a => {
+        if(a==null){ toast(sid==="study" ? "Done. Back to the books." : "Namaste. Session done."); return; }
+        if(S.active && S.active.yoga){ S.active.yoga.calm = {b:before, a}; save(); }
+        calmResult(before, a, true);
+      });
+    },
     onStop:() => { const m = Math.round((Date.now()-startedAt)/60000); if(S.active && S.active.yoga && m>0 && !String(S.active.yoga.min).trim()){ S.active.yoga.min = String(m); save(); renderSession(); } }});
+}
+// Study break from the home screen or a push message: no session clock, doesn't count as a workout
+function startStudyBreak(){ askBefore(b => runStudyBreak(b)); }
+function runStudyBreak(before){
+  const FS = NFYoga.stepsFor("study", yLen("study"));
+  startTimer({title:"Study break", flow:`${stepsMin(FS)} min at your desk`, calm:true, prep:true, steps:FS.map(x => Object.assign({c:"yoga"}, x)),
+    onDone:() => {
+      const log = a => { S.settings.breaks = (S.settings.breaks||[]).concat([a==null ? {t:Date.now()} : {t:Date.now(), b:before, a}]).slice(-300); save(); if(screen==="home") renderHome(); };
+      askAfter(before, a => { log(a); if(a==null) toast("Done. Back to the books."); else calmResult(before, a); });
+    }});
 }
 
 function restBar(){
@@ -2132,7 +2519,44 @@ function tick(exId, i){
   s.ok = true; row.classList.remove("pre"); row.classList.add("done");
   if(document.activeElement) document.activeElement.blur();
   rest = {end:Date.now() + ex.rest*1000, total:ex.rest*1000};
-  updateBottom(); save();
+  restAudio(); updateBottom(); save();
+}
+
+/* ================= Während des Trainings: Bildschirm an, Ton nach der Pause =================
+   Der Bildschirm bleibt vom Start bis zum Ende an (Wake Lock, kommt nach einem App-Wechsel wieder).
+   Am Pausenende kurzer Doppelton auf allen Handys (iPhones können aus dem Browser nicht vibrieren),
+   dazu Vibration, wo es geht. Der Ton lässt sich in den Einstellungen ausschalten.
+   Hinweis: Steht das iPhone auf lautlos, bleibt auch der Ton stumm. */
+let SWL = null, RAC = null;
+async function keepAwake(on){
+  try{
+    if(on && !SWL && navigator.wakeLock && document.visibilityState==="visible"){
+      SWL = await navigator.wakeLock.request("screen"); SWL.addEventListener("release", () => { SWL = null; });
+    } else if(!on && SWL){ const l = SWL; SWL = null; await l.release(); }
+  }catch(e){ SWL = null; }
+}
+document.addEventListener("visibilitychange", () => { if(document.visibilityState==="visible" && screen==="session" && S.active) keepAwake(true); });
+// Browsers only allow sound after a tap, so the audio is set up when a set is ticked
+function restAudio(){ try{ RAC = RAC || new (window.AudioContext || window.webkitAudioContext)(); if(RAC.state==="suspended") RAC.resume(); }catch(e){} }
+function restBeep(){
+  if(S.settings.restSound===false || !RAC) return;
+  try{
+    const t = RAC.currentTime;
+    [[880, 0], [1175, .2]].forEach(([f, d]) => {
+      const o = RAC.createOscillator(), g = RAC.createGain();
+      o.type = "sine"; o.frequency.value = f;
+      g.gain.setValueAtTime(.0001, t+d); g.gain.exponentialRampToValueAtTime(.4, t+d+.02); g.gain.exponentialRampToValueAtTime(.0001, t+d+.28);
+      o.connect(g); g.connect(RAC.destination); o.start(t+d); o.stop(t+d+.32);
+    });
+  }catch(e){}
+}
+function restOver(){
+  rest = null; updateBottom(); restBeep();
+  try{ navigator.vibrate && navigator.vibrate([200,100,200]); }catch(e){}
+  toast("Rest over, next set!");
+  // bring the next open set into view
+  const nx = [...document.querySelectorAll('[data-act="tick"]')].find(b => !b.closest(".done"));
+  if(nx){ const r = nx.getBoundingClientRect(); if(r.top < 70 || r.bottom > innerHeight - 150) nx.scrollIntoView({block:"center", behavior:"smooth"}); }
 }
 
 /* ================= Beenden & Zusammenfassung ================= */
@@ -2146,7 +2570,7 @@ function buildEntry(withPending){
   });
   if(Object.keys(sets).length) e.sets = sets;
   if(a.tread && (parseMin(a.tread.min)>0 || num(a.tread.km)>0)){ e.tread = {min:parseMin(a.tread.min), km:num(a.tread.km)}; if(num(a.tread.incline)>0) e.tread.incline = num(a.tread.incline); }
-  if(a.yoga && num(a.yoga.min)>0) e.yoga = {min:num(a.yoga.min), flow:!!a.yoga.flow, note:String(a.yoga.note||"").trim()};
+  if(a.yoga && num(a.yoga.min)>0){ e.yoga = {min:num(a.yoga.min), flow:!!a.yoga.flow, note:String(a.yoga.note||"").trim()}; if(a.yoga.flow && a.yoga.sid) e.yoga.sid = a.yoga.sid; if(a.yoga.calm && NFYoga.validTension(a.yoga.calm.b) && NFYoga.validTension(a.yoga.calm.a)) e.yoga.calm = {b:a.yoga.calm.b, a:a.yoga.calm.a}; }
   if(a.run && (num(a.run.km)>0 || parseMin(a.run.min)>0)){
     let md = a.run.mode; if(md==="out" || md==="alster") md = num(a.run.km)>0 && Math.abs(num(a.run.km) - alsterKm()) < 1.2 ? "alster" : "out";
     e.run = {mode:md, km:num(a.run.km), min:parseMin(a.run.min), note:String(a.run.note||"").trim()};
@@ -2203,7 +2627,7 @@ function buildSummary(e){
     }
     if(e.run.mode==="alster" && e.run.min>0){
       const prev = prior.filter(x => x.run && x.run.mode==="alster" && num(x.run.min)>0).map(x => num(x.run.min));
-      if(prev.length && e.run.min<Math.min(...prev)){ rec = true; chips.push(`Fastest Alster loop: ${hms(e.run.min)}`); }
+      if(prev.length && e.run.min<Math.min(...prev)){ rec = true; chips.push(`Fastest ${LN()}: ${hms(e.run.min)}`); }
     }
     const prevKm = prior.filter(x => x.run).map(x => num(x.run.km));
     if(prevKm.length && e.run.km>Math.max(...prevKm)){ rec = true; chips.push(`Longest run: ${fmt(e.run.km)} km`); }
@@ -2222,6 +2646,15 @@ function buildSummary(e){
   return {e, ups, first:!lastSame, vol, lv, nSets, weekCount, played:false};
 }
 function pendingCount(){ let n = 0; Object.values(S.active.sets||{}).forEach(a => a.forEach(x => { if(!isDone(x) && filled(x)) n++; })); return n; }
+// Which sets are still open, for the finish dialog: "Shoulder Press set 2 and 3"
+function pendingList(){
+  const out = [];
+  Object.entries(S.active.sets||{}).forEach(([id, a]) => {
+    const open = a.map((x, i) => !isDone(x) && filled(x) ? i+1 : 0).filter(Boolean);
+    if(open.length) out.push(`${(EXN[id] ? EXN[id].n : id).replace(/ \(.*\)$/, "")} set ${open.length>1 ? open.slice(0,-1).join(", ") + " and " + open[open.length-1] : open[0]}`);
+  });
+  return out;
+}
 function finishSession(withPending){
   const e = buildEntry(withPending);
   if(!e.sets && !e.run && !e.tread && !e.yoga){
@@ -2285,7 +2718,7 @@ function renderSummary(){
   const kcal = kcalOf(e);
   if(kcalOn() && kcal>0) h += `<p class="kcal">🔥 <span>about <b class="tnum">${fmt(kcal,0)} kcal</b> burned</span><small>Estimate</small></p>`;
   else if(S.settings.showKcal!==false && !(num(S.settings.bodyKg)>0)) h += `<p class="small muted" style="margin:0">🔥 Enter your body weight in <button class="linkbtn" data-act="settings">Settings</button> to see the calories you burned here.</p>`;
-  if(e.run && e.run.mode==="alster"){ const n = S.history.filter(x => x.run && x.run.mode==="alster").length; h += `<p class="alsterc">🌊 Alster loop no. <b class="tnum">${n}</b>${[10,25,50,75,100,150,200].includes(n)?" 🎉 Milestone!":"!"}</p>`; }
+  if(e.run && e.run.mode==="alster"){ const n = S.history.filter(x => x.run && x.run.mode==="alster").length; h += `<p class="alsterc">🔁 ${esc(LN())} no. <b class="tnum">${n}</b>${[10,25,50,75,100,150,200].includes(n)?" 🎉 Milestone!":"!"}</p>`; }
   if(e.capped) h += `<p class="small muted" style="margin:0">The clock stopped automatically after 60 minutes.</p>`;
   if(e.tread) h += `<p class="small muted" style="margin:0">Plus treadmill: ${fmt(e.tread.min,0)} min${e.tread.km?" · "+fmt(e.tread.km)+" km":""}${e.tread.incline?" · "+fmt(e.tread.incline)+" % incline":""}</p>`;
   h += `<p class="small" style="margin:0" data-sync>${syncHtml()}</p></div>`;
@@ -2323,13 +2756,13 @@ function confetti(big){
 
 /* ================= Sheets: Verlauf, Einstellungen ================= */
 function sheet(html){ $("#layer").innerHTML = `<div class="scrim" data-act="scrim"><div class="sheet" role="dialog" aria-modal="true">${html}</div></div>`; }
-function closeSheet(){ $("#layer").innerHTML = ""; }
+function closeSheet(){ const was = !!$("#layer").innerHTML; $("#layer").innerHTML = ""; if(was && screen==="me") renderMe(); }
 
 function histSheet(id){
   const e = S.history.find(x => x.id===id); if(!e) return;
   const w = W[e.type];
   let h = `<h3>${w.name}</h3><p class="muted small">${new Date(e.start).toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"})} · ${durTxt((e.end||e.start)-e.start)}${kcalOn() && kcalOf(e)>0 ? ` · about ${fmt(kcalOf(e),0)} kcal` : ""}</p><div class="detail">`;
-  if(e.yoga) h += `<p class="exn">${e.yoga.flow?"Vinyasa Flow":"Yoga"}</p><p class="sets tnum">${fmt(num(e.yoga.min),0)} min</p>${e.yoga.note?`<p class="sets">${esc(e.yoga.note)}</p>`:""}`;
+  if(e.yoga) h += `<p class="exn">${esc(yogaLabel(e.yoga) || "Yoga")}</p><p class="sets tnum">${fmt(num(e.yoga.min),0)} min</p>${e.yoga.note?`<p class="sets">${esc(e.yoga.note)}</p>`:""}`;
   if(e.run) h += `<p class="exn">${runName(e.run.mode)}</p><p class="sets tnum">${fmt(num(e.run.km))} km in ${hms(num(e.run.min))} · ${mmss(paceOf(num(e.run.km),num(e.run.min)))} /km${num(e.run.incline)?" · "+fmt(num(e.run.incline))+" % incline":""}</p>${e.run.note?`<p class="sets">${esc(e.run.note)}</p>`:""}`;
   Object.keys(e.sets||{}).forEach(k => h += `<p class="exn">${EXN[k]?esc(EXN[k].n):esc(k)}</p><p class="sets tnum">${e.sets[k].map(s => setTxt(k, s)).join(" · ")}</p>`);
   if(e.tread) h += `<p class="exn">Treadmill</p><p class="sets tnum">${fmt(num(e.tread.min),0)} min${num(e.tread.km)?" · "+fmt(num(e.tread.km))+" km":""}${num(e.tread.incline)?" · "+fmt(num(e.tread.incline))+" % incline":""}</p>`;
@@ -2337,43 +2770,82 @@ function histSheet(id){
   sheet(h);
 }
 
-function settingsSheet(){
+/* Settings in parts: the "You" page opens one part at a time; settingsSheet() without a part shows all */
+let SETP = "";
+function settingsSheet(part){
   const st = S.settings;
-  sheet(`<h3>Settings</h3>
+  if(part !== undefined) SETP = part;
+  const P = {
+    account: ["Account", () => `
     ${accountHtml()}
+`],
+    goal: ["Weekly goal", () => `
     <div><span class="lbl">Weekly goal</span><div class="stepper"><button data-act="goal" data-d="-1" aria-label="fewer">−</button><b id="goalv">${st.goal}</b><button data-act="goal" data-d="1" aria-label="more">+</button><span class="muted small">sessions per week</span></div></div>
+`],
+    profile: ["Profile and body", () => `
     <div class="card" style="background:var(--bg);border:0">
       <span class="lbl">My profile</span>
-      <div class="rungrid"><div><label class="lbl" for="set-kg">Body weight</label><div class="field"><input inputmode="decimal" id="set-kg" data-in="bodykg" value="${esc(st.bodyKg)}" placeholder="e.g. 60"><span class="u">kg</span></div></div></div>
+      <div class="rungrid"><div><label class="lbl" for="set-kg">Body weight</label><div class="field"><input inputmode="decimal" id="set-kg" data-in="bodykg" value="${esc(st.bodyKg)}" placeholder="e.g. 60"><span class="u">kg</span></div></div>
+      <div><label class="lbl" for="set-cm">Height</label><div class="field"><input inputmode="numeric" id="set-cm" data-in="bodycm" value="${esc((st.body && st.body.cm) || "")}" placeholder="e.g. 175"><span class="u">cm</span></div></div></div>
       <p class="small muted" style="margin:6px 0 10px">Only used to estimate calories after a session.</p>
       <span class="lbl">Show calories</span>
       <div class="seg theme" id="kcalseg">${[["1","On"],["0","Off"]].map(([k,l]) => `<button data-act="kcalshow" data-v="${k}" aria-pressed="${(st.showKcal!==false)===(k==="1")}">${l}</button>`).join("")}</div>
     </div>
-    ${stravaSettings()}
+`],
+    sound: ["Sound", () => `
     <div class="card" style="background:var(--bg);border:0">
-      <span class="lbl">Photos for reviews <span id="phcount" class="muted" style="text-transform:none;letter-spacing:0"></span></span>
-      <p class="small muted" style="margin:0">Shown in the background of your weekly and yearly reviews. They stay on this phone and are never uploaded.</p>
+      <span class="lbl" >Sound when rest is over</span>
+      <div class="seg theme" id="restsoundseg">${[["1","On"],["0","Off"]].map(([k,l]) => `<button data-act="restsound" data-v="${k}" aria-pressed="${(st.restSound!==false)===(k==="1")}">${l}</button>`).join("")}</div>
+      <p class="small muted" style="margin:6px 0 0">The screen stays on during a workout. On an iPhone set to silent the sound stays off too.</p>
+    </div>
+`],
+    strava: ["Strava", () => `
+    ${stravaSettings()}
+`],
+    weather: ["Running weather", () => `
+    <div class="card" style="background:var(--bg);border:0">
+      <span class="lbl">Running weather</span>
+      <div class="seg theme" id="wxseg"><button data-act="wxhere" aria-pressed="${st.wxGeo===true}">Where I am</button><button data-act="wxhome" aria-pressed="${st.wxGeo!==true}">${NFRun.WX_HOME.place}</button></div>
+      <p class="small muted" style="margin:6px 0 0">"Where I am" asks your phone for its location, rounded to about 1 km. It is only used for the forecast.</p>
+    </div>
+`],
+    photos: ["Your photos", () => `
+    <div class="card" style="background:var(--bg);border:0">
+      <span class="lbl">Your photos <span id="phcount" class="muted" style="text-transform:none;letter-spacing:0"></span></span>
+      <p class="small muted" style="margin:0">Shown on the big card on Today and in the background of your reviews. Without your own photos, the Nova photos are used. They stay on this phone and are never uploaded.</p>
       <div class="phgrid" id="phgrid"></div>
       <button class="secondary" data-act="phadd">+ Choose photos</button>
       <input type="file" id="phfile" accept="image/*" multiple hidden>
     </div>
+`],
+    theme: ["Appearance", () => `
     <div><span class="lbl">Appearance</span><div class="seg theme" style="grid-template-columns:repeat(3,1fr)" id="themeseg">
       ${[["auto","Automatic"],["light","Light"],["dark","Dark"]].map(([k,l]) => `<button data-act="theme" data-v="${k}" aria-pressed="${st.theme===k}">${l}</button>`).join("")}</div>
       <p class="small muted" style="margin-top:6px">Automatic follows your phone's setting.</p></div>
+`],
+    push: ["Notifications", () => `
     <div class="card" style="background:var(--bg);border:0">
       <span class="lbl">Notifications</span>
       <div data-push>${pushHtml()}</div>
     </div>
+`],
+    cal: ["Calendar reminders", () => `
     <div class="card" style="background:var(--bg);border:0">
       <span class="lbl">Calendar reminders (alternative)</span>
       <p class="small muted">Choose your training days and a time. The app turns them into weekly events with reminders for your phone calendar.</p>
       <div class="days" id="days">${WD.map((d,i) => `<button data-act="day" data-i="${i}" aria-pressed="${st.remDays.includes(i)}">${d}</button>`).join("")}</div>
       <div class="row2"><input class="inp" type="time" id="set-time" data-in="time" value="${esc(st.remTime)}" aria-label="Time"><button class="secondary" data-act="ics">Add to calendar</button></div>
     </div>
+`],
+    data: ["Your data", () => `
     <div><span class="lbl">Your data</span><div class="row2"><button class="secondary" data-act="export">Back up</button><button class="secondary" data-act="import">Load backup</button></div>
       <button class="secondary" style="margin-top:8px;width:100%" data-act="impsheet">Import runs from other apps</button>
       <input type="file" id="importf" accept=".json,application/json" hidden>
       <p class="small" style="margin:8px 0 0" data-sync>${syncHtml()}</p></div>
+`],
+  };
+  const keys = P[SETP] ? [SETP] : Object.keys(P);
+  sheet(`<h3>${P[SETP] ? P[SETP][0] : "Settings"}</h3>${keys.map(k => P[k][1]()).join("")}
     <button class="primary" data-act="closesheet">Done</button>`);
   paintPhotos();
 }
@@ -2523,11 +2995,11 @@ function chartSheet(id){
 }
 function runChartSheet(kind){
   const runs = S.history.filter(e => e.run && num(e.run.km)>0 && num(e.run.min)>0 && (kind!=="alster" || e.run.mode==="alster"));
-  if(!runs.length){ toast(kind==="alster"?"No Alster loop with a time logged yet.":"No run with a time logged yet."); return; }
+  if(!runs.length){ toast(kind==="alster"?`No ${LN()} with a time logged yet.`:"No run with a time logged yet."); return; }
   const vals = runs.map(e => kind==="alster" ? num(e.run.min) : paceOf(num(e.run.km), num(e.run.min)));
   const f = kind==="alster" ? hms : v => mmss(v)+" /km";
   const best = Math.min(...vals), first = vals[0], d = first-best;
-  let h = `<h3>${kind==="alster"?"Your Alster loops":"Your running pace"}</h3><p class="muted small">${kind==="alster"?"Time per loop":"Minutes per kilometre"} · higher is faster</p>`;
+  let h = `<h3>${kind==="alster"?`Your ${esc(LN())} times`:"Your running pace"}</h3><p class="muted small">${kind==="alster"?"Time per loop":"Minutes per kilometre"} · higher is faster</p>`;
   h += `<div class="tiles"><div class="tile run"><small>First run</small><b class="tnum">${f(first)}</b></div><div class="tile run"><small>Best</small><b class="tnum">${f(best)}</b></div><div class="tile run"><small>Faster by</small><b class="tnum">${d>0?mmss(d):"–"}</b></div></div>`;
   h += lineChart(vals, runs.map(e => dTiny(e.start)), {invert:true, color:"var(--run)", fmt:f, label:"Running times"});
   h += `<button class="secondary" data-act="closesheet">Close</button>`;
@@ -2572,8 +3044,8 @@ const BADGES = [
   {id:"km10", l:"10k", t:"10 km", d:"Ran 10 km in total.", ok:f => f.km>=10, run:true},
   {id:"km50", l:"50k", t:"50 km", d:"Ran 50 km in total.", ok:f => f.km>=50, run:true},
   {id:"km100", l:"100k", t:"100 km", d:"Ran 100 km in total.", ok:f => f.km>=100, run:true},
-  {id:"al45", l:"<45", t:"Alster under 45", d:"Alster loop in under 45 minutes.", ok:f => f.bestAlster<45, run:true},
-  {id:"al40", l:"<40", t:"Alster under 40", d:"Alster loop in under 40 minutes.", ok:f => f.bestAlster<40, run:true},
+  {id:"al45", l:"<45", t:"Loop under 45", d:"Your loop in under 45 minutes.", ok:f => f.bestAlster<45, run:true},
+  {id:"al40", l:"<40", t:"Loop under 40", d:"Your loop in under 40 minutes.", ok:f => f.bestAlster<40, run:true},
   {id:"ht50", l:"50kg", t:"Hip Thrust 50 kg", d:"Hip thrust with 50 kg.", ok:f => f.hipMax>=50},
   {id:"ht80", l:"80kg", t:"Hip Thrust 80 kg", d:"Hip thrust with 80 kg.", ok:f => f.hipMax>=80},
   {id:"pr5", l:"PR5", t:"5 records", d:"Set a new best weight 5 times.", ok:f => f.prs>=5},
@@ -2599,7 +3071,7 @@ function badgeProg(b){
     km10:[f.km,10," km"],km50:[f.km,50," km"],km100:[f.km,100," km"],ht50:[f.hipMax,50," kg"],ht80:[f.hipMax,80," kg"],pr5:[f.prs,5],pr20:[f.prs,20],vol10t:[f.vol/1000,10," t"],yoga1:[f.yoga,1],yoga10:[f.yoga,10]};
   if(id==="al45" || id==="al40"){
     const goal = id==="al45" ? 45 : 40, best = isFinite(f.bestAlster) ? f.bestAlster : 0;
-    return best ? {pct:Math.min(1, goal/best), txt:`Best time ${hms(best)}${best>goal?` · ${hms(best-goal)} faster to go`:""}`} : {pct:0, txt:"No Alster loop with a time yet"};
+    return best ? {pct:Math.min(1, goal/best), txt:`Best time ${hms(best)}${best>goal?` · ${hms(best-goal)} faster to go`:""}`} : {pct:0, txt:"No loop with a time yet"};
   }
   if(!T[id]) return {pct:0, txt:""};
   const [c, t, u] = T[id];
@@ -2676,7 +3148,7 @@ function recapSheet(y, m){
   h += `<div class="tiles"><div class="tile"><small>Sessions</small><b class="tnum">${r.n}</b></div><div class="tile run"><small>Run</small><b class="tnum">${fmt(r.km)} km</b></div><div class="tile"><small>Moved</small><b class="tnum">${fmt(Math.round(r.vol),0)} kg</b></div></div>`;
   if(kcalOn() && r.kcal>0) h += `<p class="kcal">🔥 <span>about <b class="tnum">${fmt(r.kcal,0)} kcal</b> burned</span><small>Estimate</small></p>`;
   const tl = ALL_W.filter(t => r.types[t]).map(t => `${W[t].name} ${r.types[t]}×`).join(" · ");
-  if(tl) h += `<p class="small muted" style="margin:0">${tl}${r.bestAl?` · best Alster loop ${hms(r.bestAl)}`:""}</p>`;
+  if(tl) h += `<p class="small muted" style="margin:0">${tl}${r.bestAl?` · best ${esc(LN())} ${hms(r.bestAl)}`:""}</p>`;
   if(r.gains.length) h += `<p class="exn" style="margin:6px 0 0;font-weight:600">Getting stronger</p><div class="ups">${r.gains.slice(0,5).map(g => `<div class="up"><div class="uphead"><b>${esc(g.n)}</b><span class="chip2">+${fmt(g.d)} kg <span>(now ${fmt(g.to)} kg)</span></span></div></div>`).join("")}</div>`;
   if(r.badges.length) h += `<p class="exn" style="margin:6px 0 0;font-weight:600">New badges</p><div class="badges">${r.badges.map(b => badgeEl(b)).join("")}</div>`;
   h += `<button class="secondary" data-act="closesheet">Close</button>`;
@@ -2698,7 +3170,7 @@ function weekSheet(ws){
   h += `<div class="tiles"><div class="tile"><small>Sessions</small><b class="tnum">${r.n}/${g}</b></div><div class="tile run"><small>Run</small><b class="tnum">${fmt(r.km)} km</b></div><div class="tile"><small>Moved</small><b class="tnum">${fmt(Math.round(r.vol),0)} kg</b></div></div>`;
   if(kcalOn() && r.kcal>0) h += `<p class="kcal">🔥 <span>about <b class="tnum">${fmt(r.kcal,0)} kcal</b> burned</span><small>Estimate</small></p>`;
   const tl = ALL_W.filter(t => r.types[t]).map(t => `${W[t].name} ${r.types[t]}×`).join(" · ");
-  if(tl) h += `<p class="small muted" style="margin:0">${tl}${r.bestAl?` · Alster loop ${hms(r.bestAl)}`:""}${st2.streak>1&&cur?` · ${st2.streak} weeks in a row`:""}</p>`;
+  if(tl) h += `<p class="small muted" style="margin:0">${tl}${r.bestAl?` · ${esc(LN())} ${hms(r.bestAl)}`:""}${st2.streak>1&&cur?` · ${st2.streak} weeks in a row`:""}</p>`;
   if(r.gains.length) h += `<p class="exn" style="margin:6px 0 0;font-weight:600">Stronger this week</p><div class="ups">${r.gains.slice(0,5).map(x => `<div class="up"><div class="uphead"><b>${esc(x.n)}</b><span class="chip2">+${fmt(x.d)} kg <span>(now ${fmt(x.to)} kg)</span></span></div></div>`).join("")}</div>`;
   if(r.badges.length) h += `<p class="exn" style="margin:6px 0 0;font-weight:600">New badges</p><div class="badges">${r.badges.map(x => badgeEl(x)).join("")}</div>`;
   h += `<div class="row2"><button class="secondary" data-act="week" data-ws="${ws-WEEK}">‹ Previous week</button>${cur?`<button class="secondary" data-act="closesheet">Close</button>`:`<button class="secondary" data-act="week" data-ws="${ws+WEEK}">Next week ›</button>`}</div>`;
@@ -2723,21 +3195,23 @@ function recapCardHtml(){
 function runGoalsHtml(st){
   const g = S.settings.alsterGoal, kg = S.settings.kmGoal;
   const al = S.history.filter(e => e.run && e.run.mode==="alster" && num(e.run.min)>0).map(e => num(e.run.min));
-  let p1 = 0, t1 = "No Alster loop with a time yet.";
+  let p1 = 0, t1 = "No loop with a time yet.";
   if(al.length){
     const first = al[0], best = Math.min(...al);
     if(best<=g){ p1 = 1; t1 = `Done! Best time ${hms(best)}`; }
     else{ p1 = first>g ? Math.max(0, Math.min(1, (first-best)/(first-g))) : 0; t1 = `Best time ${hms(best)} · ${mmss(best-g)} faster to go`; }
   }
   const p2 = Math.min(1, st.kmMonth/kg);
-  return `<div class="goalbar"><div class="gl"><b>Alster loop under ${hms(g)}</b><span class="tnum">${t1}</span></div><div class="track"><i style="width:${Math.max(p1*100, p1?4:0)}%"></i></div></div>
+  return `<div class="goalbar"><div class="gl"><b>${esc(LN())} under ${hms(g)}</b><span class="tnum">${t1}</span></div><div class="track"><i style="width:${Math.max(p1*100, p1?4:0)}%"></i></div></div>
     <div class="goalbar"><div class="gl"><b>Monthly goal ${fmt(kg,0)} km</b><span class="tnum">${fmt(st.kmMonth)} of ${fmt(kg,0)} km${p2>=1?" · done!":""}</span></div><div class="track"><i style="width:${Math.max(p2*100, p2?4:0)}%"></i></div></div>
     <button class="addset" data-act="rungoals" style="align-self:flex-start">Change goals</button>`;
 }
 function runGoalsSheet(){
   sheet(`<h3>Running goals</h3>
-    <div><label class="lbl" for="g-al">Alster loop under (mm:ss)</label><input class="inp tnum" id="g-al" inputmode="text" value="${mmss(S.settings.alsterGoal)}"></div>
-    <div><label class="lbl" for="g-km">Kilometres per month</label><input class="inp tnum" id="g-km" inputmode="decimal" value="${fmt(S.settings.kmGoal,0)}"></div>
+    <div class="rungrid"><div><label class="lbl" for="g-ln">Your usual loop</label><input class="inp" id="g-ln" maxlength="${NFRun.LOOP_NAME_MAX+6}" autocomplete="off" placeholder="${NFRun.LOOP_DEFAULT}" value="${esc(S.settings.loopName||"")}" aria-describedby="g-ln-err"><p class="err" id="g-ln-err" role="alert" aria-live="polite"></p></div>
+      <div><label class="lbl" for="g-lk">Length</label><div class="field"><input class="tnum" id="g-lk" inputmode="decimal" value="${fmt(alsterKm(),2)}" aria-describedby="g-lk-err"><span class="u">km</span></div><p class="err" id="g-lk-err" role="alert" aria-live="polite"></p></div></div>
+    <div><label class="lbl" for="g-al">Loop under (mm:ss)</label><input class="inp tnum" id="g-al" inputmode="text" value="${mmss(S.settings.alsterGoal)}"></div>
+    <div><label class="lbl" for="g-km">Kilometres per month</label><input class="inp tnum" id="g-km" inputmode="decimal" value="${Math.round(num(S.settings.kmGoal))}"></div>
     <button class="primary run" data-act="rungoalsave">Save</button><button class="secondary" data-act="closesheet">Cancel</button>`);
 }
 
@@ -2839,14 +3313,15 @@ function drawTimer(){
   let el = document.getElementById("timerlayer");
   if(!TM){ if(el) el.remove(); return; }
   if(!el){ el = document.createElement("div"); el.id = "timerlayer"; el.setAttribute("role","dialog"); el.setAttribute("aria-modal","true"); document.body.appendChild(el); }
-  const st = TM.steps[TM.i], nx = TM.steps[TM.i+1];
+  const st = TM.steps[TM.i], nx = TM.steps[TM.i+1], cu = NFYoga.cue(TM.prep && TM.i===0 ? Object.assign({}, st, {pose:""}) : st, yLevel());  // "Get ready" has no easier option
   const left = TM.paused ? TM.left : TM.end - Date.now();
+  if(TM.calm && yVoice() && TM.spokenI !== TM.i && !TM.paused){ TM.spokenI = TM.i; say(cu.say); }
   el.className = "tm " + (st.c||"");
   el.innerHTML = `<div class="tmin">
-    <div class="tmtop"><span>${esc(TM.title)}</span><span class="tmr">${TM.calm?`<button class="tmsnd" data-act="tmmusic" aria-label="${S.settings.yogaMusic===false?"Music on":"Music off"}">${S.settings.yogaMusic===false?"🔇":"🎵"}</button>`:""}<span class="tnum">${st.prep ? "Get ready" : (TM.i + (TM.steps[0].prep?0:1)) + " / " + (TM.steps.length - (TM.steps[0].prep?1:0))}</span></span></div>
+    <div class="tmtop"><span>${esc(TM.title)}</span><span class="tmr">${TM.calm && canSpeak()?`<button class="tmsnd" data-act="tmvoice" aria-pressed="${yVoice()}" aria-label="${yVoice()?"Voice off":"Voice on"}" style="${yVoice()?"":"opacity:.55"}">${VOICE_ICO}</button>`:""}${TM.calm?`<button class="tmsnd" data-act="tmmusic" aria-label="${S.settings.yogaMusic===false?"Music on":"Music off"}">${S.settings.yogaMusic===false?"🔇":"🎵"}</button>`:""}<span class="tnum">${st.prep ? "Get ready" : (TM.i + (TM.steps[0].prep?0:1)) + " / " + (TM.steps.length - (TM.steps[0].prep?1:0))}</span></span></div>
     <div class="tmmain">${st.pose?poseSvg(st.pose,"tmpose"):""}<p class="tmphase">${esc(st.n)}</p>${st.s?`<p class="tmsub">${esc(st.s)}</p>`:""}<p class="tmtime tnum" id="tmT">${clock(Math.max(0,left)+999)}</p>
       <div class="track"><i id="tmI" style="width:${Math.max(0,left)/(st.d*1000)*100}%"></i></div>
-      ${st.i?`<p class="tminfo">${esc(st.i)}</p>`:""}</div>
+      ${TM.calm ? `${cu.text?`<p class="tminfo">${esc(cu.text)}</p>`:""}${cu.easy?`<p class="tminfo tmeasy"><b>Easier:</b> ${esc(cu.easy)}</p>`:""}` : st.i?`<p class="tminfo">${esc(st.i)}</p>`:""}</div>
     <p class="tmnext">${nx?`Up next: <b>${esc(nx.n)}</b> · ${nx.d>=60?mmss(nx.d/60)+" min":nx.d+" s"}`:"Last section"}</p>
     <div class="tmbtns"><button class="secondary" data-act="tmpause">${TM.paused?"Resume":"Pause"}</button><button class="secondary" data-act="tmskip">Skip ›</button></div>
     <button class="txtbtn" data-act="tmstop" style="align-self:center;color:inherit;opacity:.8">Stop</button></div>`;
@@ -2874,6 +3349,7 @@ function tickTimer(){
 function finishTimer(done){
   const cb = TM && TM.onDone, stopCb = TM && TM.onStop, ac = TM && TM.ac, hadMus = !!(TM && TM.mus);
   medStop(true);
+  try{ canSpeak() && speechSynthesis.cancel(); }catch(e){}
   setTimeout(() => { try{ ac && ac.close(); }catch(e){} }, hadMus ? 2300 : 0);
   TM = null; drawTimer();
   try{ wakeLock && wakeLock.release(); }catch(e){} wakeLock = null;
@@ -3068,29 +3544,52 @@ const P2 = {
   plank:{head:[46,84], sh:[62,90], hip:[118,98], nel:[61,109], nwr:[60,127], fel:[66,109], fwr:[66,127], nkn:[148,108], nan:[176,124], fkn:[146,110], fan:[174,126], nofoot:1},
   cobra:{head:[50,90], sh:[64,102], hip:[122,120], nel:[82,118], nwr:[66,128], fel:[86,116], fwr:[72,127], nkn:[152,123], nan:[184,126], fkn:[150,125], fan:[182,128], nofoot:1},
   fold:{head:[86,116], sh:[92,98], hip:[112,68], nel:[88,113], nwr:[90,127], fel:[94,112], fwr:[96,126], nkn:[110,98], nan:[108,128], fkn:[114,98], fan:[112,128], toe:-1},
+  // Sun Salutation: half lift (long back, hands on the shins) and lowering down (chaturanga)
+  half:{head:[60,70], sh:[76,72], hip:[112,68], nel:[84,88], nwr:[100,100], fel:[86,89], fwr:[104,101], nkn:[110,98], nan:[108,128], fkn:[114,98], fan:[112,128], toe:-1},
+  low:{head:[46,108], sh:[62,114], hip:[118,118], nel:[78,105], nwr:[66,127], fel:[82,105], fwr:[70,127], nkn:[148,121], nan:[176,124], fkn:[146,122], fan:[174,126], nofoot:1},
   chair:{head:[92,38], sh:[98,56], hip:[118,94], nel:[80,42], nwr:[64,26], fel:[84,40], fwr:[68,24], nkn:[86,104], nan:[100,128], fkn:[90,104], fan:[104,128], toe:-1, glow:1},
   butterfly:{head:[100,52], sh:[100,70], hip:[100,114], nel:[118,96], nwr:[106,122], fel:[82,96], fwr:[94,122], nkn:[146,114], nan:[106,127], fkn:[54,114], fan:[94,127], nofoot:1, glow:1},
   tri:{head:[52,64], sh:[68,72], hip:[100,88], nel:[70,48], nwr:[72,22], fel:[64,94], fwr:[60,114], nkn:[72,108], nan:[46,128], fkn:[128,108], fan:[156,128], nofoot:1},
   paschim:{head:[82,100], sh:[100,98], hip:[146,116], bend:[128,92], nel:[82,112], nwr:[64,120], fel:[84,114], fwr:[66,122], nkn:[106,125], nan:[58,127], fkn:[106,126], fan:[58,128], nofoot:1, glow:1},
   lizard:{head:[56,110], sh:[74,108], hip:[114,100], nel:[70,118], nwr:[66,127], fel:[76,118], fwr:[72,127], nkn:[86,94], nan:[86,128], fkn:[148,127], fan:[182,128], toe:-1, glow:1},
   kick:{head:[46,90], sh:[64,86], hip:[136,84], nel:[63,107], nwr:[62,127], fel:[70,107], fwr:[70,127], nkn:[164,82], nan:[166,52], fkn:[134,128], fan:[170,129], toe:1, glow:1},
-  sbridge:{head:[30,122], sh:[50,120], hip:[112,80], nel:[74,126], nwr:[98,128], fel:[78,124], fwr:[102,126], nkn:[142,68], nan:[172,56], fkn:[146,80], fan:[150,127], toe:1, glow:1}
+  sbridge:{head:[30,122], sh:[50,120], hip:[112,80], nel:[74,126], nwr:[98,128], fel:[78,124], fwr:[102,126], nkn:[142,68], nan:[172,56], fkn:[146,80], fan:[150,127], toe:1, glow:1},
+  // on a chair, seen from the front (study break)
+  cseat:{head:[100,32], sh:[100,52], hip:[100,90], nel:[118,72], nwr:[112,92], fel:[82,72], fwr:[88,92], nkn:[88,100], nan:[86,127], fkn:[112,100], fan:[114,127], nofoot:1, prop:"chair"},
+  cneck:{head:[112,34], sh:[100,52], hip:[100,90], nel:[124,38], nwr:[114,24], fel:[82,72], fwr:[78,92], nkn:[88,100], nan:[86,127], fkn:[112,100], fan:[114,127], nofoot:1, prop:"chair"},
+  cside:{head:[84,40], sh:[90,56], hip:[100,90], nel:[102,30], nwr:[82,14], fel:[80,72], fwr:[78,92], nkn:[88,100], nan:[86,127], fkn:[112,100], fan:[114,127], nofoot:1, prop:"chair"},
+  creach:{head:[100,34], sh:[100,52], hip:[100,90], nel:[110,30], nwr:[106,8], fel:[90,30], fwr:[94,8], nkn:[88,100], nan:[86,127], fkn:[112,100], fan:[114,127], nofoot:1, prop:"chair"},
+  // on the back, legs resting up a wall (wind down)
+  legsup:{head:[34,120], sh:[52,121], hip:[118,122], nel:[70,126], nwr:[88,127], fel:[66,124], fwr:[84,126], nkn:[124,90], nan:[130,56], fkn:[128,90], fan:[134,56], nofoot:1, prop:"wall", glow:1}
 };
+const PROPS = {
+  chair:`<g stroke-width="5" opacity=".35"><line x1="68" y1="98" x2="132" y2="98"/><line x1="72" y1="98" x2="72" y2="130"/><line x1="128" y1="98" x2="128" y2="130"/><line x1="74" y1="98" x2="74" y2="58"/><line x1="126" y1="98" x2="126" y2="58"/><line x1="74" y1="60" x2="126" y2="60"/></g>`,
+  wall:`<rect x="142" y="8" width="10" height="122" fill="currentColor" stroke="none" opacity=".18"/>`
+};
+/* Pose drawings: a dark outline around a light body, like the exercise drawings.
+   --pf is the body color (the background behind the drawing), --pdot marks where you should feel it. */
 function poseSvg(key, cls){
   if(!key) return "";
   const mir = key.endsWith("-"), k = key.replace("-",""), p = P2[k];
   if(!p) return poseSvgOld(key, cls);
-  const L = (a, b, w) => `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke-width="${w}"/>`;
-  const foot = (an) => p.nofoot || an[1] < 122 ? "" : L(an, [an[0] + 8*(p.toe||-1), an[1]+.5], 6.5);
-  const far = `<g opacity=".42">${L(p.sh,p.fel,9)}${L(p.fel,p.fwr,7.5)}<circle cx="${p.fwr[0]}" cy="${p.fwr[1]}" r="4.2" fill="currentColor" stroke="none"/>${L(p.hip,p.fkn,13)}${L(p.fkn,p.fan,10.5)}${foot(p.fan)}</g>`;
+  const O = 3.4;
+  const ln = (a, b, w) => `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke-width="${w}"/>`;
+  // a set of limbs: outline in the drawing color first, then the body color on top
+  const part = (segs, op) => `<g${op?` opacity="${op}"`:""}><g>${segs.map(([a,b,w]) => ln(a, b, w+O)).join("")}</g><g style="stroke:var(--pf)">${segs.map(([a,b,w]) => ln(a, b, w)).join("")}</g></g>`;
+  const foot = an => p.nofoot || an[1] < 122 ? [] : [[an, [an[0] + 8*(p.toe||-1), an[1]+.5], 5.5]];
   const mid = [(p.sh[0]+p.hip[0])/2, (p.sh[1]+p.hip[1])/2];
-  const torso = p.bend ? `<path d="M${p.sh} Q${p.bend} ${p.hip}" fill="none" stroke-width="21"/>` : L(p.sh, mid, 22) + L(mid, p.hip, 19.5) + `<circle cx="${p.hip[0]}" cy="${p.hip[1]}" r="10.5" fill="currentColor" stroke="none"/>`;
-  const dx = p.head[0]-p.sh[0], dy = p.head[1]-p.sh[1], ln = Math.hypot(dx,dy) || 1, nk = [p.sh[0]+dx/ln*(ln-9), p.sh[1]+dy/ln*(ln-9)];
-  const glow = p.glow ? `<circle cx="${p.hip[0]}" cy="${p.hip[1]}" r="19" fill="url(#pglow)" stroke="none"/>` : "";
-  const near = `${L(p.hip,p.nkn,14)}${L(p.nkn,p.nan,11)}${foot(p.nan)}${L(p.sh,p.nel,10)}${L(p.nel,p.nwr,8)}<circle cx="${p.nwr[0]}" cy="${p.nwr[1]}" r="4.6" fill="currentColor" stroke="none"/>${L(p.sh,nk,8.5)}`;
-  return `<svg class="${cls||"pose"} p2" viewBox="0 0 200 140" aria-hidden="true"><defs><radialGradient id="pglow"><stop offset="0" stop-color="#ffffff" stop-opacity=".95"/><stop offset=".55" stop-color="#ffffff" stop-opacity=".42"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></radialGradient></defs>
-    <rect x="10" y="130" width="180" height="6" rx="3" fill="currentColor" opacity=".16"/>
-    <g ${mir?'transform="translate(200,0) scale(-1,1)"':""} stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" fill="none">${far}${torso}${glow}${near}<circle cx="${p.head[0]}" cy="${p.head[1]}" r="11.5" fill="currentColor" stroke="none"/></g></svg>`;
+  const dx = p.head[0]-p.sh[0], dy = p.head[1]-p.sh[1], len = Math.hypot(dx,dy) || 1, nk = [p.sh[0]+dx/len*(len-9), p.sh[1]+dy/len*(len-9)];
+  const far = part([[p.sh,p.fel,7.5],[p.fel,p.fwr,6],[p.hip,p.fkn,11],[p.fkn,p.fan,8.5], ...foot(p.fan)], .5);
+  const legs = [[p.hip,p.nkn,12],[p.nkn,p.nan,9.5], ...foot(p.nan), [p.sh,nk,7]];
+  const torso = p.bend
+    ? `<path d="M${p.sh} Q${p.bend} ${p.hip}" stroke-width="${18+O}"/>${part(legs)}<path d="M${p.sh} Q${p.bend} ${p.hip}" stroke-width="18" style="stroke:var(--pf)"/>`
+    : part(legs.concat([[p.sh, mid, 19], [mid, p.hip, 17]]));
+  const head = `<circle cx="${p.head[0]}" cy="${p.head[1]}" r="${10.5+O/2}" fill="currentColor" stroke="none"/><circle cx="${p.head[0]}" cy="${p.head[1]}" r="10.5" stroke="none" style="fill:var(--pf)"/>`;
+  const arm = part([[p.sh,p.nel,8],[p.nel,p.nwr,6.5]]);
+  const dot = p.glow ? `<circle cx="${p.hip[0]}" cy="${p.hip[1]}" r="4.5" stroke="none" style="fill:var(--pdot)"/>` : "";
+  return `<svg class="${cls||"pose"} p2" viewBox="0 0 200 140" aria-hidden="true">
+    <rect x="10" y="130" width="180" height="5" rx="2.5" fill="currentColor" opacity=".16"/>
+    <g ${mir?'transform="translate(200,0) scale(-1,1)"':""} stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" fill="none">${PROPS[p.prop]||""}${far}${torso}${head}${arm}${dot}</g></svg>`;
 }
 
 /* ================= Steigerungs-Tipp ================= */
@@ -3164,7 +3663,7 @@ const GUIDE = {
 };
 const PAT_POSE = {squat:"xsquat", legcurl:"xcurl", calf:"xcalf", thrust:"xhip", lunge:"xbss", rdl:"xrdl", kick:"xkick", abduct:"xadd", adduct:"xadd",
   vpull:"xlat", pullup:"xlat", ipress:"xincl", hpress:"xincl", raise:"xlra", curl:"xbic", tri:"xtri"};
-function guideSheet(id){
+function guideSheet(id, back){
   const ex = EXN[id]; if(!ex) return;
   const g = GUIDE[id] || {}, focus = g.f || NFEx.focusOf(ex);
   const steps = g.s || [ex.cue].filter(Boolean);
@@ -3174,7 +3673,7 @@ function guideSheet(id){
       : poseSvg(EXPOSE[id] || PAT_POSE[ex.pat], "expose")}
     ${steps.length?`<p class="exn" style="margin:0;font-weight:600">How to do it</p><ol class="guide">${steps.map(t => `<li>${esc(t)}</li>`).join("")}</ol>`:""}
     ${(g.x||[]).length?`<p class="exn" style="margin:0;font-weight:600">Watch out for</p><ul class="guide">${g.x.map(t => `<li>${esc(t)}</li>`).join("")}</ul>`:""}
-    <button class="secondary" data-act="closesheet">Close</button>`);
+    ${back ? `<button class="secondary" data-act="libback">‹ Back to the list</button>` : `<button class="secondary" data-act="closesheet">Close</button>`}`);
 }
 
 /* ================= Po-Mobility (Ruhetage, ohne Trainings-Uhr) ================= */
@@ -3249,11 +3748,11 @@ function addonFor(e){
 function yogaSheet(){
   const ml = S.settings.mob || [], last = ml.length ? ml[ml.length-1] : 0, ly = S.history.filter(e => e.yoga).slice(-1)[0];
   sheet(`<h3>Yoga</h3>
-    <button class="start" data-kind="yoga" data-act="yogaflow"><span class="stripe"></span><span><b>Vinyasa Flow</b><small>${stepsMin(flowSteps(curFlow()))} min · today: ${esc(curFlow().n)} · counts as a session</small><small>${ly?"Last done "+ago(ly.start):"Not done yet"}</small></span><span class="arrow">›</span></button>
+    <button class="start" data-kind="yoga" data-act="yogaflow"><span class="stripe"></span><span><b>Yoga session</b><small>7 sessions to choose from, 5 to 45 min · counts as a session</small><small>${ly?"Last done "+ago(ly.start):"Not done yet"}</small></span><span class="arrow">›</span></button>
     <button class="start" data-kind="yoga" data-act="mobility"><span class="stripe"></span><span><b>Glute Mobility</b><small>${stepsMin(curMob().steps)} min · today: ${esc(curMob().n)} · no session clock</small><small>${last?"Last done "+ago(last):"Not done yet"}</small></span><span class="arrow">›</span></button>
     <p class="small muted" style="margin:0">Glute mobility doesn't count as a session. It helps with sore muscles and keeps your hips mobile.</p>
     <p class="exn" style="margin:4px 0 0;font-weight:600">Short routines</p>
-    <div class="alts">${["hips","shoulders","runner","stretch"].map(id => `<button class="altrow" data-act="mob" data-id="${id}"><b>${esc(MOB[id].n)} · ${stepsMin(MOB[id].steps)} min</b><small>${esc(MOB[id].why)}</small></button>`).join("")}</div>
+    <div class="alts"><button class="altrow" data-act="study"><b>Study break · 5 min</b><small>Neck, shoulders and breathing on your chair. No mat needed.</small></button>${["hips","shoulders","runner","stretch"].map(id => `<button class="altrow" data-act="mob" data-id="${id}"><b>${esc(MOB[id].n)} · ${stepsMin(MOB[id].steps)} min</b><small>${esc(MOB[id].why)}</small></button>`).join("")}</div>
     <button class="secondary" data-act="closesheet">Cancel</button>`);
 }
 // id: one of MOB; without an id the glute routines take turns
@@ -3266,20 +3765,55 @@ function startMobility(id){
   }});
 }
 
-/* ================= Laufwetter an der Alster ================= */
-const WX_URL = "https://api.open-meteo.com/v1/forecast?latitude=53.566&longitude=10.007&current=temperature_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,is_day&hourly=precipitation_probability&forecast_hours=3&timezone=Europe%2FBerlin";
-let WX = null, wxBusy = false;
-function wxLoad(){
-  if(WX && Date.now()-WX.t < 20*60e3) return;
+/* ================= Weather where you are ================= */
+// Your phone's position if you allowed it, otherwise Nova SBE in Carcavelos.
+// The position is rounded to about 1 km before it is stored or sent.
+let WX = null, wxBusy = false, geoBusy = false;
+function wxPos(){ const p = S.settings.wxPos; return S.settings.wxGeo===true && p && isFinite(p.lat) && isFinite(p.lon) ? p : NFRun.WX_HOME; }
+const wxPlace = () => wxPos().place || "Here";
+function wxLoad(force){
+  if(S.settings.wxGeo===true && !geoBusy && (!S.settings.wxPos || Date.now()-(S.settings.wxPos.t||0) > 2*3600e3)) wxLocate(false);
+  const pos = wxPos(), here = c => c && c.d && NFRun.samePlace(c.pos, pos);
+  if(!force && here(WX) && Date.now()-WX.t < 20*60e3) return;
   try{
     const c = JSON.parse(localStorage.getItem("po-wx")||"null");
-    if(c && c.d && Date.now()-c.t < 3*3600e3){ WX = c; if(Date.now()-c.t < 20*60e3) return; }
+    if(here(c) && Date.now()-c.t < 3*3600e3){ WX = c; if(!force && Date.now()-c.t < 20*60e3) return; }
   }catch(e){}
   if(wxBusy || navigator.onLine===false || !window.fetch) return; wxBusy = true;
-  fetch(WX_URL).then(r => r.ok ? r.json() : null).then(d => {
-    if(d && d.current){ WX = {t:Date.now(), d}; try{ localStorage.setItem("po-wx", JSON.stringify(WX)); }catch(e){} wxPaint(); }
+  fetch(NFRun.wxUrl(pos)).then(r => r.ok ? r.json() : null).then(d => {
+    if(d && d.current){ WX = {t:Date.now(), d, pos:{lat:pos.lat, lon:pos.lon}}; try{ localStorage.setItem("po-wx", JSON.stringify(WX)); }catch(e){} wxPaint(); }
   }).catch(() => {}).finally(() => { wxBusy = false; });
 }
+// ask = the person tapped "use my location" (show what went wrong); otherwise a quiet refresh
+function wxLocate(ask){
+  if(!navigator.geolocation){ if(ask) toast("This browser can't share your location."); return; }
+  geoBusy = true;
+  navigator.geolocation.getCurrentPosition(g => {
+    geoBusy = false;
+    const pos = {lat:Math.round(g.coords.latitude*100)/100, lon:Math.round(g.coords.longitude*100)/100, t:Date.now()}, old = S.settings.wxPos;
+    pos.place = old && old.place && NFRun.samePlace(old, pos) ? old.place : "";
+    S.settings.wxGeo = true; S.settings.wxPos = pos; save();
+    if(!pos.place) wxPlaceLoad(pos);
+    wxLoad(true); wxPaint(); wxSeg();
+    if(ask) toast("Weather now shows where you are 📍");
+  }, e => {
+    geoBusy = false;
+    if(e && e.code===1){
+      S.settings.wxGeo = false; save(); wxLoad(); wxPaint(); wxSeg();
+      if(ask) toast(`Location is blocked, so the weather is for ${NFRun.WX_HOME.place}. You can allow it in your browser's site settings.`);
+    } else if(ask) toast("Couldn't find your location just now. Please try again.");
+  }, {enableHighAccuracy:false, timeout:10000, maximumAge:30*60e3});
+}
+// Town name for the rounded position (free service without a key); "Here" if it fails
+function wxPlaceLoad(pos){
+  if(!window.fetch) return;
+  fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${pos.lat}&longitude=${pos.lon}&localityLanguage=en`)
+    .then(r => r.ok ? r.json() : null).then(d => {
+      const n = NFRun.placeName(d), cur = S.settings.wxPos;
+      if(n && cur && NFRun.samePlace(cur, pos)){ cur.place = n; save(); wxPaint(); }
+    }).catch(() => {});
+}
+function wxSeg(){ document.querySelectorAll("#wxseg button").forEach(x => x.setAttribute("aria-pressed", (x.dataset.act==="wxhere")===(S.settings.wxGeo===true))); }
 function wxCode(c, day){
   if(c===0) return [day?"☀️":"🌙","clear"];
   if(c<=2) return [day?"🌤️":"🌙","partly cloudy"];
@@ -3289,12 +3823,12 @@ function wxCode(c, day){
   if(c>=61 && c<=67) return ["🌧️","rain"];
   if(c>=71 && c<=77) return ["🌨️","snow"];
   if(c>=80 && c<=82) return ["🌦️","showers"];
-  if(c===85 || c===86) return ["🌨️","Schneeschauer"];
+  if(c===85 || c===86) return ["🌨️","snow showers"];
   if(c>=95) return ["⛈️","thunderstorm"];
   return ["🌡️",""];
 }
 function wxInfo(){
-  if(!WX || !WX.d || !WX.d.current) return null;
+  if(!WX || !WX.d || !WX.d.current || !NFRun.samePlace(WX.pos, wxPos())) return null;
   const c = WX.d.current, code = c.weather_code, [emoji, txt] = wxCode(code, c.is_day!==0);
   const probs = ((WX.d.hourly||{}).precipitation_probability||[]).slice(0,3).filter(x => x!=null);
   const prob = probs.length ? Math.max(...probs) : 0, t = c.temperature_2m, wind = c.wind_speed_10m;
@@ -3309,15 +3843,15 @@ function wxInfo(){
   else v = "Perfect running weather 👟";
   return {emoji, txt, t, feels:c.apparent_temperature, wind, prob, v};
 }
-function wxShort(){ const w = wxInfo(); return w ? `${w.emoji} Alster ${Math.round(w.t)}° · ${w.v}` : ""; }
+function wxShort(){ const w = wxInfo(); return w ? `${w.emoji} ${esc(wxPlace())} ${Math.round(w.t)}° · ${w.v}` : ""; }
 function wxLong(){
   const w = wxInfo(); if(!w) return "";
-  return `<b>${w.emoji} At the Alster ${Math.round(w.t)}°${w.txt?" · "+w.txt:""}</b><span>feels like ${Math.round(w.feels)}° · wind ${Math.round(w.wind)} km/h · rain ${Math.round(w.prob)} %</span><span class="v">${w.v}</span>`;
+  return `<b>${w.emoji} ${esc(wxPlace())} ${Math.round(w.t)}°${w.txt?" · "+w.txt:""}</b><span>feels like ${Math.round(w.feels)}° · wind ${Math.round(w.wind)} km/h · rain ${Math.round(w.prob)} %</span><span class="v">${w.v}</span>`;
 }
 function wxPaint(){ document.querySelectorAll("[data-wx]").forEach(el => { el.innerHTML = el.dataset.wx==="long" ? wxLong() : el.dataset.wx==="plain" ? wxPlain() : wxShort(); el.hidden = !wxInfo(); }); }
 
 /* ================= Begrüßungskarte (passt sich Tag & Situation an) ================= */
-const NEXT_TXT = {po:"Lower body with squats, Romanian deadlifts and hip thrusts", oben:"Upper body with lat pulldown, incline press and lateral raises", lauf:"a run, Alster or treadmill", yoga:"30 minutes of vinyasa flow"};
+const NEXT_TXT = {po:"Lower body with squats, Romanian deadlifts and hip thrusts", oben:"Upper body with lat pulldown, incline press and lateral raises", lauf:"a run, outside or on the treadmill", yoga:"30 minutes of vinyasa flow"};
 const TYPE_ICON = {po:"🦵", oben:"💪", lauf:"🏃‍♀️", yoga:"🧘‍♀️"};
 function hiShort(){ const h = new Date().getHours(), n = esc(firstName()); const [t, e] = h<5 ? ["Still awake?","🌙"] : h<11 ? ["Good morning","☀️"] : h<14 ? ["Hello","👋"] : h<18 ? ["Hey","💪"] : h<22 ? ["Good evening","🌙"] : ["Still awake?","🌙"]; return !n ? `${t} ${e}` : t.endsWith("?") ? `${t.slice(0,-1)}, ${n}? ${e}` : `${t}, ${n} ${e}`; }
 function heroCls(t){ const k = kc(W[t]); return k==="run" ? "run" : k==="yoga" ? "yoga" : ""; }
@@ -3337,18 +3871,33 @@ function workoutsSheet(){
 /* ================= Exercise library ================= */
 let LIB = {q:"", part:"", eq:"", mode:"browse"};
 function inSession(id){ return !!S.active && sessList().some(e => e.id===id || eff(e).id===id); }
+const INFO_ICO = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/></svg>';
+const CK_ICO = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>';
+// Small picture of an exercise (end position of its drawing), else its first letter
+function exThumb(e){
+  return e && Array.isArray(e.img) && e.img.length && !e.custom
+    ? `<span class="lth"><img src="img/ex/${e.id}-${e.img.length}.svg" alt="" loading="lazy"></span>`
+    : `<span class="lth lt" aria-hidden="true">${esc(((e && e.n) || "?").charAt(0).toUpperCase())}</span>`;
+}
 function libListHtml(){
   const res = NFEx.search(LIB.q, {part:LIB.part, eq:LIB.eq, custom:customList()});
   if(!res.length) return `<p class="empty">No exercise found. Create it as your own exercise below.</p>`;
-  const add = LIB.mode==="add";
-  return `<p class="count" aria-live="polite">${res.length} ${res.length===1?"exercise":"exercises"}</p>` + res.map(e => {
-    const has = add && inSession(e.id);
-    return `<button class="librow${has?" in":""}" data-act="${add?"libadd":"guide"}" data-ex="${e.id}"${has?` aria-disabled="true"`:""}><b>${esc(e.n)}</b><small>${esc(e.part)} · ${NFEx.TYPES[e.type]}${e.custom?" · your exercise":""}</small>${has?`<span class="pill">added</span>`:e.custom?`<span class="pill">own</span>`:""}</button>`;
-  }).join("");
+  const mode = LIB.mode, sel = LIB.sel || [];
+  let letter = "", h = `<p class="count" aria-live="polite">${res.length} ${res.length===1?"exercise":"exercises"}</p>`;
+  res.forEach(e => {
+    const L = (e.n.charAt(0) || "#").toUpperCase();
+    if(!LIB.q && L!==letter){ letter = L; h += `<p class="lsec" aria-hidden="true">${esc(L)}</p>`; }
+    const has = mode==="add" && inSession(e.id), on = mode==="pick" && sel.includes(e.id);
+    const act = mode==="pick" ? "libpick" : mode==="add" ? "libadd" : "guide";
+    const sub = `${esc(e.part)}${e.eq ? " · " + esc(e.eq) : ""}${e.custom ? " · your exercise" : ""}${has ? " · added" : ""}`;
+    h += `<div class="librow2${on?" on":""}"><button type="button" class="lr-main" data-act="${act}" data-ex="${e.id}"${mode==="pick" ? ` aria-pressed="${on}"` : ""}${has ? ` aria-disabled="true"` : ""}>${exThumb(e)}<span class="lr-t"><b>${esc(e.n)}</b><small>${sub}</small></span>${mode==="pick" ? `<span class="lr-ck">${on ? CK_ICO : ""}</span>` : ""}</button>${mode!=="browse" ? `<button type="button" class="lr-info" data-act="libguide" data-ex="${e.id}" aria-label="How to do ${esc(e.n)}">${INFO_ICO}</button>` : ""}</div>`;
+  });
+  return h;
 }
 function libSheet(){
   const chips = (list, key, label) => `<div class="libchips" role="group" aria-label="${label}">${["", ...list].map(v => `<button class="lchip" data-act="libfilter" data-k="${key}" data-v="${esc(v)}" aria-pressed="${LIB[key]===v}">${v || "All"}</button>`).join("")}</div>`;
-  sheet(`<h3>${LIB.mode==="add" ? "Add exercise" : "Exercise library"}</h3>
+  const pick = LIB.mode==="pick", day = pick && OB.a && OB.a.own && OB.a.own.days[LIB.day];
+  sheet(`${pick ? `<div class="libtop"><h3 style="margin:0">Add to ${esc((day && day.name) || "your day")}</h3><button class="primary" id="libdone" data-act="libpickdone">${pickLabel()}</button></div>` : `<h3>${LIB.mode==="add" ? "Add exercise" : "Exercise library"}</h3>`}
     <input class="inp" id="libq" data-in="libq" type="search" enterkeyhint="search" autocomplete="off" placeholder="Search, e.g. row or dumbbell" value="${esc(LIB.q)}" aria-label="Search exercises">
     ${chips(NFEx.PARTS, "part", "Body part")}${chips(NFEx.EQUIP, "eq", "Equipment")}
     <div class="liblist" id="liblist">${libListHtml()}</div>
@@ -3356,6 +3905,9 @@ function libSheet(){
     <button class="secondary" data-act="closesheet">Close</button>`);
 }
 function openLibrary(mode){ LIB = {q:"", part:"", eq:"", mode}; libSheet(); }
+// Picks exercises for an own day during onboarding: several at once, then back to the day list
+function openPicker(i){ const day = OB.a.own.days[i]; LIB = {q:"", part:"", eq:"", mode:"pick", day:i, sel:(day.ex||[]).slice()}; libSheet(); }
+const pickLabel = () => { const n = (LIB.sel||[]).length; return n ? `Done (${n})` : "Done"; };
 function libNewSheet(err, val){
   err = err || {}; val = val || {};
   const sel = (name, list, label) => `<select class="inp" id="cx-${name}" name="${name}"${err[name]?` aria-invalid="true" aria-describedby="cx-${name}-err"`:""}><option value="">Choose…</option>${list.map(([v,t]) => `<option value="${esc(v)}"${val[name]===v?" selected":""}>${esc(t)}</option>`).join("")}</select><p class="err" id="cx-${name}-err" role="alert">${esc(err[name]||"")}</p>`;
@@ -3377,6 +3929,7 @@ function libCreate(form){
   const c = NFEx.makeCustom(v.value, "c" + Date.now().toString(36));
   S.settings.custom = customList().concat(c); EXN[c.id] = exFromLib(c); save();
   if(LIB.mode==="add" && S.active){ libAdd(c.id); return; }
+  if(LIB.mode==="pick"){ LIB.sel = (LIB.sel||[]).concat(c.id); LIB.q = ""; libSheet(); toast(`${c.n} created and picked`); return; }
   LIB.q = ""; libSheet(); toast(`${c.n} created`);
 }
 function libAdd(id){
@@ -3450,7 +4003,7 @@ function heroHtml(st){
     const e = today[today.length-1], w = W[e.type];
     const ds = new Date(); ds.setHours(0,0,0,0);
     const gains = rangeData(ds.getTime(), ds.getTime()+864e5).gains || [];
-    let what = e.run ? `${e.run.mode==="alster"?"Alster loop":"Run"} ${fmt(kmOf(e))} km${num(e.run.min)>0?" in "+hms(num(e.run.min)):""}` : e.yoga ? `Yoga ${fmt(num(e.yoga.min),0)} min` : `${w.name}${e.end-e.start>=3*60000?" in "+durTxt(e.end-e.start):""}`;
+    let what = e.run ? `${e.run.mode==="alster"?LN():"Run"} ${fmt(kmOf(e))} km${num(e.run.min)>0?" in "+hms(num(e.run.min)):""}` : e.yoga ? `Yoga ${fmt(num(e.yoga.min),0)} min` : `${w.name}${e.end-e.start>=3*60000?" in "+durTxt(e.end-e.start):""}`;
     if(gains[0]) what += ` · new record: ${esc(gains[0].n)} ${fmt(gains[0].to)} kg`;
     const tail = left===0 ? "Weekly goal reached! 🏆" : `${left} more ${left===1?"session":"sessions"} this week.`;
     prepShare(entryShareSpec(e));
@@ -3463,7 +4016,7 @@ function heroHtml(st){
   // 6) Trainingstag
   if(trainDays()[d]){
     const w = wxInfo();
-    const p = next==="lauf" && w ? `${w.emoji} Alster ${Math.round(w.t)}° · ${w.v}. How about a run?` : `Up next: ${NEXT_TXT[next]}.`;
+    const p = next==="lauf" && w ? `${w.emoji} ${esc(wxPlace())} ${Math.round(w.t)}° · ${w.v}. How about a run?` : `Up next: ${NEXT_TXT[next]}.`;
     return card(heroCls(next), `Today is training day ${TYPE_ICON[next]}`, p, startBtn(next, `${TYPE_ICON[next]} Start ${W[next].name}`), otherLinks(next));
   }
   // 7) Montag: neue Woche
@@ -3482,14 +4035,14 @@ function heroPhotos(){
   clearInterval(HERO_ROT);
   const hero = document.querySelector("#app section.hero"); if(!hero) return;
   const go = ps => { if(!ps || !ps.length) ps = CAMPUS_PHOTOS; if(hero.isConnected && !hero.querySelector(".hph")) mountHeroPhotos(hero, ps); };
-  if(PHOTOS) go(PHOTOS); else photoUrls().then(go).catch(() => go(null));
+  defaultPhotos().then(go).catch(() => go(null));
 }
 function mountHeroPhotos(hero, ps){
   const now = new Date(), doy = Math.floor((now - new Date(now.getFullYear(),0,0))/864e5);
   const n = Math.min(ps.length, 5), start = doy % ps.length;
-  const pick = Array.from({length:n}, (_,i) => ps[(start+i) % ps.length].url);
+  const pick = Array.from({length:n}, (_,i) => ps[(start+i) % ps.length]);
   const box = document.createElement("div"); box.className = "hph"; box.setAttribute("aria-hidden", "true");
-  box.innerHTML = pick.map((u,i) => `<img src="${u}" alt="" class="${i===0?"on":""}" style="animation-name:kb${i%3}">`).join("") + `<div class="hblur"></div><div class="hov"></div>`;
+  box.innerHTML = pick.map((p,i) => `<img src="${p.url}" alt="" class="${i===0?"on":""}" style="animation-name:kb${i%3}${p.pos?`;object-position:${p.pos}`:""}">`).join("") + `<div class="hblur"></div><div class="hov"></div>`;
   hero.prepend(box); hero.classList.add("photo");
   if(n>1){ const dots = document.createElement("div"); dots.className = "hdots"; dots.innerHTML = pick.map((_,i) => `<i class="${i===0?"on":""}"></i>`).join(""); hero.querySelector("h2").before(dots); }
   HERO_STEP = null;
@@ -3509,7 +4062,7 @@ function mountHeroPhotos(hero, ps){
 /* ================= Begrüßung ================= */
 const SAYINGS = ["Every session counts, even the short ones.","Strong is the new beautiful. 💪","Your future self will thank you.","Small steps, big impact.","You don't have to be perfect, just consistent.",
   "Today is a good day to get stronger.","Sweat is just glitter for athletes. ✨","You're stronger than you think.","Recovery is part of training too. 😌","One set at a time.",
-  "Progress over perfection.","The Alster is waiting for you. 🌊","Believe in yourself. 💪","Do it for you, not for anyone else.","Proud of every rep.",
+  "Progress over perfection.","Your loop is waiting for you. 👟","Believe in yourself. 💪","Do it for you, not for anyone else.","Proud of every rep.",
   "Running slowly is still running.","Motivation gets you started, habit keeps you going.","You've already achieved so much.","A little better than yesterday.","Your body can do more than you think."];
 const TRAIN_DAYS_DEFAULT = {3:[18,40], 5:[14,0], 6:[10,0]};
 // Training days (JS getDay(): Sun = 0) – from the chosen plan, otherwise the old fixed days
@@ -3551,7 +4104,7 @@ function summaryShareSpec(s){
   else if(e.run){ stats.push(["Distance", fmt(e.run.km)+" km"]); if(e.run.min) stats.push(["Time", hms(e.run.min)]); if(num(e.run.incline)) stats.push(["Incline", fmt(e.run.incline)+" %"]); else { const p = paceOf(e.run.km, e.run.min); if(p) stats.push(["Pace", mmss(p)]); } }
   else{ if(e.end-e.start>=3*60000) stats.push(["Duration", durTxt(e.end-e.start)]); stats.push(["Sets", String(s.nSets)]); stats.push(["Volume", fmt(Math.round(s.vol),0)+" kg"]); }
   const items = s.ups.slice(0,3).map(u => (u.rec?"🏆 ":"💪 ") + u.n + (u.chips[0] ? ": " + strip(u.chips[0]) : ""));
-  if(e.run && e.run.mode==="alster") items.push(`🌊 ${S.history.filter(x => x.run && x.run.mode==="alster").length}. Alsterrunde`);
+  if(e.run && e.run.mode==="alster") items.push(`🔁 ${LN()} no. ${S.history.filter(x => x.run && x.run.mode==="alster").length}`);
   const name = e.run ? runName(e.run.mode) : w.name;
   return {key:e.id, col:THEME_COL[k], eyebrow:new Date(e.start).toLocaleDateString("en-GB",{weekday:"long", day:"numeric", month:"long"}),
     title:name+" done", sub:"Great job! "+(e.yoga?"🧘‍♀️":e.run?"🏃‍♀️":"💪"), stats, items:items.slice(0,3), kcal:kcalOn() ? kcalOf(e) : 0,
@@ -3622,6 +4175,7 @@ function yearData(y){
   r.runs = H.filter(e => e.run).length;
   const yo = H.filter(e => e.yoga); r.yoga = yo.length; r.yogaMin = yo.reduce((x,e) => x+num(e.yoga.min), 0);
   r.mob = (S.settings.mob||[]).filter(t => t>=a && t<b).length;
+  r.calm = NFYoga.tension(calmEntries().filter(x => x.t>=a && x.t<b));
   const wd = [0,0,0,0,0,0,0]; H.forEach(e => wd[new Date(e.start).getDay()]++);
   r.favDayN = Math.max(...wd); r.favDay = r.n ? wd.indexOf(r.favDayN) : -1;
   const mo = Array(12).fill(0); H.forEach(e => mo[new Date(e.start).getMonth()]++);
@@ -3663,9 +4217,9 @@ function storySlides(r){
   const bars = ALL_W.filter(t => r.types[t]).map(t => `<div class="sbar2"><span>${W[t].name}</span><span class="tr"><i style="width:${Math.max(6, r.types[t]/r.n*100)}%"></i></span><b class="tnum">${r.types[t]}</b></div>`).join("");
   sl.push({c:"s2", h:`<p class="sy-eb">Sessions</p><h2 class="sy-num pop tnum">${r.n}</h2><p class="sy-p">on ${r.days} ${r.days===1?"day":"days"}. ${r.n>=100?"Incredible!":r.n>=50?"What a year!":"Every single one counts."}</p><div class="sy-bars fadeup"${dl(400)}>${bars}</div>`});
   if(r.favDay>=0) sl.push({c:"s3", h:`<p class="sy-eb">Your rhythm</p><h2 class="sy-big pop">${WDAY[r.favDay]}</h2><p class="sy-p">was your favourite training day (${r.favDayN}×).</p><div class="sy-list fadeup"${dl(400)}><p>📅 Strongest month: <b>${MONTHS[r.bestMonth]}</b> with ${r.bestMonthN} ${r.bestMonthN===1?"session":"sessions"}</p>${r.streak>1?`<p>🔥 Longest streak: <b>${r.streak} weeks</b> in a row</p>`:""}<p>${r.avgH<11?"🌅 You're a true early bird.":r.avgH>=17?"🌙 You like training in the evening.":"☀️ You like training during the day."}</p></div>`});
-  if(r.runs) sl.push({c:"s4", h:`<p class="sy-eb">Running</p><h2 class="sy-num pop tnum">${fmt(r.km,0)} km</h2><p class="sy-p">is how far you ran. ${kmFun(r.km)}</p><div class="sy-list fadeup"${dl(400)}>${r.alster?`<p>🌊 <b>${r.alster}×</b> around the Alster</p>`:""}${r.bestAl?`<p>⏱️ Best Alster loop: <b class="tnum">${hms(r.bestAl)}</b></p>`:""}</div>`});
+  if(r.runs) sl.push({c:"s4", h:`<p class="sy-eb">Running</p><h2 class="sy-num pop tnum">${fmt(r.km,0)} km</h2><p class="sy-p">is how far you ran. ${kmFun(r.km)}</p><div class="sy-list fadeup"${dl(400)}>${r.alster?`<p>🔁 <b>${r.alster}×</b> your ${esc(LN())}</p>`:""}${r.bestAl?`<p>⏱️ Best ${esc(LN())}: <b class="tnum">${hms(r.bestAl)}</b></p>`:""}</div>`});
   if(r.vol>0) sl.push({c:"s5", h:`<p class="sy-eb">Strength</p><h2 class="sy-num pop tnum">${tons(r.vol)}</h2><p class="sy-p">is what you moved in total. ${volumeLine(r.vol)}</p>${r.gains.length?`<div class="sy-list fadeup"${dl(400)}><p class="sy-sm">Biggest strength gains</p>${r.gains.slice(0,3).map(g => `<p>💪 <b>${esc(g.n)}</b> ${fmt(g.from)} → ${fmt(g.to)} kg <span class="sy-pill">+${g.pct} %</span></p>`).join("")}</div>`:""}`});
-  if(r.yoga || r.mob || r.kcal) sl.push({c:"s6", h:`<p class="sy-eb">Body and mind</p>${r.yoga?`<h2 class="sy-num pop tnum">${fmt(r.yogaMin,0)} min</h2><p class="sy-p">of yoga in ${r.yoga} ${r.yoga===1?"session":"sessions"}. Namaste 🧘‍♀️</p>`:`<h2 class="sy-big pop">Kind to yourself</h2>`}<div class="sy-list fadeup"${dl(400)}>${r.mob?`<p>🤸‍♀️ ${r.mob}× glute mobility</p>`:""}${r.kcal?`<p>🔥 about <b class="tnum">${fmt(r.kcal,0)} kcal</b> burned</p>`:""}</div>`});
+  if(r.yoga || r.mob || r.kcal) sl.push({c:"s6", h:`<p class="sy-eb">Body and mind</p>${r.yoga?`<h2 class="sy-num pop tnum">${fmt(r.yogaMin,0)} min</h2><p class="sy-p">of yoga in ${r.yoga} ${r.yoga===1?"session":"sessions"}. Namaste 🧘‍♀️</p>`:`<h2 class="sy-big pop">Kind to yourself</h2>`}<div class="sy-list fadeup"${dl(400)}>${r.mob?`<p>🤸‍♀️ ${r.mob}× glute mobility</p>`:""}${r.calm && r.calm.n>=2 && r.calm.diff>0?`<p>😌 tension <b class="tnum">${fmt(r.calm.before)} → ${fmt(r.calm.after)}</b> after yoga</p>`:""}${r.kcal?`<p>🔥 about <b class="tnum">${fmt(r.kcal,0)} kcal</b> burned</p>`:""}</div>`});
   if(r.badges.length) sl.push({c:"s7", h:`<p class="sy-eb">Badges</p><h2 class="sy-num pop tnum">${r.badges.length}</h2><p class="sy-p">new badges collected.</p><div class="badges sy-badges fadeup"${dl(400)}>${r.badges.map(b => badgeEl(b).replace(/data-act="[^"]*"/g, "")).join("")}</div>`});
   sl.push({c:"s8", end:true, h:`<p class="sy-eb">${r.y}</p><h2 class="sy-big pop">A strong year! 🎉</h2><p class="sy-p fadeup"${dl(400)}>${r.n} ${r.n===1?"session":"sessions"}${r.km?`, ${fmt(r.km,0)} km`:""} and lots of perseverance. Here's to a strong ${r.y+1}!</p><div class="sy-btns fadeup"${dl(700)}><button class="sy-btn" data-act="share">📤 Share</button><button class="sy-btn ghost" data-act="storyclose">Close</button></div>`});
   return sl;
@@ -3673,7 +4227,7 @@ function storySlides(r){
 function yearShareSpec(r){
   return {key:"y"+r.y, col:THEME_COL[""], eyebrow:"Year in review", title:`My ${r.y}`, sub:"Your training year ✨",
     stats:[["Sessions", String(r.n)], ["Run", fmt(r.km,0)+" km"], ["Moved", tons(r.vol)]],
-    items:[r.alster?`🌊 ${r.alster}× around the Alster`:"", r.gains[0]?`💪 ${r.gains[0].n} +${r.gains[0].pct} %`:"", r.favDay>=0?`📅 Favourite day: ${WDAY[r.favDay]}`:""].filter(Boolean),
+    items:[r.alster?`🔁 ${r.alster}× ${LN()}`:"", r.gains[0]?`💪 ${r.gains[0].n} +${r.gains[0].pct} %`:"", r.favDay>=0?`📅 Favourite day: ${WDAY[r.favDay]}`:""].filter(Boolean),
     kcal:r.kcal, foot:`${r.days} training days`, text:`My training year ${r.y} ✨`};
 }
 /* ================= Wochenrückblick als Story ================= */
@@ -3703,12 +4257,12 @@ function weekSlides(r){
     sl.push({c:"s2", h:`<p class="sy-eb">Sessions</p><h2 class="sy-num pop tnum">${r.n}<span class="sy-of">/${g}</span></h2><p class="sy-p">${msg}</p><div class="wdstrip fadeup"${dl(400)}>${strip}</div>`});
     const hl = [];
     r.gains.slice(0,3).forEach(x => hl.push(`<p>🏆 <b>${esc(x.n)}</b> new best: ${fmt(x.to)} kg <span class="sy-pill">+${fmt(x.d)} kg</span></p>`));
-    if(r.bestAlW && r.bestAlW<=stats().bestAlster+1e-9) hl.push(`<p>⏱️ Fastest Alster loop ever: <b class="tnum">${hms(r.bestAlW)}</b></p>`);
+    if(r.bestAlW && r.bestAlW<=stats().bestAlster+1e-9) hl.push(`<p>⏱️ Fastest ${esc(LN())} ever: <b class="tnum">${hms(r.bestAlW)}</b></p>`);
     r.badges.slice(0,2).forEach(b => hl.push(`<p>🏅 New badge: <b>${esc(b.t)}</b></p>`));
     if(r.badges.length>2) hl.push(`<p>🏅 … and ${r.badges.length-2} more badges</p>`);
     if(r.vol>0 || hl.length) sl.push({c:"s5", h:`<p class="sy-eb">Highlights</p>${r.vol>0?`<h2 class="sy-num pop tnum"${fmt(Math.round(r.vol),0).length>3?' style="font-size:72px"':""}>${fmt(Math.round(r.vol),0)} kg</h2><p class="sy-p">is what you moved this week.</p>`:`<h2 class="sy-big pop">Your wins</h2>`}${hl.length?`<div class="sy-list fadeup"${dl(400)}>${hl.join("")}</div>`:`<p class="sy-p fadeup"${dl(400)} style="opacity:.85">No new records this time, but showing up is the most important part. 💪</p>`}`});
     const msw = muscleSlide(r.H, "week"); if(msw){ msw.c = "s1"; sl.push(msw); }
-    if(r.runs) sl.push({c:"s4", h:`<p class="sy-eb">Running</p><h2 class="sy-num pop tnum">${fmt(r.km)} km</h2><p class="sy-p">is how far you ran this week.</p><div class="sy-list fadeup"${dl(400)}>${r.alster?`<p>🌊 <b>${r.alster}×</b> around the Alster</p>`:""}${r.bestAlW?`<p>⏱️ Best loop: <b class="tnum">${hms(r.bestAlW)}</b></p>`:""}<p>🗺️ <b class="tnum">${fmt(stats().km,0)} km</b> in total so far</p></div>`});
+    if(r.runs) sl.push({c:"s4", h:`<p class="sy-eb">Running</p><h2 class="sy-num pop tnum">${fmt(r.km)} km</h2><p class="sy-p">is how far you ran this week.</p><div class="sy-list fadeup"${dl(400)}>${r.alster?`<p>🔁 <b>${r.alster}×</b> your ${esc(LN())}</p>`:""}${r.bestAlW?`<p>⏱️ Best loop: <b class="tnum">${hms(r.bestAlW)}</b></p>`:""}<p>🗺️ <b class="tnum">${fmt(stats().km,0)} km</b> in total so far</p></div>`});
     if(r.yoga || r.mob || r.kcal) sl.push({c:"s6", h:`<p class="sy-eb">Body and mind</p>${r.yoga?`<h2 class="sy-num pop tnum">${fmt(r.yogaMin,0)} min</h2><p class="sy-p">of yoga this week. Namaste 🧘‍♀️</p>`:`<h2 class="sy-big pop">Kind to yourself</h2>`}<div class="sy-list fadeup"${dl(400)}>${r.mob?`<p>🤸‍♀️ ${r.mob}× glute mobility</p>`:""}${r.kcal?`<p>🔥 about <b class="tnum">${fmt(r.kcal,0)} kcal</b> burned</p>`:""}</div>`});
     if(r.tips.length || r.streak>1) sl.push({c:"s3", h:`<p class="sy-eb">Next week</p>${r.streak>1?`<h2 class="sy-num pop tnum">${r.streak}</h2><p class="sy-p">weeks in a row you reached your goal. 🔥</p>`:`<h2 class="sy-big pop">${r.n>=g?"Keep it going":"There's more in you"}</h2>`}${r.tips.length?`<div class="sy-list fadeup"${dl(400)}><p class="sy-sm">Try next time</p>${r.tips.map(t => `<p>💪 <b>${esc(t.n)}</b> with <b class="tnum">${fmt(t.kg)} kg</b></p>`).join("")}</div>`:""}`});
   }
@@ -3720,7 +4274,7 @@ function weekSlides(r){
 function weekShareSpec(r){
   const items = [];
   r.gains.slice(0,2).forEach(x => items.push(`🏆 ${x.n}: ${fmt(x.to)} kg`));
-  if(r.alster) items.push(`🌊 ${r.alster}× around the Alster`);
+  if(r.alster) items.push(`🔁 ${r.alster}× ${LN()}`);
   if(r.yoga) items.push(`🧘‍♀️ ${fmt(r.yogaMin,0)} min Yoga`);
   const stats2 = [["Sessions", `${r.n}/${r.goal}`]];
   if(r.km) stats2.push(["Run", fmt(r.km)+" km"]);
@@ -3863,10 +4417,11 @@ async function addPhotos(files){
   toast(ok ? `${ok} ${ok===1?"photo":"photos"} added ❤️` : "That didn't work.");
 }
 function attachPhotos(st){
-  photoUrls().then(ps => {
+  defaultPhotos().then(ps => {
     if(!ps.length || STORY!==st) return;
     const sh = ps.slice().sort(() => Math.random()-.5);
-    st.photos = st.slides.map((_,i) => sh[i % sh.length].url);
+    let j = 0;   // Folien mit Diagrammen (nophoto) bleiben ohne Foto, damit sie lesbar sind
+    st.photos = st.slides.map(sl => sl.nophoto ? null : sh[j++ % sh.length]);
     drawStory(true);
   }).catch(() => {});
 }
@@ -3888,7 +4443,7 @@ function applyRun(r){
   const run = S.active.run;
   run.km = fmt(r.km, 2);
   if(r.min>0) run.min = hms(r.min);
-  if(Math.abs(r.km - ALSTER_KM) <= 0.6) run.mode = "alster";
+  if(Math.abs(r.km - alsterKm()) <= 0.6) run.mode = "alster";
   save(); renderSession();
   toast(`Run added: ${fmt(r.km,2)} km${r.min>0?" in "+hms(r.min):""} 🏃‍♀️`);
 }
@@ -3925,34 +4480,9 @@ function nrcHelp(){
 }
 
 /* ================= Muskeln: welche Muskeln wurden wie stark trainiert ================= */
-const MUSC = {
-  squat:{quads:1,glutes:.7,adduct:.3,lowback:.2}, smithsq:{quads:1,glutes:.6,adduct:.3}, gobletsq:{quads:1,glutes:.6,adduct:.3}, legpress:{quads:1,glutes:.5},
-  legcurl:{hams:1}, seatcurl:{hams:1}, calf:{calves:1},
-  hip:{glutes:1,hams:.3}, smithhip:{glutes:1,hams:.3}, glutebridge:{glutes:1,hams:.2}, dbhip:{glutes:1,hams:.3},
-  bulgarian:{glutes:.8,quads:.6,adduct:.2}, split:{glutes:.7,quads:.7,adduct:.2}, revlunge:{glutes:.8,quads:.6},
-  rdl:{hams:1,glutes:.7,lowback:.4}, dbrdl:{hams:1,glutes:.7,lowback:.4}, hyper:{glutes:.9,hams:.5,lowback:.4},
-  kick:{glutes:1}, kickm:{glutes:1}, abd:{glutes:.9}, add:{adduct:1}, cableadd:{adduct:1},
-  lat:{back:1,biceps:.4}, latclose:{back:1,biceps:.4}, latone:{back:1,biceps:.4},
-  incl:{chest:1,shoulders:.4,triceps:.4}, inclm:{chest:1,shoulders:.4,triceps:.4}, flatdb:{chest:1,triceps:.4,shoulders:.3},
-  lra:{shoulders:1}, lracable:{shoulders:1}, lram:{shoulders:1},
-  bic:{biceps:1}, hammer:{biceps:1}, cablecurl:{biceps:1}, tri:{triceps:1}, pushdown:{triceps:1}, ohtri:{triceps:1}
-};
-const MUSC_N = {glutes:"Glutes", hams:"Hamstrings", quads:"Quads", adduct:"Inner thighs", calves:"Calves", back:"Back", lowback:"Lower back", chest:"Chest", shoulders:"Shoulders", biceps:"Biceps", triceps:"Triceps", core:"Core"};
-const UPPER = ["back","chest","shoulders","biceps","triceps"];
-function muscleLoad(H){
-  const L = {};
-  const add = (m, v) => L[m] = (L[m]||0) + v;
-  H.forEach(e => {
-    Object.keys(e.sets||{}).forEach(id => { const map = MUSC[id] || (EXN[id] && EXN[id].m); if(!map) return; const n = (e.sets[id]||[]).filter(s => num(s.r)>0).length; Object.entries(map).forEach(([m,w]) => add(m, n*w)); });
-    const km = kmOf(e); if(km>0){ const k = Math.min(2, km/5); add("quads", 2*k); add("calves", 2*k); add("hams", 1.2*k); add("glutes", 1*k); add("core", .4*k); }
-    if(e.yoga){ const k = Math.min(1.5, Math.max(.5, num(e.yoga.min)/30)); add("core", 2*k); add("glutes", 1*k); add("hams", 1*k); add("back", .5*k); add("shoulders", .5*k); }
-  });
-  const tot = Object.values(L).reduce((a,b) => a+b, 0), max = Math.max(0, ...Object.values(L));
-  const rank = Object.entries(L).filter(x => x[1]>0).sort((a,b) => b[1]-a[1]).map(([k,v]) => ({k, n:MUSC_N[k], pct:tot ? Math.round(v/tot*100) : 0, rel:max ? v/max : 0}));
-  const I = {}; Object.entries(L).forEach(([k,v]) => I[k] = max ? v/max : 0);
-  I.traps = (I.back||0)*.5;
-  return {I, rank, tot, glutePct:tot ? Math.round((L.glutes||0)/tot*100) : 0};
-}
+/* Welche Muskeln wie viel abbekommen und die Überschrift dazu stecken in muscles.js (NFMuscles), getestet in tests/muscles.test.js.
+   Übungen ohne eigenen Eintrag dort nehmen die Muskeln aus der Bibliothek (NFEx, Feld m). */
+const muscleLoad = H => NFMuscles.load(H, id => EXN[id] && EXN[id].m);
 function bodySvg(view, I){
   const base = "rgba(255,255,255,.16)", sk = "rgba(255,255,255,.08)";
   const c = k => { const v = I[k]||0; return v<=0.02 ? base : `rgba(255,255,255,${(.24+.76*v).toFixed(2)})`; };
@@ -3982,15 +4512,11 @@ function bodySvg(view, I){
 }
 function muscleSlide(H, when){
   const M = muscleLoad(H); if(!M.rank.length) return null;
-  const top = M.rank[0].k, dl = ms => ` style="animation-delay:${ms}ms"`;
-  let big, p;
-  if(top==="glutes"){ big = "Glutes on fire 🔥"; p = `${M.glutePct} % of your training ${when==="week"?"this week ":""}went to your glutes 🍑`; }
-  else if(UPPER.includes(top)){ big = "Upper body power 💪"; p = `Worked the most: ${M.rank[0].n}.`; }
-  else if(top==="core"){ big = "Strong core 🧘‍♀️"; p = "Yoga really challenged your core."; }
-  else { big = "Strong legs 🏃‍♀️"; p = `Worked the most: ${M.rank[0].n}.`; }
-  const hint = top!=="glutes" && M.glutePct<20 ? `<p class="sy-p mhint fadeup"${dl(700)}>Your glutes got a bit less attention ${when==="week"?"this week":"this month"}. Lower body day next time? 🦵</p>` : "";
+  const dl = ms => ` style="animation-delay:${ms}ms"`;
+  const hd = NFMuscles.headline(M, when);
+  const hint = hd.hint ? `<p class="sy-p mhint fadeup"${dl(700)}>${hd.hint}</p>` : "";
   const rank = M.rank.slice(0,3).map((r,i) => `<div class="mrk fadeup"${dl(500+i*120)}><b>${i+1}</b><span>${r.n}</span><span class="tnum">${r.pct} %</span><i class="mtr"><i style="width:${Math.round(r.rel*100)}%"></i></i></div>`).join("");
-  return {c:"s5", nophoto:true, h:`<p class="sy-eb">Your muscles ${when==="week"?"this week":"in "+when}</p><h2 class="sy-big pop">${big}</h2><p class="sy-p">${p}</p><div class="sy-panel mfig fadeup"${dl(300)}><div class="mfigs"><div>${bodySvg("front", M.I)}<small>front</small></div><div>${bodySvg("back", M.I)}<small>back</small></div></div></div><div class="mrank">${rank}</div>${hint}`};
+  return {c:"s5", nophoto:true, h:`<p class="sy-eb">Your muscles ${when==="week"?"this week":"in "+when}</p><h2 class="sy-big pop">${hd.title}</h2><p class="sy-p">${hd.text}</p><div class="sy-panel mfig fadeup"${dl(300)}><div class="mfigs"><div>${bodySvg("front", M.I)}<small>front</small></div><div>${bodySvg("back", M.I)}<small>back</small></div></div></div><div class="mrank">${rank}</div>${hint}`};
 }
 
 /* ================= Monatsrückblick (Story) ================= */
@@ -4006,6 +4532,8 @@ function monthData(y, m){
   r.weeksOk = r.weeks.filter(w => w.n>=r.goal).length;
   r.gym = H.filter(e => W[e.type].kind==="gym").length; r.runs = H.filter(e => e.run).length; r.yogaN = H.filter(e => e.yoga).length;
   r.mob = (S.settings.mob||[]).filter(t => t>=a && t<b).length;
+  r.calm = NFYoga.tension(calmEntries().filter(x => x.t>=a && x.t<b));
+  r.breaks = (S.settings.breaks||[]).filter(x => x && x.t>=a && x.t<b).length;
   r.alT = H.filter(e => e.run && e.run.mode==="alster" && num(e.run.min)>0).map(e => ({t:e.start, min:num(e.run.min)}));
   r.alster = H.filter(e => e.run && e.run.mode==="alster").length;
   r.wd = [0,0,0,0,0,0,0]; H.forEach(e => r.wd[(new Date(e.start).getDay()+6)%7]++);
@@ -4063,8 +4591,8 @@ function monthSlides(r){
   // 5 Laufen
   if(r.runs){
     const al = r.alT;
-    const chart = al.length>=2 ? `<div class="sy-panel fadeup"${dl(250)}><small class="mcap" style="margin:0 0 4px">Alster loop</small>${lineSvg(al.map(x => ({v:x.min})), {down:true, lab:v => hms(v), x0:dd(al[0].t), x1:dd(al[al.length-1].t)})}${al[al.length-1].min<al[0].min?`<small class="mcap">${mmss(al[0].min-al[al.length-1].min)} faster than at the start of the month</small>`:""}</div>` : `<div class="sy-list fadeup"${dl(300)}>${r.bestAl?`<p>⏱️ Best Alster loop: <b class="tnum">${hms(r.bestAl)}</b></p>`:""}<p>👟 ${r.runs} ${r.runs===1?"run":"runs"}</p></div>`;
-    sl.push({c:"s4", nophoto:true, h:`<p class="sy-eb">Running</p><h2 class="sy-num pop tnum">${fmt(r.km)} km</h2><p class="sy-p">${r.alster?`${r.alster}× around the Alster 🌊`:"is how far you ran this month."}</p>${chart}`});
+    const chart = al.length>=2 ? `<div class="sy-panel fadeup"${dl(250)}><small class="mcap" style="margin:0 0 4px">${esc(LN())}</small>${lineSvg(al.map(x => ({v:x.min})), {down:true, lab:v => hms(v), x0:dd(al[0].t), x1:dd(al[al.length-1].t)})}${al[al.length-1].min<al[0].min?`<small class="mcap">${mmss(al[0].min-al[al.length-1].min)} faster than at the start of the month</small>`:""}</div>` : `<div class="sy-list fadeup"${dl(300)}>${r.bestAl?`<p>⏱️ Best Alster loop: <b class="tnum">${hms(r.bestAl)}</b></p>`:""}<p>👟 ${r.runs} ${r.runs===1?"run":"runs"}</p></div>`;
+    sl.push({c:"s4", nophoto:true, h:`<p class="sy-eb">Running</p><h2 class="sy-num pop tnum">${fmt(r.km)} km</h2><p class="sy-p">${r.alster?`${r.alster}× your ${esc(LN())} 🔁`:"is how far you ran this month."}</p>${chart}`});
   }
   // 6 Muskeln
   const ms = muscleSlide(r.H, M); if(ms) sl.push(ms);
@@ -4089,8 +4617,10 @@ function monthSlides(r){
 function monthShareSpec(r){
   const items = [];
   if(r.curve) items.push(`💪 ${r.curve.n} +${r.curve.pct} %`);
-  if(r.alster) items.push(`🌊 ${r.alster}× around the Alster`);
-  const M = muscleLoad(r.H); if(M.rank[0] && M.rank[0].k==="glutes") items.push(`🍑 ${M.glutePct} % for the glutes`);
+  if(r.alster) items.push(`🔁 ${r.alster}× ${LN()}`);
+  const M = muscleLoad(r.H), mt = M.rank[0]; if(mt) items.push(`${NFMuscles.EMOJI[mt.k] || "💪"} ${mt.pct} % for the ${String(mt.n).toLowerCase()}`);
+  if(r.calm && r.calm.n>=2 && r.calm.diff>0) items.push(`😌 Tension ${fmt(r.calm.before)} → ${fmt(r.calm.after)} after yoga`);
+  else if(r.breaks) items.push(`📚 ${r.breaks} study ${r.breaks===1?"break":"breaks"}`);
   const st2 = [["Sessions", String(r.n)]]; if(r.km) st2.push(["Run", fmt(r.km)+" km"]); if(r.vol) st2.push(["Moved", tons(r.vol)]);
   return {key:"m"+r.y+"-"+r.m, col:THEME_COL[""], eyebrow:`${MONTHS[r.m]} ${r.y}`, title:`My ${MONTHS[r.m]}`, sub:"Your training month ✨", stats:st2, items:items.slice(0,3), kcal:r.kcal, foot:`${r.days} training days`, text:`My training month: ${MONTHS[r.m]} ✨`};
 }
@@ -4118,7 +4648,7 @@ function drawStory(noFx){
   const sl = STORY.slides[STORY.i];
   const ph = STORY.photos && STORY.photos[STORY.i];
   el.className = "story " + sl.c + (ph ? " has-photo" : "");
-  el.innerHTML = (ph ? `<div class="sy-bg kb${STORY.i%3}" style="background-image:url('${ph}')"></div><div class="sy-tint"></div><div class="sy-shade"></div>` : "") + `<div class="sy-prog">${STORY.slides.map((_,i) => `<i class="${i<STORY.i?"done":i===STORY.i?"on":""}"></i>`).join("")}</div><button class="sy-snd" data-act="storymute" aria-label="${S.settings.storyMute?"Music on":"Music off"}">${S.settings.storyMute?"🔇":"🔊"}</button><button class="sy-x" data-act="storyclose" aria-label="Close">✕</button><div class="sy-in">${sl.h}</div>`;
+  el.innerHTML = (ph ? `<div class="sy-bg kb${STORY.i%3}" style="background-image:url('${ph.url}')${ph.pos?`;background-position:${ph.pos}`:""}"></div><div class="sy-tint"></div><div class="sy-shade"></div>` : "") + `<div class="sy-prog">${STORY.slides.map((_,i) => `<i class="${i<STORY.i?"done":i===STORY.i?"on":""}"></i>`).join("")}</div><button class="sy-snd" data-act="storymute" aria-label="${S.settings.storyMute?"Music on":"Music off"}">${S.settings.storyMute?"🔇":"🔊"}</button><button class="sy-x" data-act="storyclose" aria-label="Close">✕</button><div class="sy-in">${sl.h}</div>`;
   if(sl.end && !noFx) confetti(true);
   musicLevel(STORY.i, STORY.slides.length);
 }
@@ -4138,8 +4668,8 @@ function closeStory(){ STORY = null; drawStory(); musicStop(); }
 const PW_ITER = 150000, OB_FAILS = 5, OB_WAIT = 30000;
 const KICON = {s:"💪", r:"🏃", y:"🧘"};
 const LEVEL_TXT = {beginner:["Beginner","new or returning"], intermediate:["Intermediate","training regularly"], advanced:["Advanced","1+ year consistent"]};
-const OB_STEPS = {signup:1, body:2, days:3, mix:4, goals:5, level:6, split:7, plans:8};
-const obTotal = () => (OB.a && OB.a.mix && OB.a.mix.s>0) ? 6 : 5;
+const OB_STEPS = {signup:1, body:2, days:3, mix:4, goals:5, level:6, stmode:7, split:8, owndays:9, plans:10};
+const obTotal = () => (OB.a && OB.a.mix && OB.a.mix.s>0) ? (OB.a.stmode==="own" ? 8 : 7) : 5;
 const SEX_TXT = {female:"Female", male:"Male", diverse:"Diverse", na:"Prefer not to say"};
 let OB = {step:"welcome", mode:"new", a:null, plans:null, fails:0, until:0};
 const needsOnboarding = () => !S.settings.profile || !!S.settings.locked;
@@ -4179,7 +4709,7 @@ function obHead(back){
     : (S.history.length && OB_STEPS[OB.step]>1 ? `<button type="button" class="txtbtn" data-act="ob" data-do="skip">Skip for now</button>` : "");
   const left = back ? `<button type="button" class="txtbtn" data-act="ob" data-do="go" data-to="${back}">‹ Back</button>` : NF_MINI;
   const n = OB_STEPS[OB.step];
-  return `<div class="ob-top">${left}${right}</div>${n ? `<div class="ob-prog" aria-hidden="true"><i style="width:${n/8*100}%"></i></div>` : ""}`;
+  return `<div class="ob-top">${left}${right}</div>${n ? `<div class="ob-prog" aria-hidden="true"><i style="width:${n/10*100}%"></i></div>` : ""}`;
 }
 const obStep = (n, of) => `<p class="ob-step">Step ${n} of ${of}</p>`;
 const errEl = (id) => `<p class="err" id="${id}" role="alert" aria-live="polite"></p>`;
@@ -4227,14 +4757,15 @@ function renderOnboard(){
       break;
     }
     case "body": {
-      const b = OB.body || (OB.body = Object.assign({sex:"", age:""}, S.settings.body||{}, {kg:S.settings.bodyKg ? String(S.settings.bodyKg) : ""}));
+      const b = OB.body || (OB.body = Object.assign({sex:"", age:"", cm:""}, S.settings.body||{}, {kg:S.settings.bodyKg ? String(S.settings.bodyKg) : ""}));
       h = obHead("") + obStep(1, obTotal()) + `<h2>A bit about you</h2>
-        <p class="lead">Saved in your profile on this phone. Your weight is used to estimate the calories you burn.</p>
+        <p class="lead">Saved in your profile on this phone. Sex, age, weight and height are used to estimate the calories you burn.</p>
         <label class="f" id="ob-sex-l">Sex</label>
         <div class="opts sexes" role="group" aria-labelledby="ob-sex-l">${Object.entries(SEX_TXT).map(([k,l]) => `<button type="button" class="opt" data-act="ob" data-do="sex" data-v="${k}" aria-pressed="${b.sex===k}">${l}</button>`).join("")}</div>${errEl("ob-sex-err")}
         <form id="ob-form" data-form="body" novalidate>
           <div class="two"><div><label class="f" for="ob-age">Age</label><input class="inp" id="ob-age" name="age" inputmode="numeric" maxlength="3" autocomplete="off" value="${esc(b.age)}" placeholder="21">${errEl("ob-age-err")}</div>
           <div><label class="f" for="ob-kg">Weight (kg)</label><input class="inp" id="ob-kg" name="kg" inputmode="decimal" maxlength="5" autocomplete="off" value="${esc(b.kg)}" placeholder="68">${errEl("ob-kg-err")}</div></div>
+          <div class="two"><div><label class="f" for="ob-cm">Height (cm) <span class="muted" style="text-transform:none;letter-spacing:0">optional</span></label><input class="inp" id="ob-cm" name="cm" inputmode="numeric" maxlength="3" autocomplete="off" value="${esc(b.cm==null ? "" : b.cm)}" placeholder="175">${errEl("ob-cm-err")}</div><div></div></div>
           <div class="foot"><button class="primary" type="submit">Continue</button></div>
         </form>`;
       break;
@@ -4270,20 +4801,57 @@ function renderOnboard(){
         <div class="mins" role="group" aria-label="Time per session">${NFPlan.MINUTES.map(m => `<button class="opt" data-act="ob" data-do="min" data-v="${m}" aria-pressed="${a.min===m}">${m} min</button>`).join("")}</div>
         ${errEl("ob-err")}<div class="foot"><button class="primary" data-act="ob" data-do="next">${a.mix.s>0 ? "Continue" : "Show my plans"}</button></div>`;
       break;
+    case "stmode": {
+      const n = a.mix.s, rec = NFPlan.splitById(a.split) || NFPlan.recommendSplit(n, a.goals, a.level).split, own = a.stmode==="own";
+      const why = a.goals.map(id => NFPlan.goalById(id)).filter(g => g && g.kind==="s").map(g => `“${esc(g.label)}”`)[0];
+      h = obHead("level") + obStep(6, obTotal()) + `<h2>How do you want to train strength?</h2>
+        <p class="lead">${n} strength ${n===1?"session":"sessions"} a week. Follow our plan, or put it together yourself.</p>
+        <div class="splits stmode" role="radiogroup" aria-label="Strength plan">
+          <button class="split" role="radio" aria-checked="${!own}" data-act="ob" data-do="stmode" data-v="rec">
+            <span class="sp-h"><b>Recommended for you</b><span class="tag">Ready to go</span></span>
+            <span class="sp-w">${rec.workouts.map(k => `<i>${esc(NFPlan.WORKOUTS[k].title)}</i>`).join("")}</span>
+            <small>${esc(rec.name)}${why ? `, based on your goal ${why}` : ""}. Every exercise already chosen.</small></button>
+          <button class="split" role="radio" aria-checked="${own}" data-act="ob" data-do="stmode" data-v="own">
+            <span class="sp-h"><b>Build my own</b><span class="tag">Your choice</span></span>
+            <small>Pick your split, then decide for each day: take our template or choose every exercise yourself.</small></button>
+        </div>
+        <p class="note">You can switch later in Menu › My plan. Either way you can swap or add exercises during a workout.</p>
+        ${errEl("ob-err")}<div class="foot"><button class="primary" data-act="ob" data-do="next">Continue</button></div>`;
+      break;
+    }
     case "split": {
-      const n = a.mix.s, rec = NFPlan.recommendSplit(n, a.goals, a.level), list = NFPlan.splitsFor(n);
+      const n = a.mix.s, rec = NFPlan.recommendSplit(n, a.goals, a.level), list = NFPlan.splitsFor(n), own = a.stmode==="own";
+      const cur = own ? (a.ownSplit || a.split) : a.split;
       const why = rec.reason==="goal" ? `Best for “${NFPlan.goalById(rec.goal).label}”` : rec.reason==="beginner" ? "Best for beginners" : "Recommended";
-      h = obHead("level") + obStep(6, 6) + `<h2>How do you want to split your strength days?</h2>
-        <p class="lead">${n} strength ${n===1?"session":"sessions"} a week. Every option trains your whole body over the week. Pick the one that suits you, you can change it any time.</p>
-        <div class="splits" role="radiogroup" aria-label="Strength split">${list.map(sp => `<button class="split" role="radio" aria-checked="${a.split===sp.id}" data-act="ob" data-do="split" data-v="${sp.id}">
+      h = obHead("stmode") + obStep(7, obTotal()) + `<h2>${own ? "Choose your split" : "How do you want to split your strength days?"}</h2>
+        <p class="lead">${n} strength ${n===1?"session":"sessions"} a week. ${own ? "Next you decide for each day: template or your own exercises." : "Every option trains your whole body over the week. Pick the one that suits you, you can change it any time."}</p>
+        <div class="splits" role="radiogroup" aria-label="Strength split">${list.map(sp => `<button class="split" role="radio" aria-checked="${cur===sp.id}" data-act="ob" data-do="split" data-v="${sp.id}">
           <span class="sp-h"><b>${esc(sp.name)}</b>${sp.id===rec.split.id?`<span class="tag">${esc(why)}</span>`:""}</span>
           <span class="sp-w">${sp.workouts.map(k => `<i>${esc(NFPlan.WORKOUTS[k].title)}</i>`).join("")}</span>
-          <small>${esc(sp.why)}</small></button>`).join("")}</div>
+          <small>${esc(sp.why)}</small></button>`).join("")}${own ? `<button class="split custom" role="radio" aria-checked="${cur==="custom"}" data-act="ob" data-do="split" data-v="custom">
+          <span class="sp-h"><b>Custom split</b></span><small>Name your own ${n===1?"day":"days"}, e.g. Chest &amp; Back or Arms, and choose every exercise.</small></button>` : ""}</div>
+        ${errEl("ob-err")}<div class="foot"><button class="primary" data-act="ob" data-do="next">${own ? "Continue" : "Show my plans"}</button></div>`;
+      break;
+    }
+    case "owndays": {
+      const days = (a.own && a.own.days) || [], custom = a.own && a.own.split==="custom";
+      h = obHead("split") + obStep(8, obTotal()) + `<h2>Set up your days</h2>
+        <p class="lead">For each day: take our template or pick the exercises yourself.</p>
+        <div class="splits">${days.map((d, i) => {
+          const tpl = d.tpl && W[d.tpl], prev = tpl ? tpl.ex.filter(e => !e.opt).map(e => esc(e.n.replace(/ \(.*\)$/, ""))).join(" · ") : "";
+          const seg = custom ? "" : `<div class="odseg" role="group" aria-label="${esc(d.name)}: template or own">${[["rec","Recommended"],["own","Choose my own"]].map(([m,l]) => `<button type="button" aria-pressed="${d.mode===m}" data-act="ob" data-do="ownmode" data-i="${i}" data-v="${m}">${l}</button>`).join("")}</div>`;
+          const name = custom ? `<label class="f" for="od-n${i}" style="margin:0">Name of day ${i+1}</label><input class="inp" id="od-n${i}" data-in="ownname" data-i="${i}" maxlength="${NFPlan.OWN_NAME_MAX}" value="${esc(d.name)}" placeholder="e.g. Chest &amp; Back">` : "";
+          const body = d.mode==="own"
+            ? `<div class="od-ex">${(d.ex||[]).map(id => { const e = EXN[id]; return e ? `<div class="oe">${exThumb(e)}<span>${esc(e.n)}</span><button type="button" data-act="ob" data-do="ownrm" data-i="${i}" data-ex="${id}" aria-label="Remove ${esc(e.n)}">×</button></div>` : ""; }).join("")}</div>
+               <button type="button" class="od-add" data-act="ob" data-do="ownadd" data-i="${i}">+ ${(d.ex||[]).length ? "Add more exercises" : "Choose exercises"}</button>`
+            : `<p class="od-prev">${prev}</p><p class="od-prev" style="font-size:12px">You can still add exercises during the workout.</p>`;
+          return `<div class="ownday"><div class="od-h">${custom ? "" : `<b>${esc(d.name)}</b>`}<small>DAY ${i+1}${d.mode==="own" ? ` · ${(d.ex||[]).length} ${(d.ex||[]).length===1?"exercise":"exercises"}` : ""}</small></div>${name}${seg}${body}</div>`;
+        }).join("")}</div>
         ${errEl("ob-err")}<div class="foot"><button class="primary" data-act="ob" data-do="next">Show my plans</button></div>`;
       break;
     }
     case "plans":
-      h = obHead(a.mix.s>0 ? "split" : "level") + `<h2>Your suggested plans</h2>
+      h = obHead(a.mix.s>0 ? (a.stmode==="own" ? "owndays" : "split") : "level") + `<h2>Your suggested plans</h2>
         <p class="lead">${LEVEL_TXT[a.level][0]} · ${a.goals.map(id => esc(NFPlan.goalById(id).label)).join(" · ")}</p>
         <div class="plans">${OB.plans.map((p,i) => `<article class="plan${p.best?" best":""}"><header><span aria-hidden="true" style="font-size:20px">${p.best?"🎯":p.id==="easy"?"🌱":"⚖️"}</span><div><b>${esc(p.name)}</b><small>${esc(p.why)} · ${p.days} sessions${p.split ? " · " + esc(p.split.name) : ""}</small></div>${p.best?`<span class="tag">Best match</span>`:""}</header>
           ${p.sessions.map(s => `<div class="ses"><b>${NFPlan.DAY_NAMES[s.day]}</b><span aria-hidden="true">${KICON[s.kind]}</span><span class="st">${esc(s.title)}${s.addon && MOB[s.addon.id] ? `<small class="addon">+ ${esc(MOB[s.addon.id].n.toLowerCase())} ${stepsMin(MOB[s.addon.id].steps)} min</small>` : ""}</span><em>${s.min} min</em></div>`).join("")}
@@ -4296,7 +4864,7 @@ function renderOnboard(){
         <p class="lead">Already running with Garmin, Strava or another app? Bring your runs into NOVAFit, so your stats, calendar and badges start where you are.</p>
         ${d ? `<div class="hsum done"><b class="tnum">${d.n}</b> ${d.n===1 ? "run" : "runs"} · <b class="tnum">${fmt(d.km)}</b> km added ✓<small>${d.badges ? `${d.badges} ${d.badges===1 ? "badge" : "badges"} unlocked · ` : ""}<button type="button" class="txtbtn" data-act="histundo">Undo</button></small></div>` : ""}
         ${impChooserHtml()}
-        <p class="note">Nothing is uploaded: the files are read on this phone. You can do this later too, under Settings → Your data.</p>
+        <p class="note">Nothing is uploaded: the files are read on this phone. You can do this later too: tap the button top right, then “Import runs from other apps”.</p>
         <div class="foot"><button class="${d ? "primary" : "secondary"}" data-act="ob" data-do="go" data-to="done">${d ? "Continue" : "Skip for now"}</button></div>`;
       break;
     }
@@ -4332,10 +4900,11 @@ async function obSubmit(form){
       obGo("body");
     }catch(e){ obError("ob-pw-err", "This browser can't store a password securely. Open NOVAFit over https or in Safari or Chrome."); btn.disabled = false; }
   }else if(kind==="body"){
-    const b = OB.body || {}, v = NFPlan.validateBody({sex:b.sex, age:form.age.value, kg:form.kg.value});
-    obError("ob-sex-err", v.errors.sex); obError("ob-age-err", v.errors.age); obError("ob-kg-err", v.errors.kg);
+    const b = OB.body || {}, v = NFPlan.validateBody({sex:b.sex, age:form.age.value, kg:form.kg.value, cm:form.cm.value});
+    obError("ob-sex-err", v.errors.sex); obError("ob-age-err", v.errors.age); obError("ob-kg-err", v.errors.kg); obError("ob-cm-err", v.errors.cm);
     if(!v.ok){ const bad = form.querySelector('[aria-invalid="true"]'); if(bad) bad.focus(); return; }
-    S.settings.body = {sex:v.value.sex, age:v.value.age}; S.settings.bodyKg = String(v.value.kg); save();
+    S.settings.body = {sex:v.value.sex, age:v.value.age}; if(v.value.cm) S.settings.body.cm = v.value.cm;
+    S.settings.bodyKg = String(v.value.kg); save();
     OB.body = null; obGo("days");
   }else if(kind==="login"){
     const pw = form.password.value;
@@ -4383,24 +4952,49 @@ function obAct(b){
       renderOnboard(); break;
     }
     case "level": a.level = d.v; renderOnboard(); break;
-    case "split": a.split = d.v; document.querySelectorAll('[data-do="split"]').forEach(x => x.setAttribute("aria-checked", String(x.dataset.v===d.v))); obError("ob-err", ""); break;
+    case "split":
+      if(a.stmode==="own"){ a.ownSplit = d.v; if(d.v!=="custom") a.split = d.v; } else a.split = d.v;
+      document.querySelectorAll('[data-do="split"]').forEach(x => x.setAttribute("aria-checked", String(x.dataset.v===d.v))); obError("ob-err", ""); break;
+    case "stmode": a.stmode = d.v; document.querySelectorAll('[data-do="stmode"]').forEach(x => x.setAttribute("aria-checked", String(x.dataset.v===d.v))); obError("ob-err", ""); break;
+    case "ownmode": { const day = a.own && a.own.days[+d.i]; if(day){ day.mode = d.v; renderOnboard(); } break; }
+    case "ownrm": { const day = a.own && a.own.days[+d.i]; if(day){ day.ex = (day.ex||[]).filter(x => x!==d.ex); renderOnboard(); } break; }
+    case "ownadd": { const day = a.own && a.own.days[+d.i]; if(day) openPicker(+d.i); break; }
     case "min": a.min = +d.v; renderOnboard(); break;
     case "next": {
       // A split only exists with strength sessions; keep the chosen one if it still fits
       if(OB.step==="level"){ if(a.mix.s>0){ if(!NFPlan.validateSplit(a.split, a.mix.s).ok || a.split==null) a.split = NFPlan.recommendSplit(a.mix.s, a.goals, a.level).split.id; } else a.split = null; }
-      const r = OB.step==="days" ? NFPlan.validateDays(a.days)
+      const r = OB.step==="owndays" || OB.step==="stmode" ? {ok:true} : OB.step==="days" ? NFPlan.validateDays(a.days)
         : OB.step==="mix" ? NFPlan.validateMix(a.mix, a.days)
         : OB.step==="goals" ? NFPlan.validateGoals(a.goals, a.mix)
         : NFPlan.validateAnswers(a);
       if(!r.ok){ obError("ob-err", r.error); return; }
       if(OB.step==="mix") a.goals = a.goals.filter(id => a.mix[NFPlan.goalById(id).kind] > 0);
-      if(OB.step==="level" && a.mix.s>0) obGo("split");
+      if(OB.step==="level" && a.mix.s>0){ if(!a.stmode) a.stmode = "rec"; obGo("stmode"); }
+      else if(OB.step==="stmode") obGo("split");
+      else if(OB.step==="split" && a.stmode==="own"){
+        const sp = a.ownSplit || a.split;
+        if(!a.own || a.own.split!==sp || a.own.days.length!==a.mix.s) a.own = {split:sp, days:NFPlan.ownDaysFor(sp, a.mix.s)};
+        obGo("owndays");
+      }
+      else if(OB.step==="owndays"){
+        const v = NFPlan.validateOwnDays(a.own && a.own.days, a.mix.s);
+        if(!v.ok){ obError("ob-err", v.error); return; }
+        const keys = NFPlan.ownDayKeys(a.own.days);
+        const spName = a.own.split==="custom" ? "Custom split" : ((NFPlan.splitById(a.own.split)||{}).name || "") + " (your own)";
+        OB.plans = NFPlan.suggestPlans(a).map(p => NFPlan.applyOwnDays(p, keys, spName)); obGo("plans");
+      }
       else if(OB.step==="level" || OB.step==="split"){ OB.plans = NFPlan.suggestPlans(a); obGo("plans"); }
       else obGo({days:"mix", mix:"goals", goals:"level"}[OB.step]);
       break;
     }
     case "choose": {
       const p = OB.plans[+d.i];
+      if(a.stmode==="own" && a.own && a.mix.s>0){
+        const keys = NFPlan.ownDayKeys(a.own.days);
+        S.settings.ownW = S.settings.ownW || {};
+        a.own.days.forEach((x, i) => { if(x.mode==="own") S.settings.ownW[keys[i].workout] = {name:keys[i].title, ex:(x.ex||[]).slice()}; });
+        registerOwn();
+      }
       S.settings.plan = Object.assign({chosen:Date.now()}, p);
       S.settings.answers = clone(a); S.settings.goal = p.days;
       save(); obGo(OB.mode==="edit" ? "done" : "history"); break;
@@ -4445,7 +5039,7 @@ function accountHtml(){
   const p = S.settings.profile; if(!p) return "";
   return `<div class="card" style="background:var(--bg);border:0"><span class="lbl">Account</span>
     <p style="margin:0"><b>${esc(p.name)}</b><br><span class="small muted">${esc(p.email)} · saved on this phone only</span></p>
-    ${S.settings.body ? `<p class="small muted" style="margin:0">${esc(SEX_TXT[S.settings.body.sex]||"")} · ${esc(S.settings.body.age)} years${num(S.settings.bodyKg)>0 ? " · " + fmt(num(S.settings.bodyKg)) + " kg" : ""}</p>` : ""}
+    ${S.settings.body ? `<p class="small muted" style="margin:0">${esc(SEX_TXT[S.settings.body.sex]||"")} · ${esc(S.settings.body.age)} years${num(S.settings.bodyKg)>0 ? " · " + fmt(num(S.settings.bodyKg)) + " kg" : ""}${S.settings.body.cm ? " · " + esc(S.settings.body.cm) + " cm" : ""}</p>` : ""}
     <p class="small muted" style="margin:0">Plan: ${esc((S.settings.plan||{}).name || "none yet")}</p>
     <div class="row2"><button class="secondary" data-act="ob" data-do="edit">Edit profile and plan</button><button class="secondary" data-act="ob" data-do="pwsheet">Change password</button></div>
     <button class="secondary" data-act="ob" data-do="lock">Lock app</button></div>`;
@@ -4458,8 +5052,9 @@ function render(){
   if(screen==="onboard"){ renderOnboard(); return; }
   if(screen==="session" && !S.active) screen = "home";
   if(screen==="summary" && !summary) screen = "home";
-  if(screen==="home") renderHome(); else if(screen==="session") renderSession(); else if(screen==="runplan") renderPlan(); else renderSummary();
+  if(screen==="home") renderHome(); else if(screen==="me") renderMe(); else if(screen==="session") renderSession(); else if(screen==="runplan") renderPlan(); else renderSummary();
   updateBadge();
+  keepAwake(screen==="session" && !!S.active);
 }
 
 document.addEventListener("click", async ev => {
@@ -4481,7 +5076,13 @@ document.addEventListener("click", async ev => {
     }
     case "resume": closeSheet(); screen = "session"; render(); window.scrollTo(0,0); break;
     case "home": closeSheet(); screen = "home"; summary = null; render(); window.scrollTo(0,0); break;
-    case "tick": tick(b.dataset.ex, +b.dataset.i); updProg(); break;
+    case "tick": {
+      tick(b.dataset.ex, +b.dataset.i); updProg();
+      // last set of an exercise ticked → fold it into one line shortly after
+      const id = b.dataset.ex, a = S.active;
+      if(allDone(id) && !(a.unfold||{})[id]) setTimeout(() => { if(screen==="session" && S.active===a && allDone(id)) renderSession(); }, 700);
+      break;
+    }
     case "rmset": { const arr = S.active.sets[b.dataset.ex]; if(arr && +b.dataset.i < arr.length){ arr.splice(+b.dataset.i, 1); rest = null; save(); renderSession(); } break; }
     case "addset": { const ex = EXN[b.dataset.ex], arr = (S.active.sets[ex.id] = S.active.sets[ex.id]||[]); arr.push(prefill(ex.id, arr.length, arr[arr.length-1])); save(); renderSession(); break; }
     case "openopt": { const base = exIn(S.active.type, b.dataset.ex), x = eff(base); S.active.open[base.id] = true; if(!S.active.sets[x.id]) S.active.sets[x.id] = prefilledSets(x); save(); renderSession(); break; }
@@ -4536,9 +5137,11 @@ document.addEventListener("click", async ev => {
         finishSession(); return;
       }
       if(pend>0){
-        sheet(`<h3>${pend} ${pend===1?"set isn't":"sets aren't"} checked off</h3><p class="muted">They still show the values from last time. Did you do these sets like that?</p>
-          <button class="primary" data-act="finishall">Yes, save all</button>
-          ${e.sets||e.run||e.tread||e.yoga?`<button class="secondary" data-act="finishok">Save checked sets only</button>`:""}
+        // Safer default: the big button saves only what was ticked; saving untouched sets needs a deliberate second choice
+        const done = Object.values(S.active.sets||{}).reduce((n, a) => n + a.filter(isDone).length, 0), list = pendingList();
+        sheet(`<h3>${pend} ${pend===1?"set isn't":"sets aren't"} ticked off</h3><p class="muted">${esc(list.slice(0,3).join(", "))}${list.length>3?" and more":""}. ${pend===1?"It still shows":"They still show"} last time's numbers.</p>
+          ${done ? `<button class="primary" data-act="finishok">Save the ${done} ${done===1?"set":"sets"} I did</button>` : ""}
+          <button class="${done ? "secondary" : "primary"}" data-act="finishall">I did ${done ? `all ${done+pend}` : (pend===1 ? "it" : `all ${pend}`)}, save ${done ? "them all" : (pend===1 ? "it" : "them")}</button>
           <button class="secondary" data-act="closesheet">Keep training</button>`);
         return;
       }
@@ -4570,11 +5173,18 @@ document.addEventListener("click", async ev => {
     case "delask": sheet(`<h3>Delete session?</h3><p class="muted">It will be removed from your history and stats.</p>
         <button class="secondary danger" data-act="delok" data-id="${b.dataset.id}">Delete</button><button class="secondary" data-act="closesheet">Cancel</button>`); break;
     case "delok": S.history = S.history.filter(x => x.id!==b.dataset.id); save(); closeSheet(); renderHome(); break;
-    case "settings": settingsSheet(); break;
-    case "menu": menuSheet(); break;
+    case "settings": settingsSheet(""); break;
+    case "menu": closeSheet(); screen = screen==="me" ? "home" : "me"; render(); window.scrollTo(0,0); break;
+    case "tab": { closeSheet(); TAB = ["today","train","progress"].includes(b.dataset.t) ? b.dataset.t : "today"; try{ sessionStorage.setItem("nf-tab", TAB); }catch(e){} screen = "home"; render(); window.scrollTo(0,0); break; }
+    case "setp": settingsSheet(b.dataset.p); break;
     case "ob": obAct(b); break;
-    case "menutheme": closeSheet(); S.settings.theme = isDark() ? "light" : "dark"; applyTheme(); save(); renderHome(); break;
-    case "goto": { closeSheet(); const el = document.getElementById(b.dataset.id); if(el) el.scrollIntoView({behavior:smoothOk() ? "smooth" : "auto", block:"start"}); break; }
+    case "menutheme": closeSheet(); S.settings.theme = isDark() ? "light" : "dark"; applyTheme(); save(); render(); break;
+    case "goto": {
+      closeSheet();
+      // calendar, badges and reviews live on the Progress tab
+      if(!document.getElementById(b.dataset.id)){ TAB = "progress"; try{ sessionStorage.setItem("nf-tab", TAB); }catch(e){} screen = "home"; render(); }
+      const el = document.getElementById(b.dataset.id); if(el) el.scrollIntoView({behavior:smoothOk() ? "smooth" : "auto", block:"start"}); break;
+    }
     case "herostep": if(HERO_STEP) HERO_STEP(+b.dataset.d); break;
     case "totop": window.scrollTo({top:0, behavior:smoothOk() ? "smooth" : "auto"}); break;
     case "swap": swapSheet(b.dataset.base); break;
@@ -4588,17 +5198,31 @@ document.addEventListener("click", async ev => {
     case "week": if(b.dataset.seen){ S.settings.weekSeen = +b.dataset.seen; save(); renderHome(); } closeSheet(); openWeek(+b.dataset.ws); break;
     case "recap": if(b.dataset.seen){ S.settings.recapSeen = b.dataset.seen; save(); renderHome(); } closeSheet(); if(STORY) closeStory(); openMonth(+b.dataset.y, +b.dataset.m); break;
     case "rungoals": runGoalsSheet(); break;
+    case "wxhere": wxLocate(true); break;
+    case "wxhome": S.settings.wxGeo = false; save(); wxSeg(); wxLoad(); wxPaint(); toast(`Weather is for ${NFRun.WX_HOME.place} now.`); break;
     case "rungoalsave": {
-      const g = parseMin($("#g-al").value), k = num($("#g-km").value);
+      const g = parseMin($("#g-al").value), k = num($("#g-km").value), lp = NFRun.validateLoop($("#g-ln").value, $("#g-lk").value);
+      [["g-ln", lp.err.name], ["g-lk", lp.err.km]].forEach(([id, m]) => { $("#"+id+"-err").textContent = m||""; $("#"+id).setAttribute("aria-invalid", m?"true":"false"); });
+      if(!lp.ok){ $(lp.err.name ? "#g-ln" : "#g-lk").focus(); break; }
+      S.settings.loopName = lp.name; S.settings.loopKm = lp.km;
       if(g>0) S.settings.alsterGoal = g; if(k>0) S.settings.kmGoal = k;
       save(); closeSheet(); renderHome(); break;
     }
     case "warmup": startWarmup(); break;
-    case "yogago": startYoga(); break;
+    case "yogago": primeVoice(); startYoga(); break;
+    case "calmpick": { const v = +b.dataset.v, c = CALM; if(!c || !NFYoga.validTension(v)) break; CALM = null; closeSheet(); if(c.stage==="before") primeVoice(); c.cb(v); break; }
+    case "calmskip": { const c = CALM; CALM = null; closeSheet(); if(c) c.cb(null); break; }
+    case "calmoff": { const c = CALM; CALM = null; S.settings.calmCheck = false; save(); closeSheet(); toast("Okay, no more questions. You can turn it back on on the yoga screen."); if(c) c.cb(null); break; }
+    case "calmtoggle": S.settings.calmCheck = !calmOn(); save(); renderSession(); break;
+    case "yogalevel": S.settings.yogaLevel = b.dataset.v==="known" ? "known" : "new"; save(); renderSession(); break;
+    case "yogavoice": S.settings.yogaVoice = !yVoice(); save(); if(S.settings.yogaVoice){ primeVoice(); say("Voice on. I'll read each pose."); } renderSession(); break;
+    case "tmvoice": if(TM){ S.settings.yogaVoice = !yVoice(); save(); TM.spokenI = -1; if(!S.settings.yogaVoice) try{ speechSynthesis.cancel(); }catch(e){} drawTimer(); } break;
+    case "yogapick": { const id = b.dataset.id; if(!NFYoga.byId(id)) break; S.active.yoga.sid = id; S.settings.yogaSid = id; save(); renderSession(); window.scrollTo({top:0, behavior:"smooth"}); break; }
+    case "study": closeSheet(); primeVoice(); startStudyBreak(); break;
     case "warmskip": S.active.warm = true; save(); renderSession(); break;
     case "interval": intervalSheet(b.dataset.target); break;
     case "ivgo": startIntervals(b.dataset.target); break;
-    case "tmpause": if(TM){ if(TM.paused){ TM.end = Date.now() + TM.left; TM.paused = false; try{ TM.ac && TM.ac.resume(); }catch(e){} } else { TM.left = TM.end - Date.now(); TM.paused = true; try{ TM.mus && TM.ac && TM.ac.suspend(); }catch(e){} } drawTimer(); } break;
+    case "tmpause": if(TM){ try{ canSpeak() && speechSynthesis.cancel(); }catch(e){} if(TM.paused){ TM.end = Date.now() + TM.left; TM.paused = false; try{ TM.ac && TM.ac.resume(); }catch(e){} } else { TM.left = TM.end - Date.now(); TM.paused = true; try{ TM.mus && TM.ac && TM.ac.suspend(); }catch(e){} } drawTimer(); } break;
     case "tmmusic": if(TM){ S.settings.yogaMusic = S.settings.yogaMusic===false; save(); if(S.settings.yogaMusic===false) medStop(false); else { try{ TM.ac && TM.ac.resume(); }catch(e){} medStart(); } drawTimer(); } break;
     case "tmskip": if(TM){ TM.end = Date.now(); if(TM.paused){ TM.paused = false; } tickTimer(); } break;
     case "tmstop": finishTimer(false); break;
@@ -4609,7 +5233,7 @@ document.addEventListener("click", async ev => {
     case "theme": S.settings.theme = b.dataset.v; applyTheme(); save();
       document.querySelectorAll("#themeseg button").forEach(x => x.setAttribute("aria-pressed", x.dataset.v===S.settings.theme)); break;
     case "yogaflow": closeSheet(); startSession("yoga"); break;
-    case "yogalen": S.settings.yogaLen = +b.dataset.m; save(); renderSession(); break;
+    case "yogalen": { const sid = ySid(), m = +b.dataset.m; if(sid==="vinyasa") S.settings.yogaLen = m; else S.settings.yogaLens = Object.assign({}, S.settings.yogaLens, {[sid]:m}); save(); renderSession(); break; }
     case "mobility": closeSheet(); startMobility(); break;
     case "mob": closeSheet(); startMobility(b.dataset.id); break;
     case "workouts": workoutsSheet(); break;
@@ -4619,6 +5243,23 @@ document.addEventListener("click", async ev => {
     case "libadd": if(b.getAttribute("aria-disabled")!=="true") libAdd(b.dataset.ex); break;
     case "libnew": libNewSheet(); break;
     case "libback": libSheet(); break;
+    case "libguide": guideSheet(b.dataset.ex, true); break;
+    case "libpick": {
+      const id = b.dataset.ex, sel = LIB.sel = LIB.sel || [], i = sel.indexOf(id);
+      if(i>=0) sel.splice(i, 1);
+      else if(sel.length >= NFPlan.OWN_MAX_EX){ toast(`Up to ${NFPlan.OWN_MAX_EX} exercises per day`); break; }
+      else sel.push(id);
+      const on = sel.includes(id), row = b.closest(".librow2");
+      b.setAttribute("aria-pressed", String(on)); if(row) row.classList.toggle("on", on);
+      const ck = b.querySelector(".lr-ck"); if(ck) ck.innerHTML = on ? CK_ICO : "";
+      const done = $("#libdone"); if(done) done.textContent = pickLabel();
+      break;
+    }
+    case "libpickdone": {
+      const day = OB.a && OB.a.own && OB.a.own.days[LIB.day];
+      if(day) day.ex = (LIB.sel||[]).slice();
+      closeSheet(); if(screen==="onboard") renderOnboard(); break;
+    }
     case "planday": planDaySheet(+b.dataset.d); break;
     case "rmex": {
       const a = S.active, id = b.dataset.base, added = !!b.dataset.added, xid = added ? id : eff(exIn(a.type, id)).id;
@@ -4629,6 +5270,17 @@ document.addEventListener("click", async ev => {
     }
     case "rmexok": removeEx(b.dataset.base, !!b.dataset.added); break;
     case "guide": guideSheet(b.dataset.ex); break;
+    case "exmenu": exMenu(b.dataset); break;
+    case "exunfold": S.active.unfold = Object.assign(S.active.unfold||{}, {[b.dataset.ex]:true}); save(); renderSession(); break;
+    case "exm": {
+      // run the same action the old buttons under each card did
+      const go = b.dataset.go, f = document.createElement("button");
+      Object.keys(b.dataset).forEach(k => { if(k!=="go" && k!=="act") f.dataset[k] = b.dataset[k]; });
+      f.dataset.act = go; f.hidden = true; closeSheet();
+      if(go!=="guide" && go!=="swap") { document.body.appendChild(f); f.click(); f.remove(); }
+      else setTimeout(() => { document.body.appendChild(f); f.click(); f.remove(); }, 0);
+      break;
+    }
     case "applyup": { const id = b.dataset.ex, kg = +b.dataset.kg; (S.active && S.active.sets[id]||[]).forEach(x => { if(!isDone(x)) x.kg = fmt(kg); }); save(); renderSession(); toast(`${fmt(kg)} kg entered. You've got this!`); break; }
     case "share": doShare(); break;
     case "year": closeSheet(); if(b.dataset.seen) { S.settings.yearSeen = +b.dataset.seen; save(); } openYear(+b.dataset.y); break;
@@ -4640,6 +5292,8 @@ document.addEventListener("click", async ev => {
     case "nrchelp": nrcHelp(); break;
     case "nrcuse": { const r = parseRunText($("#nrctext").value); if(!r){ toast("No run found in that text."); break; } closeSheet(); applyRun(r); break; }
     case "storyclose": closeStory(); render(); break;
+    case "restsound": S.settings.restSound = b.dataset.v==="1"; save(); if(b.dataset.v==="1"){ restAudio(); restBeep(); }
+      document.querySelectorAll("#restsoundseg button").forEach(x => x.setAttribute("aria-pressed", x.dataset.v===b.dataset.v)); break;
     case "kcalshow": S.settings.showKcal = b.dataset.v==="1"; save();
       document.querySelectorAll("#kcalseg button").forEach(x => x.setAttribute("aria-pressed", x.dataset.v===b.dataset.v)); break;
     case "goal": { S.settings.goal = Math.min(7, Math.max(1, S.settings.goal + (+b.dataset.d))); $("#goalv").textContent = S.settings.goal; save(); break; }
@@ -4671,7 +5325,7 @@ document.addEventListener("change", ev => {
     try{
       const d = JSON.parse(rd.result);
       if(!d || !Array.isArray(d.history)) throw 0;
-      S = merge(S, d); checkBadges(true); save(); applyTheme(); closeSheet(); screen = "home"; render(); toast(`${d.history.length} sessions loaded.`);
+      S = merge(S, d); addCustomToEXN(); registerOwn(); checkBadges(true); save(); applyTheme(); closeSheet(); screen = "home"; render(); toast(`${d.history.length} sessions loaded.`);
     }catch(e){ toast("That's not a valid backup."); }
   };
   rd.readAsText(f);
@@ -4684,8 +5338,11 @@ document.addEventListener("change", ev => { if(ev.target.id==="runfile"){ const 
 document.addEventListener("input", ev => {
   const t = ev.target, k = t.dataset.in; if(!k) return;
   if(k==="libq"){ LIB.q = t.value; const l = $("#liblist"); if(l) l.innerHTML = libListHtml(); return; }
+  if(k==="ownname"){ const day = OB.a && OB.a.own && OB.a.own.days[+t.dataset.i]; if(day) day.name = t.value; return; }
   if(k==="name"){ S.settings.name = t.value; save(); return; }
   if(k==="bodykg"){ S.settings.bodyKg = t.value.trim(); save(); return; }
+  if(k==="bodycm"){ const cm = Math.round(num(t.value)); S.settings.body = S.settings.body || {};
+    if(cm>=NFPlan.MIN_CM && cm<=NFPlan.MAX_CM) S.settings.body.cm = cm; else delete S.settings.body.cm; save(); return; }
   if(k==="time"){ S.settings.remTime = t.value || "18:00"; save(); return; }
   if(k==="plw"){ if(t.dataset.f==="target"){ const f = fmtTimeDigits(t.value); if(f!==t.value) t.value = f; } PLW[t.dataset.f] = t.value; if(t.type==="date") render(); return; }
   if(k==="shot"){ if(t.id==="sh-time"){ const f = fmtTimeDigits(t.value); if(f!==t.value) t.value = f; } t.setAttribute("aria-invalid", "false"); const e = t.closest("div").parentNode.querySelector(".err"); if(e) e.textContent = ""; return; }
@@ -4714,7 +5371,7 @@ setInterval(() => {
   if(screen==="session") updProg();
   if(rest){
     const left = rest.end - Date.now();
-    if(left<=0){ rest = null; updateBottom(); try{ navigator.vibrate && navigator.vibrate([200,100,200]); }catch(e){} toast("Rest over, next set!"); }
+    if(left<=0) restOver();
     else{ const t = $("#restT"), i = $("#restI"); if(t) t.textContent = clock(left); if(i) i.style.width = (left/rest.total*100)+"%"; }
   }
 }, 500);
@@ -4806,7 +5463,7 @@ async function enablePush(){
   if(push==="on") toast("Notifications are on.");
 }
 
-/* Direktlinks aus Push-Nachrichten: #woche öffnet den Wochenrückblick, #yoga startet Yoga */
+/* Direktlinks aus Push-Nachrichten: #woche öffnet den Wochenrückblick, #yoga startet Yoga, #studybreak die Lernpause */
 function handleHash(){
   const h = location.hash.replace("#","");
   if(!h) return;
@@ -4814,6 +5471,7 @@ function handleHash(){
   if(h==="woche"){ screen = "home"; render(); openWeek(defaultWeek()); }
   else if(h==="monat"){ screen = "home"; render(); const [y, m] = monthRef(); openMonth(y, m); }
   else if(h==="yoga" && !S.active){ screen = "home"; render(); yogaSheet(); }
+  else if(h==="studybreak" && !TM){ screen = S.active ? "session" : "home"; render(); startStudyBreak(); }
   else if(W[h] && Object.prototype.hasOwnProperty.call(W, h)){
     if(S.active){ screen = "session"; render(); }
     else startSession(h);
