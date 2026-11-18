@@ -2,6 +2,16 @@
 
 Alle Versionen der App, die neueste oben.
 
+## v2.11 – Runs near you
+
+- New in the running menu: **Runs near you**, at most five suggestions
+- Up to 4 hand-picked routes (Carcavelos seafront, Oeiras seafront, Paredão Estoril–Cascais, Lisbon riverside at Belém), sorted by distance from you, with “Directions” to the start; routes that fit the next run of your plan are marked
+- **A loop from here**: choose 3, 5, 8, 10 km or the length of your next plan run, NOVAFit makes a round trip on foot paths from where you are (openrouteservice via `netlify/functions/route.mjs`), shows its shape and opens it in Google Maps; “Show me another loop” gives a different one
+- “Start this run” opens an outdoor run with distance and route filled in
+- Privacy: the list uses the rounded weather location; the exact position is only sent for the loop and never stored
+- Without the openrouteservice key the app shows that a one-time setup is needed; the routes work anyway
+- 10 new tests (159 in total)
+
 ## Unreleased – Version history in the README
 
 - New section "Version history" in `README.md`: every version from v1.0 to v2.10 with date, what changed, the commit and the pull request, plus what came after v2.10

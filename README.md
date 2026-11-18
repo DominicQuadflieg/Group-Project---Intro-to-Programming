@@ -45,6 +45,7 @@ The app needs no build step:
 | `app/img/` | Pictures for the home screen and training cards (placeholders) |
 | `app/img/ex/` | Exercise drawings from Everkinetic and Workout Guide, CC BY-SA 4.0, see `SOURCES.md` there |
 | `app/icon-*.png`, `app/apple-touch-icon.png` | App icons |
+| `netlify/functions/route.mjs` | Server part of “A loop from here” (keeps the openrouteservice key) |
 | `netlify/functions/strava.mjs` | Server part of the Strava connection (keeps the client secret) |
 | `netlify.toml` | Netlify settings: publishes `app`, runs the Strava function |
 | `app/INSTALL.txt` | How to install the app on a phone |
@@ -55,6 +56,7 @@ The app needs no build step:
 | `tests/run-files.test.js` | Tests for `app/run.js` (GPX, TCX, FIT, ZIP) |
 | `tests/muscles.test.js` | Tests for `app/muscles.js` |
 | `tests/history.test.js` | Tests for importing a training history (Garmin CSV, Strava archive, files) |
+| `tests/nearby.test.js` | Tests for “Runs near you” (routes, loop link and shape, route function) |
 | `tests/strava.test.js` | Tests for the Strava connection (app side and function) |
 
 ## Run
@@ -76,6 +78,22 @@ New users can bring their runs from other apps right after choosing a plan (“B
 | Polar, Coros, Suunto, Apple Watch … | several GPX, FIT or TCX files at once | export from the app of the watch |
 
 A preview shows the number of runs and kilometres, with the time range (this year, last 12 months, everything), walks on or off, and kilometres or miles for Garmin files. Rides and other sports are left out, runs that are already in NOVAFit are skipped, and an import can be undone right away. Everything is read on the phone; big Strava archives are not loaded completely, only the activity list inside.
+
+## Runs near you
+
+*Run → Runs near you* suggests at most five runs:
+
+- **Up to 4 hand-picked routes** (`NEARBY_ROUTES` in `app/run.js`): Carcavelos seafront, Oeiras seafront, Paredão Estoril–Cascais and the Lisbon riverside at Belém, sorted by how far away they are. The weather location is used for this (rounded to about 1 km, Nova SBE if location is off). Routes that fit the next run of your running plan are marked. Lengths are approximate: it's a demo set, check them before you rely on them.
+- **A loop from here:** pick 3, 5, 8 or 10 km (or the length of your next plan run) and NOVAFit makes a round trip on foot paths from where you are, shows its shape and opens it in Google Maps. For this one request the position is sent to the route service, it isn't stored.
+
+“Start this run” opens an outdoor run with the distance and the route already filled in.
+
+The loop needs a free openrouteservice key (the list of routes works without it):
+
+1. Sign up at https://openrouteservice.org and create a token in the dashboard.
+2. In Netlify → *Site configuration → Environment variables* add `ORS_API_KEY` with the token, then deploy again (like the Strava keys, it only works when Netlify is connected to this repository).
+
+Without the key the app shows “Needs a one-time setup” instead of the loop button.
 
 ## Strava connection
 
