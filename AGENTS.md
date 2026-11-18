@@ -5,7 +5,7 @@ Notes for coding agents (and new team members) working on NOVAFit.
 ## Stack
 
 - Plain HTML, CSS and JavaScript, no framework and no build step
-- `app/index.html` contains the app; `app/plan.js` holds the testable logic for sign-up, questionnaire, splits and plans; `app/exercises.js` the exercise library, workout templates and custom-exercise checks (exercise ids are stored in the history, never rename or remove one); `app/run.js` the testable running logic (screenshots, GPX/TCX/FIT files); `app/yoga.js` the yoga sessions, their timing and which one to suggest
+- `app/index.html` contains the app; `app/plan.js` holds the testable logic for sign-up, questionnaire, splits and plans; `app/exercises.js` the exercise library, workout templates and custom-exercise checks (exercise ids are stored in the history, never rename or remove one); `app/run.js` the testable running logic (screenshots, GPX/TCX/FIT files, importing a training history from Garmin and Strava); `app/yoga.js` the yoga sessions, their timing and which one to suggest
 - Data is stored in `localStorage` under the key `po-plan-app-v2` (do not rename it, or existing users lose their data)
 - Strava connection: `netlify/functions/strava.mjs` (Netlify Function, needs `STRAVA_CLIENT_ID` and `STRAVA_CLIENT_SECRET` set in Netlify, never in the repo); Strava tokens live only in `localStorage` under `novafit-strava`, never in `S`
 - Service worker and push reminders: `app/OneSignalSDKWorker.js` (bump `CACHE` when files change)

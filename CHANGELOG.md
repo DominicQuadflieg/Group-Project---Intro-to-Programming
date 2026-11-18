@@ -2,6 +2,16 @@
 
 Alle Versionen der App, die neueste oben.
 
+## v2.10 – Bring your training history
+
+- New step after choosing a plan: **Bring your training history**. Runs from other apps come into NOVAFit, so stats, calendar, badges, running plan and reviews start where you are (can be skipped)
+- The same import later under Settings → Your data → **Import runs from other apps**
+- Sources: Garmin Connect activity list (CSV, English or German), Strava archive (ZIP or activities.csv), the Strava connection (all runs since 1 January, page by page), or several GPX, FIT or TCX files at once; each with a short “How do I get it?”
+- Preview before anything is saved: number of runs and kilometres, time range (this year, last 12 months, everything), walks on or off, kilometres or miles for Garmin files, and what is left out (rides, runs already in NOVAFit, outside the range)
+- Nothing is counted twice: same Strava id, same start time or the same distance on the same day; “Undo import” removes exactly the added runs
+- Big Strava archives are read in parts (only the list of files and activities.csv), so even hundreds of MB work on a phone
+- 16 new tests (106 in total), one older test no longer depends on the computer's time zone
+
 ## Unreleased – New layout: Today · Train · Progress, "You" page
 
 - Bottom tabs instead of one long home page. **Today**: the photo card, three big numbers (sessions this week opens the weekly review, last run, weeks in a row), "What's next" with the next two sessions of your plan, a note before and during exam weeks, and your last session. **Train**: your plan week, all sessions as photo tiles, more workouts, exercise library, running plan, yoga and short routines. **Progress**: numbers for the month, all reviews (this week, earlier weeks, this and last month, the year), strength, running, calendar, badges and history

@@ -146,7 +146,9 @@ test("rides and swims are refused, walks and unknown sports are accepted", () =>
 test("a run that is already saved is found", () => {
   const h = [{ start: START + 2 * 60000, run: { km: 7.7 } }, { start: START - 864e5, sets: {} }];
   assert.ok(R.findDuplicate(h, START, 7.72));
-  assert.ok(R.findDuplicate([{ start: START + 3 * 3600e3, run: { km: 7.72 } }], START, 7.72), "same day, same distance");
-  assert.equal(R.findDuplicate([{ start: START + 3 * 3600e3, run: { km: 5 } }], START, 7.72), null);
+  // morning and afternoon of the same local day, whatever the time zone of the computer
+  const am = new Date(2026, 10, 16, 8).getTime(), pm = new Date(2026, 10, 16, 17).getTime();
+  assert.ok(R.findDuplicate([{ start: pm, run: { km: 7.72 } }], am, 7.72), "same day, same distance");
+  assert.equal(R.findDuplicate([{ start: pm, run: { km: 5 } }], am, 7.72), null);
   assert.equal(R.findDuplicate(h, 0, 7.72), null);
 });

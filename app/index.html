@@ -532,6 +532,17 @@ a.dl{display:grid;place-items:center;text-decoration:none;color:var(--ink)}
 .runnote summary{list-style:none;color:var(--run);font-weight:600;font-size:14px;padding:2px 4px;cursor:pointer}
 .runnote summary::-webkit-details-marker{display:none}
 .runnote[open] summary{margin-bottom:8px}
+.hsrcs{display:flex;flex-direction:column;gap:10px}
+.hsrc{display:grid;grid-template-columns:40px 1fr;gap:12px;align-items:start;border:1px solid var(--line);border-radius:calc(var(--rs) * 16px);padding:12px 14px;background:var(--surface)}
+.hsrc b{display:block;font-size:15px}.hsrc small{display:block;color:var(--muted);font-size:12.5px;margin-bottom:8px}
+.hpick{display:flex;align-items:center;justify-content:center;width:100%;cursor:pointer;margin-bottom:4px}
+.hpick:focus-within{outline:2px solid var(--run);outline-offset:2px}
+.hsteps{margin:0 0 4px;padding-left:18px;font-size:13.5px;line-height:1.45;display:flex;flex-direction:column;gap:3px}
+.hsum{background:var(--run-soft);border-left:4px solid var(--run);padding:12px 14px;font-size:16px}
+.hsum b{font-size:24px;color:var(--run)}.hsum small{display:block;font-size:13px;color:var(--muted);margin-top:2px}
+.hsum.done{margin-bottom:14px}.hsum .txtbtn{padding:0;font-size:13px}
+.hchk{display:flex;gap:10px;align-items:center;font-size:14.5px;cursor:pointer}.hchk input{width:20px;height:20px;accent-color:var(--run)}
+.hskip{margin:0;padding-left:18px;font-size:13px;color:var(--muted);line-height:1.5}
 .stlist{display:flex;flex-direction:column;max-height:46vh;overflow:auto;border-top:1px solid var(--line)}
 .strow{display:flex;gap:12px;align-items:center;padding:11px 2px;border-bottom:1px solid var(--line);cursor:pointer}
 .strow input{width:20px;height:20px;accent-color:var(--run);flex:none}
@@ -1421,7 +1432,7 @@ function renderMe(){
   h += grp("Training", row('data-act="library"', "Exercise library", `${NFEx.LIBRARY.filter(e => !e.hidden).length + customList().length}`) + row('data-act="workouts"', "All workouts", "") + row('data-act="goto" data-id="sec-cal"', "Calendar", "") + row('data-act="goto" data-id="sec-badges"', "Badges", `${got} / ${BADGES.length}`));
   h += grp("Connected", (stravaSettings() ? row(sp("strava"), "Strava", stGet() ? "Connected" : "Not connected") : "") + row(sp("push"), "Notifications", push==="on" ? "On" : "Off") + row(sp("cal"), "Calendar reminders", ""));
   h += grp("App", row(sp("theme"), "Appearance", {auto:"Automatic", light:"Light", dark:"Dark"}[set.theme] || "Automatic") + row(sp("sound"), "Sound", set.restSound===false ? "Off" : "On") + row(sp("weather"), "Running weather", set.wxGeo===true ? "Where I am" : NFRun.WX_HOME.place) + row(sp("photos"), "Your photos", nPh ? `${nPh} ${nPh===1?"photo":"photos"}` : "Nova photos"));
-  h += grp("Your data", row(sp("data"), "Back up and restore", ""));
+  h += grp("Your data", row('data-act="impsheet"', "Import runs from other apps", "Garmin, Strava, files") + row(sp("data"), "Back up and restore", ""));
   h += footerHtml() + tabBarHtml();
   $("#app").innerHTML = h;
   nfMount();
@@ -1981,7 +1992,10 @@ async function stReturn(){
   try{
     const t = await stFn({action:"token", code:q.get("code")});
     stSet({access:t.access_token, refresh:t.refresh_token, expires:t.expires_at, name:t.firstname || "", auto:true});
-    stravaSync(true);
+    // kam die Anmeldung von „Bring your training history“? Dann das ganze Jahr zeigen statt 30 Tage
+    let year = false; try{ year = localStorage.getItem(HIST_STRAVA)==="1"; localStorage.removeItem(HIST_STRAVA); }catch(e){}
+    stLastSync = Date.now();
+    if(year) impStravaYear(); else stravaSync(true);
   }catch(e){ shotErr("Strava not connected", "The connection didn't work. Please try again in a moment."); }
   return true;
 }
@@ -1992,17 +2006,19 @@ async function stAccess(){
   stSet(Object.assign(t, {access:n.access_token, refresh:n.refresh_token, expires:n.expires_at}));
   return n.access_token;
 }
-/* Neue Läufe der letzten 30 Tage holen. Nach einem abgelaufenen Zugang einmal neu anmelden lassen. */
-async function stNewRuns(){
-  const after = Math.floor(Date.now()/1000) - STRAVA_DAYS*86400;
-  const call = async () => (await stFn({action:"activities", access_token:await stAccess(), after})).activities || [];
-  let acts;
-  try{ acts = await call(); }
+/* Aktivitäten seit `after` (Unix-Sekunden), Seite für Seite. Nach einem abgelaufenen Zugang einmal neu anmelden lassen. */
+async function stActs(after, page){
+  const call = async () => (await stFn({action:"activities", access_token:await stAccess(), after, page:page||1})).activities || [];
+  try{ return await call(); }
   catch(e){
-    if(e.status===401){ const t = stGet(); if(t){ t.expires = 0; stSet(t); } try{ acts = await call(); }catch(e2){ if(e2.status===401) stSet(null); throw e2; } }
-    else throw e;
+    if(e.status!==401) throw e;
+    const t = stGet(); if(t){ t.expires = 0; stSet(t); }
+    try{ return await call(); }catch(e2){ if(e2.status===401) stSet(null); throw e2; }
   }
-  return NFRun.stravaNew(S.history, acts, alsterKm());
+}
+/* Neue Läufe der letzten 30 Tage */
+async function stNewRuns(){
+  return NFRun.stravaNew(S.history, await stActs(Math.floor(Date.now()/1000) - STRAVA_DAYS*86400), alsterKm());
 }
 function stAdd(list){
   const ids = new Set(S.history.map(e => e.id));
@@ -2026,6 +2042,133 @@ async function stravaSync(fromConnect){
     else if(fromConnect) toast("Strava connected ✓ No new runs in the last 30 days.");
   }catch(e){ if(fromConnect) toast("Strava connected ✓ " + stErrTxt(e)); else if(e && e.status===401) toast(stErrTxt(e)); }
 }
+/* ================= Bring your training history: viele Läufe aus anderen Apps auf einmal =================
+   Quellen: Garmin-Connect-Liste (CSV), Strava-Archiv (ZIP oder activities.csv), mehrere GPX/FIT/TCX-Dateien,
+   oder Strava-Verbindung (ganzes Jahr). Die Logik steckt in run.js (readHistoryCsv, planImport), getestet in tests/history.test.js. */
+const HIST_STRAVA = "novafit-hist-strava";
+let HI = null;      // laufender Import: {fixed, csvs, otherFixed, badFixed, from, miles, range, walks, noAll, done}
+function impChooserHtml(){
+  const st = STRAVA_CFG || stOn();
+  const card = (icon, title, sub, inner) => `<div class="hsrc">${rico(icon)}<div><b>${title}</b><small>${sub}</small>${inner}</div></div>`;
+  const pick = (label, multi) => `<label class="secondary hpick"><input type="file" class="histin" ${multi ? "multiple" : ""} hidden>${label}</label>`;
+  return `<div class="hsrcs">
+    ${card("watch", "Garmin Connect", "Your activity list as a CSV file", `${pick("Choose CSV file")}
+      <details class="runnote"><summary>How do I get it?</summary><ol class="hsteps"><li>Open <b>connect.garmin.com</b> on a computer or in the phone's browser.</li><li><b>Activities → All Activities</b>, filter to <i>Running</i> if you like.</li><li>Scroll down until all runs of this year are loaded.</li><li><b>Export CSV</b> at the top right.</li></ol></details>`)}
+    ${card("out", "Strava archive", "The ZIP Strava emails you, or activities.csv from it", `${pick("Choose ZIP or CSV")}
+      <details class="runnote"><summary>How do I get it?</summary><ol class="hsteps"><li>Open <b>strava.com</b> → <b>Settings → My Account</b>.</li><li><b>Download or Delete Your Account → Get Started</b>.</li><li><b>Request Your Archive</b>. Strava emails a download link, usually within a few hours.</li><li>Save the ZIP to Files and choose it here.</li></ol></details>`)}
+    ${st ? card("check", stOn() ? "Strava · connected" : "Connect Strava", "Gets all your runs since 1 January, no download needed", `<button class="secondary hpick" data-act="histstrava">${stOn() ? "Get this year from Strava" : "Connect and get this year"}</button>`) : ""}
+    ${card("fit", "Files from your watch", "GPX, FIT or TCX, choose several at once (Polar, Coros, Suunto …)", pick("Choose files", true))}
+  </div>`;
+}
+function impSheet(){
+  sheet(`<h3>Bring your training history</h3><p class="small muted" style="margin:0">Already running with another app? Bring your runs into NOVAFit, so your stats, calendar and badges start where you are. Nothing is uploaded: the files are read on this phone.</p>${impChooserHtml()}<button class="secondary" data-act="closesheet">Close</button>`);
+}
+/* gepackte Daten entpacken (ZIP-Eintrag mit Methode 0 oder 8, oder .gz) */
+async function impUnpack(u8, method){ return method===0 ? u8 : method===8 ? unpack(u8, "deflate-raw") : Promise.reject(new Error("This ZIP is packed in a way NOVAFit can't open. Unpack it first.")); }
+const fileBytes = async (f, a, b) => new Uint8Array(await f.slice(a, b).arrayBuffer());
+/* Aus einem (auch sehr großen) ZIP nur die Liste der Dateien und die nötigen Einträge lesen */
+async function impZip(file, out){
+  const end = NFRun.zipEnd(await fileBytes(file, Math.max(0, file.size - 65557), file.size));
+  const list = NFRun.zipList(await fileBytes(file, end.cdOffset, end.cdOffset + end.cdSize));
+  const read = async e => { const lh = await fileBytes(file, e.lho, e.lho + 30), off = e.lho + NFRun.zipDataOffset(lh); return impUnpack(await fileBytes(file, off, off + e.csize), e.method); };
+  const csv = list.find(e => /(^|\/)activities\.csv$/i.test(e.name)) || list.find(e => /\.csv$/i.test(e.name));
+  if(csv){ out.csvs.push(new TextDecoder().decode(await read(csv))); return; }
+  const acts = list.filter(e => /\.(fit|gpx|tcx)(\.gz)?$/i.test(e.name)).slice(0, 1000);
+  if(!acts.length) throw new Error("There is no activity list or activity file in this ZIP.");
+  for(const e of acts){ let u8 = await read(e); if(/\.gz$/i.test(e.name)) u8 = await unpack(u8, "gzip"); impActivity(e.name, u8, out); }
+}
+function impActivity(name, u8, out){
+  try{ out.fixed.push(NFRun.fileItem(NFRun.parseActivity(NFRun.fileKind(name, u8), u8), alsterKm())); }
+  catch(e){ if(/not a run/.test(e.message)) out.otherFixed++; else out.badFixed++; }
+}
+async function impFiles(list){
+  const files = [...(list||[])]; if(!files.length) return;
+  sheet(`<div class="ocrwait"><div class="spin"></div><h3>Reading your history …</h3><p class="muted small" id="histp" style="margin:0">${files.length>1 ? files.length + " files" : esc(files[0].name)}</p></div>`);
+  const out = {fixed:[], csvs:[], otherFixed:0, badFixed:0, errors:[]};
+  for(let i=0;i<files.length;i++){
+    const f = files[i], el = $("#histp"); if(el && files.length>1) el.textContent = `File ${i+1} of ${files.length}`;
+    try{
+      const head = await fileBytes(f, 0, 600), kind = NFRun.fileKind(f.name, head);
+      if(kind==="zip") await impZip(f, out);
+      else if(f.size > NFRun.MAX_FILE_MB*1048576) throw new Error("This file is too big. Choose a single activity list or activity file.");
+      else if(kind==="gz"){ const u8 = await unpack(await fileBytes(f, 0, f.size), "gzip"); const n = f.name.replace(/\.gz$/i, ""); if(/\.csv$/i.test(n)) out.csvs.push(new TextDecoder().decode(u8)); else impActivity(n, u8, out); }
+      else if(kind==="gpx" || kind==="tcx" || kind==="fit") impActivity(f.name, await fileBytes(f, 0, f.size), out);
+      else out.csvs.push(await f.text());
+    }catch(e){ out.errors.push(`${f.name}: ${e && e.message || "can't be read"}`); }
+  }
+  // CSV-Dateien jetzt schon prüfen, damit ein falsches Format sofort eine klare Meldung bekommt
+  out.csvs = out.csvs.filter((t, i) => { try{ NFRun.readHistoryCsv(t); return true; }catch(e){ out.errors.push(e.message); return false; } });
+  if(!out.fixed.length && !out.csvs.length) return impErr(out.errors[0] || "No runs found in the chosen files.", out.otherFixed);
+  HI = Object.assign(out, {from: files.length>1 ? `${files.length} files` : files[0].name, miles:false, range:"year", walks:false, noAll:false});
+  impPreview();
+}
+function impErr(msg, other){
+  sheet(`<h3>Couldn't import</h3><p class="muted">${esc(msg)}${other ? ` ${other} ${other===1 ? "activity was" : "activities were"} not a run.` : ""}</p><button class="primary run" data-act="histback">Choose another file</button><button class="secondary" data-act="closesheet">Close</button>`);
+}
+async function impStrava(){
+  if(!stOn()){ try{ localStorage.setItem(HIST_STRAVA, "1"); }catch(e){} return stConnect(); }
+  impStravaYear();
+}
+/* Strava: alle Läufe seit 1. Januar bzw. der letzten 12 Monate holen (100 pro Seite) */
+async function impStravaYear(){
+  sheet(`<div class="ocrwait"><div class="spin"></div><h3>Getting your runs from Strava …</h3><p class="muted small" id="histp" style="margin:0"></p></div>`);
+  const after = Math.floor(Math.min(NFRun.rangeStart("year"), NFRun.rangeStart("12m"))/1000), all = [];
+  try{
+    for(let page=1; page<=20; page++){
+      const a = await stActs(after, page); all.push(...a);
+      const el = $("#histp"); if(el) el.textContent = `${all.length} activities so far`;
+      if(a.length < 100) break;
+    }
+  }catch(e){ return impErr(stErrTxt(e)); }
+  const fixed = NFRun.stravaItems(all, alsterKm());
+  HI = {fixed, csvs:[], otherFixed: all.length - fixed.length, badFixed:0, errors:[], from:"Strava", miles:false, range:"year", walks:false, noAll:true};
+  impPreview();
+}
+/* Alle Einträge des laufenden Imports (Garmin-CSV hängt von km/Meilen ab) */
+function impAll(){
+  const items = HI.fixed.slice(); let other = HI.otherFixed, bad = HI.badFixed, garmin = false;
+  HI.csvs.forEach(t => { const r = NFRun.readHistoryCsv(t, {miles:HI.miles, alsterKm:alsterKm()}); items.push(...r.items); other += r.other; bad += r.bad; if(r.source==="garmin") garmin = true; });
+  return {items, other, bad, garmin};
+}
+const impDay = t => new Date(t).toLocaleDateString("en-GB", {day:"numeric", month:"short", year:"numeric"});
+function impPreview(){
+  const A = impAll(), p = NFRun.planImport(S.history, A.items, {range:HI.range, walks:HI.walks});
+  const seg = (act, cur, opts) => `<div class="seg theme" style="grid-template-columns:repeat(${opts.length},1fr)">${opts.map(([k,l]) => `<button data-act="${act}" data-v="${k}" aria-pressed="${cur===k}">${l}</button>`).join("")}</div>`;
+  const nb = A.bad + p.noDate, ne = HI.errors.length;
+  const skip = [p.dup && `${p.dup} already in NOVAFit`, A.other && `${A.other} ${A.other===1 ? "ride or other sport" : "rides and other sports"} left out`,
+    p.outside && `${p.outside} outside the time range`, nb && `${nb} without date, time or distance`, ne && `${ne} ${ne===1 ? "file" : "files"} couldn't be read`].filter(Boolean);
+  sheet(`<h3>Your training history</h3><p class="small muted" style="margin:0">From ${esc(HI.from)}</p>
+    <div class="hsum"><b class="tnum">${p.add.length}</b> ${p.add.length===1 ? "run" : "runs"} · <b class="tnum">${fmt(p.km)}</b> km<small>${p.add.length ? `${impDay(p.first)} – ${impDay(p.last)}` : "Nothing new in this time range"}</small></div>
+    <div><span class="lbl">Time range</span>${seg("histrange", HI.range, [["year", "This year"], ["12m", "Last 12 months"]].concat(HI.noAll ? [] : [["all", "Everything"]]))}</div>
+    ${p.walks ? `<label class="hchk"><input type="checkbox" data-act="histwalks"${HI.walks ? " checked" : ""}> Include ${p.walks} ${p.walks===1 ? "walk" : "walks"}</label>` : ""}
+    ${A.garmin ? `<div><span class="lbl">Distances in the Garmin file</span>${seg("histunit", HI.miles ? "mi" : "km", [["km", "Kilometres"], ["mi", "Miles"]])}</div>` : ""}
+    ${skip.length ? `<ul class="hskip">${skip.map(x => `<li>${x}</li>`).join("")}</ul>` : ""}
+    <button class="primary run" data-act="histadd"${p.add.length ? "" : " disabled"}>${p.add.length ? `Add ${p.add.length} ${p.add.length===1 ? "run" : "runs"}` : "Nothing to add"}</button>
+    <button class="secondary" data-act="histback">Choose something else</button>`);
+}
+function impAdd(){
+  const p = NFRun.planImport(S.history, impAll().items, {range:HI.range, walks:HI.walks});
+  if(!p.add.length) return;
+  S.history.push(...p.add); S.history.sort((x, y) => x.start - y.start);
+  const fresh = checkBadges(false);
+  save(); syncTags();
+  HI.done = {n:p.add.length, km:p.km, badges:fresh.length, ids:p.add.map(e => e.id)};
+  if(screen==="onboard"){ OB.hist = HI.done; closeSheet(); renderOnboard(); return; }
+  render();
+  sheet(`<h3>Welcome to your history 🎉</h3><p class="lead" style="margin:0"><b>${p.add.length} ${p.add.length===1 ? "run" : "runs"}</b> · ${fmt(p.km)} km added.</p>
+    <p class="muted small" style="margin:0">Your stats, calendar, running plan and reviews now include them.${fresh.length ? ` You also unlocked ${fresh.length} ${fresh.length===1 ? "badge" : "badges"}.` : ""}</p>
+    <button class="primary run" data-act="closesheet">Great</button><button class="secondary" data-act="histundo">Undo import</button>`);
+}
+/* Import rückgängig machen: genau die eben hinzugefügten Einträge entfernen */
+function impUndo(){
+  const d = HI && HI.done; if(!d) return;
+  const ids = new Set(d.ids);
+  S.history = S.history.filter(e => !ids.has(e.id));
+  save(); syncTags(); HI = null;
+  if(screen==="onboard"){ OB.hist = null; closeSheet(); renderOnboard(); } else { closeSheet(); render(); }
+  toast(`Import undone, ${d.n} ${d.n===1 ? "run" : "runs"} removed.`);
+}
+
 /* Lauf-Menü: Strava von Hand abgleichen und Läufe auswählen */
 let ST_LIST = [];
 async function stravaSheet(){
@@ -2696,6 +2839,7 @@ function settingsSheet(part){
 `],
     data: ["Your data", () => `
     <div><span class="lbl">Your data</span><div class="row2"><button class="secondary" data-act="export">Back up</button><button class="secondary" data-act="import">Load backup</button></div>
+      <button class="secondary" style="margin-top:8px;width:100%" data-act="impsheet">Import runs from other apps</button>
       <input type="file" id="importf" accept=".json,application/json" hidden>
       <p class="small" style="margin:8px 0 0" data-sync>${syncHtml()}</p></div>
 `],
@@ -4713,6 +4857,17 @@ function renderOnboard(){
           ${p.sessions.map(s => `<div class="ses"><b>${NFPlan.DAY_NAMES[s.day]}</b><span aria-hidden="true">${KICON[s.kind]}</span><span class="st">${esc(s.title)}${s.addon && MOB[s.addon.id] ? `<small class="addon">+ ${esc(MOB[s.addon.id].n.toLowerCase())} ${stepsMin(MOB[s.addon.id].steps)} min</small>` : ""}</span><em>${s.min} min</em></div>`).join("")}
           <button class="${p.best?"primary":"secondary"}" data-act="ob" data-do="choose" data-i="${i}">Choose this plan</button></article>`).join("")}</div>`;
       break;
+    case "history": {
+      const d = OB.hist;
+      h = `<div class="ob-top">${NF_MINI}<button type="button" class="txtbtn" data-act="ob" data-do="go" data-to="done">${d ? "Continue" : "Skip for now"}</button></div>
+        <h2>Bring your training history</h2>
+        <p class="lead">Already running with Garmin, Strava or another app? Bring your runs into NOVAFit, so your stats, calendar and badges start where you are.</p>
+        ${d ? `<div class="hsum done"><b class="tnum">${d.n}</b> ${d.n===1 ? "run" : "runs"} · <b class="tnum">${fmt(d.km)}</b> km added ✓<small>${d.badges ? `${d.badges} ${d.badges===1 ? "badge" : "badges"} unlocked · ` : ""}<button type="button" class="txtbtn" data-act="histundo">Undo</button></small></div>` : ""}
+        ${impChooserHtml()}
+        <p class="note">Nothing is uploaded: the files are read on this phone. You can do this later too: tap the button top right, then “Import runs from other apps”.</p>
+        <div class="foot"><button class="${d ? "primary" : "secondary"}" data-act="ob" data-do="go" data-to="done">${d ? "Continue" : "Skip for now"}</button></div>`;
+      break;
+    }
     case "done": {
       const p = S.settings.plan;
       h = `<div class="ob-top">${NF_MINI}</div><h2>You're all set${firstName() ? ", " + esc(firstName()) : ""}.</h2>
@@ -4842,7 +4997,7 @@ function obAct(b){
       }
       S.settings.plan = Object.assign({chosen:Date.now()}, p);
       S.settings.answers = clone(a); S.settings.goal = p.days;
-      save(); obGo("done"); break;
+      save(); obGo(OB.mode==="edit" ? "done" : "history"); break;
     }
     case "forgot":
       sheet(`<h3>Forgot your password?</h3><p class="muted">Your account only exists on this phone, so the password can't be reset by email. You can create a new profile instead: your training history stays, only name, email and password are replaced.</p>
@@ -4956,6 +5111,14 @@ document.addEventListener("click", async ev => {
     case "strava": stravaSheet(); break;
     case "stadd": stravaAddSel(); break;
     case "stoff": stravaOff(); break;
+    case "impsheet": impSheet(); break;
+    case "histstrava": impStrava(); break;
+    case "histrange": if(HI){ HI.range = b.dataset.v; impPreview(); } break;
+    case "histunit": if(HI){ HI.miles = b.dataset.v==="mi"; impPreview(); } break;
+    case "histwalks": if(HI){ HI.walks = b.checked; impPreview(); } break;
+    case "histadd": impAdd(); break;
+    case "histundo": impUndo(); break;
+    case "histback": HI = null; if(screen==="onboard") closeSheet(); else impSheet(); break;
     case "stauto": { const t = stGet(); if(t){ t.auto = b.dataset.v==="1"; stSet(t); } settingsSheet(); break; }
     case "shotcancel": shotDrop(); closeSheet(); break;
     case "kmalster": { const k = $("#run-km"); S.active.run.km = fmt(alsterKm()); if(k){ k.value = S.active.run.km; k.dispatchEvent(new Event("input", {bubbles:true})); } save(); break; }
@@ -5170,6 +5333,7 @@ document.addEventListener("change", ev => {
 /* Texterkennung schon beim Antippen laden, während die Fotoauswahl offen ist */
 document.addEventListener("pointerdown", ev => { if(ev.target.closest && ev.target.closest(".shotcta") && navigator.onLine!==false) ocrWorker().catch(() => {}); });
 document.addEventListener("change", ev => { if(ev.target.id==="runshot"){ const f = ev.target.files && ev.target.files[0]; ev.target.value = ""; runShot(f); } });
+document.addEventListener("change", ev => { if(ev.target.classList && ev.target.classList.contains("histin")){ const f = [...(ev.target.files||[])]; ev.target.value = ""; impFiles(f); } });
 document.addEventListener("change", ev => { if(ev.target.id==="runfile"){ const f = ev.target.files && ev.target.files[0]; ev.target.value = ""; runFile(f); } });
 document.addEventListener("input", ev => {
   const t = ev.target, k = t.dataset.in; if(!k) return;

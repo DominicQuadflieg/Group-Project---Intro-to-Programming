@@ -5,7 +5,7 @@
    GET                                   → {clientId}            (public, needed for the Strava login page)
    POST {action:"token", code}           → tokens after the runner allowed access
    POST {action:"refresh", refresh_token}→ new tokens (access tokens expire after 6 hours)
-   POST {action:"activities", access_token, after} → the runner's activities since `after` (Unix seconds)
+   POST {action:"activities", access_token, after, page} → the runner's activities since `after` (Unix seconds), 100 per page
    POST {action:"deauth", access_token}  → disconnect NOVAFit from Strava
 
    Tokens are passed through and never stored or logged here. */
@@ -69,7 +69,10 @@ export default async function handler(req) {
     }
     const after = Math.floor(Number(b.after) || 0);
     if (after < 0 || after > Date.now() / 1000) return json({ error: "bad_request" }, 400);
-    const r = await strava(`/api/v3/athlete/activities?after=${after}&per_page=60`, { headers: auth });
+    // page: 1, 2, 3 … for a whole year of runs (100 activities per page)
+    const page = b.page == null ? 1 : Math.floor(Number(b.page));
+    if (!(page >= 1 && page <= 50)) return json({ error: "bad_request" }, 400);
+    const r = await strava(`/api/v3/athlete/activities?after=${after}&page=${page}&per_page=100`, { headers: auth });
     if (!r.ok) return fail(r);
     return json({ activities: (Array.isArray(r.body) ? r.body : []).map(pickActivity) });
   }

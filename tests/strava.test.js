@@ -101,6 +101,15 @@ test("function: activities are fetched with the runner's token", async () => {
   });
 });
 
+test("function: a whole year comes page by page", async () => {
+  await withFn(() => [200, []], async (call, calls) => {
+    assert.equal((await call({ action: "activities", access_token: TOK, after: 1767225600, page: 3 })).status, 200);
+    assert.match(calls[0].url, /page=3&per_page=100/);
+    assert.equal((await call({ action: "activities", access_token: TOK, after: 0, page: 0 })).status, 400);
+    assert.equal((await call({ action: "activities", access_token: TOK, after: 0, page: 99 })).status, 400);
+  });
+});
+
 test("function: expired token and rate limit are passed on clearly", async () => {
   await withFn(() => [401, { message: "Authorization Error" }], async (call) => {
     assert.deepEqual(await call({ action: "activities", access_token: TOK, after: 0 }), { status: 401, body: { error: "unauthorized" } });
