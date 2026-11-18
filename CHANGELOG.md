@@ -2,6 +2,12 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – New layout: Today · Train · Progress, "You" page
+
+- Bottom tabs instead of one long home page. **Today**: the photo card, three big numbers (sessions this week opens the weekly review, last run, weeks in a row), "What's next" with the next two sessions of your plan, a note before and during exam weeks, and your last session. **Train**: your plan week, all sessions as photo tiles, more workouts, exercise library, running plan, yoga and short routines. **Progress**: numbers for the month, all reviews (this week, earlier weeks, this and last month, the year), strength, running, calendar, badges and history
+- The NOVAFit header with the shrinking sign stays; its menu button now opens **You**: name, week ring, numbers, and every setting grouped (You, Training, Connected, App, Your data). Each row opens only its own settings
+- "Photos for reviews" is now "Your photos" and says where they show (big card on Today and the reviews); small tiles use fixed photos per kind of training
+
 ## Unreleased – Tension check before and after yoga
 
 - Before a yoga session or study break the app asks "How tense do you feel right now?" (1 relaxed to 5 very tense), and again afterwards: "From 4 down to 2. Nice." Skip is always one tap away, "Don't ask me again" turns it off, the yoga screen turns it back on
