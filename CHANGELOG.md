@@ -4,7 +4,7 @@ Alle Versionen der App, die neueste oben.
 
 ## v2.12 – Yoga that follows your goals, flexibility check
 
-- The yoga goals from the questionnaire now steer the suggestion: “Sleep better” brings Wind down from 20:00, “Less exam stress” the study break in the afternoon, “Desk-proof back” Back and neck, “Touch your toes” After your run (calves and hamstrings). Time of day and today's run still come first
+- The yoga goals from the questionnaire now steer the suggestion: “Sleep better” brings Wind down from 20:00, “Exam-week stress relief” the study break in the afternoon, “Desk-proof back” Back and neck, “Touch your toes” After your run (calves and hamstrings). Time of day and today's run still come first
 - The yoga screen says why: “For your goal: touch your toes · …”
 - A suggestion is now preselected even if you picked another session before; without a suggestion your last pick stays
 - “Sleep better”: from 20:00 the Today tab shows “Wind down tonight” with a start button, until you did yoga that day
