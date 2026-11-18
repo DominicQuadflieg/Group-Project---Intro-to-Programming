@@ -2,6 +2,10 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Version history in the README
+
+- New section "Version history" in `README.md`: every version from v1.0 to v2.10 with date, what changed, the commit and the pull request, plus what came after v2.10
+
 ## v2.10 – Bring your training history
 
 - New step after choosing a plan: **Bring your training history**. Runs from other apps come into NOVAFit, so stats, calendar, badges, running plan and reviews start where you are (can be skipped)
