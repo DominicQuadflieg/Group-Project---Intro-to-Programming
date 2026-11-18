@@ -756,6 +756,63 @@ h2.sec::after{content:"";display:block;width:36px;height:6px;margin-top:9px;back
 /* ===== v2.2 Nova-Design: Fotos, Karten mit Bild, Farbblöcke, Menü, Footer ===== */
 .nf .iconbtn.hb{border:0;border-radius:0;background:none;width:46px;color:#000}
 .nf .iconbtn.hb svg{width:30px;height:24px}
+/* ===== Layout A: Today · Train · Progress tabs, "You" page ===== */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;justify-content:center;background:var(--surface);border-top:1px solid var(--line);padding:0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+.tabbar button{flex:1;max-width:186px;display:flex;flex-direction:column;align-items:center;gap:3px;min-height:58px;padding:7px 0 6px;border:0;border-top:3px solid transparent;background:none;color:var(--muted);font:600 11px var(--num);cursor:pointer}
+.tabbar button[aria-current="page"]{color:var(--ink);font-weight:800;border-top-color:var(--ink)}
+.tabbar svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tabbar button:focus-visible{outline:3px solid var(--run);outline-offset:-3px}
+.app:has(.tabbar) .pfoot{padding-bottom:calc(100px + env(safe-area-inset-bottom))}
+.app:has(.tabbar) ~ .toast,.app:has(.tabbar) .toast{bottom:calc(env(safe-area-inset-bottom) + 84px)}
+.counters{display:flex;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:14px 0;margin:0 -4px}
+.ctr{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;padding:0 10px;border:0;border-left:1px solid var(--line);background:none;color:var(--ink);text-align:left;font:inherit}
+.ctr:first-child{border-left:0}
+button.ctr{cursor:pointer}
+.ctr b{font:900 28px/1.1 var(--display)}
+.ctr span{font-size:11px;line-height:1.3;color:var(--muted)}
+.sechead{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.sechead .more{border:0;background:none;color:var(--ink);font:800 11px var(--num);letter-spacing:.14em;text-transform:uppercase;cursor:pointer;padding:8px 0;min-height:44px}
+.ntiles{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.ntile,.ttile{display:flex;flex-direction:column;gap:6px;padding:0;border:0;background:none;color:var(--ink);text-align:left;font:inherit;cursor:pointer;min-width:0}
+.ntile img,.ttile img{width:100%;height:92px;object-fit:cover;display:block;background:var(--line)}
+.ttile img{height:108px}
+.nmeta{display:flex;justify-content:space-between;gap:6px;font:800 10px var(--num);letter-spacing:.14em;text-transform:uppercase;color:var(--run)}
+.nmeta span+span{color:var(--muted)}
+.nmeta .up{color:var(--hl, var(--run))}
+.ntile b,.ttile b{font-size:14px;line-height:1.3}
+.ttile b{font-size:16px}
+.ttile small{font-size:12px;color:var(--muted)}
+.ttile .go{font:800 10px var(--num);letter-spacing:.14em;text-transform:uppercase}
+.ttiles{display:grid;grid-template-columns:1fr 1fr;gap:18px 14px}
+.tlinks{display:flex;flex-direction:column;gap:8px;margin-top:16px}
+.note{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;margin-top:14px;padding:11px 12px;border:0;background:var(--accent-soft, var(--bg));color:var(--ink);text-align:left;font:13px/1.4 var(--body);cursor:pointer;min-height:44px}
+.lastrow{display:flex;justify-content:space-between;align-items:center;width:100%;padding:12px 0;border:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:none;color:var(--ink);text-align:left;font:inherit;cursor:pointer}
+.lastrow span{display:flex;flex-direction:column;gap:2px}
+.lastrow small{font:800 10px var(--num);letter-spacing:.14em;text-transform:uppercase;color:var(--run)}
+.lastrow b{font-size:15px}
+.tabhead{display:flex;flex-direction:column;gap:4px}
+.tabhead .eyebrow{font:800 11px var(--num);letter-spacing:.16em;text-transform:uppercase}
+.tabhead h1{margin:0;font:900 32px/1.1 var(--display)}
+.revlist{display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.revrow{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:10px;min-height:52px;padding:6px 0;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink);text-align:left;font:inherit;cursor:pointer}
+.revrow b{font:700 17px var(--display)}
+.revrow span{font-size:12px;color:var(--muted)}
+.mehead{display:flex;align-items:center;gap:16px}
+.mehead h1{margin:0;font:900 26px/1.15 var(--display)}
+.mehead p{margin:2px 0 0;font-size:13px;color:var(--muted)}
+.meav{position:relative;width:72px;height:72px;flex:none;display:grid;place-items:center}
+.meav svg{position:absolute;inset:0;width:72px;height:72px;transform:rotate(-90deg)}
+.meav circle{fill:none;stroke-width:3.5}
+.meav .trk{stroke:var(--line)}
+.meav .val{stroke:var(--run);stroke-linecap:round}
+.meav b{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;background:var(--ink);color:var(--bg);font:800 21px var(--num)}
+.megrp h2.eyeb{margin:0 0 6px;font:800 11px var(--num);letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.megrp > div{border-top:1px solid var(--line)}
+.merow{display:flex;align-items:center;gap:10px;width:100%;min-height:50px;padding:0 2px;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink);text-align:left;font:15px var(--body);cursor:pointer}
+.merow > span:first-child{flex:1}
+.merow small{font-size:13px;color:var(--muted)}
+.merow .chev{color:var(--muted);font-size:18px}
+.merow:focus-visible,.revrow:focus-visible,.ntile:focus-visible,.ttile:focus-visible,.ctr:focus-visible,.note:focus-visible,.lastrow:focus-visible{outline:3px solid var(--run);outline-offset:2px}
 .hero.photo{min-height:360px;background:#0b1d33;padding-bottom:50px}
 .hero .hph img{filter:none}
 .hero .hph .hblur{display:none}
@@ -1063,6 +1120,8 @@ let S = (() => { try{ return normalize(JSON.parse(localStorage.getItem(LS)||"nul
 addCustomToEXN();
 registerOwn();
 let screen = "home", summary = null, rest = null;
+// Home tabs: today · train · progress (kept for this visit only)
+let TAB = (() => { try{ return sessionStorage.getItem("nf-tab") || "today"; }catch(e){ return "today"; } })();
 
 let ref = null, saveTimer = null, writing = false, dirty = false, lastSent = "";
 /* Speicherort: device = installierte App (auf dem Handy), checking, cloud = Claude-Konto, local = Claude-Link ohne Schreibrecht */
@@ -1344,18 +1403,29 @@ const PICO = {
   kraft: pico('<path d="M4 15h26M7 9v12M11 7v16M23 7v16M27 9v12"/>')
 };
 const NF_MINI = `<svg class="pf-mark" viewBox="0 -10 469 110" role="img" aria-label="NOVAFit"><path fill="currentColor" d="M0 100V0H22L58 60V0H80V100H58L22 40V100Z"/><rect fill="currentColor" x="92" y="78" width="80" height="22"/><circle cx="132" cy="32" r="30.5" fill="none" stroke="#4d9be6" stroke-width="19"/><g fill="currentColor" transform="translate(184 0)"><path d="M0 0H23L43 66L63 0H86L54 100H32Z"/><path d="M100 0H122L154 100H131L111 34L91 100H68Z"/><g transform="translate(172 0)"><rect x="0" y="0" width="7" height="100"/><rect x="0" y="0" width="50" height="7"/><rect x="0" y="45" width="42" height="7"/><rect x="64" y="34" width="7" height="66"/><circle cx="67.5" cy="15" r="5.5"/><rect x="94" y="8" width="7" height="92"/><rect x="83" y="34" width="30" height="7"/></g></g></svg>`;
-function menuSheet(){
-  sheet(`<h3>Menu</h3><nav class="pmenu" aria-label="Menu">
-    <button data-act="settings">Settings <small>Goal, profile, reminders</small></button>
-    <button data-act="ob" data-do="edit">My plan <small>Goals, split and training week</small></button>
-    <button data-act="library">Exercise library <small>${NFEx.LIBRARY.filter(e => !e.hidden).length + customList().length} exercises, add your own</small></button>
-    <button data-act="workouts">All workouts <small>Full body, upper, lower, push, pull, legs</small></button>
-    <button data-act="runplan">Running plan <small>Goal and weeks</small></button>
-    <button data-act="goto" data-id="sec-cal">Calendar <small>Training days</small></button>
-    <button data-act="goto" data-id="sec-badges">Badges</button>
-    <button data-act="export">Create backup <small>Export your data</small></button>
-    <button data-act="menutheme">Dark mode <small>${isDark() ? "on" : "off"}</small></button>
-  </nav><button class="secondary" data-act="closesheet">Close</button>`);
+/* ================= "You": profile and settings (opened with the button top right) ================= */
+function initials(n){ const w = String(n||"").trim().split(/\s+/).filter(Boolean); return ((w[0]||"Y")[0] + (w.length>1 ? w[w.length-1][0] : "")).toUpperCase(); }
+function renderMe(){
+  const st = stats(), set = S.settings, pr = set.profile || {}, name = pr.name || "You";
+  const pct = Math.min(1, st.thisWeek / Math.max(1, st.goal)), C = 2*Math.PI*33;
+  const got = BADGES.filter(x => S.badges && S.badges[x.id]).length;
+  const row = (attrs, label, val) => `<button class="merow" ${attrs}><span>${label}</span>${val!=null && val!=="" ? `<small>${esc(String(val))}</small>` : ""}<span class="chev" aria-hidden="true">›</span></button>`;
+  const grp = (t, rows) => `<section class="megrp"><h2 class="eyeb">${t}</h2><div>${rows}</div></section>`;
+  const sp = k => `data-act="setp" data-p="${k}"`;
+  const nPh = (PHOTOS||[]).length;
+  let h = nfHeadHtml();
+  h += `<section class="mehead"><span class="meav" role="img" aria-label="${st.thisWeek} of ${st.goal} sessions this week"><svg viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="33" class="trk"/><circle cx="36" cy="36" r="33" class="val" stroke-dasharray="${(C*pct).toFixed(1)} ${C.toFixed(1)}"/></svg><b>${esc(initials(name))}</b></span>
+    <div><h1>${esc(name)}</h1><p>Nova SBE${set.plan ? " · " + esc(set.plan.name) : ""}</p><button class="linkbtn" data-act="ob" data-do="edit">Edit profile and plan</button></div></section>`;
+  h += countersHtml([[`${st.thisWeek}/${st.goal}`, "this week"], [st.streak, st.streak===1 ? "week in a row" : "weeks in a row"], [got, got===1 ? "badge" : "badges"]]);
+  h += grp("You", row(sp("account"), "Account", pr.email || "") + row(sp("profile"), "Profile and body", [num(set.bodyKg)>0 ? fmt(num(set.bodyKg)) + " kg" : "", set.body && set.body.cm ? set.body.cm + " cm" : ""].filter(Boolean).join(" · ")) + row(sp("goal"), "Weekly goal", `${set.goal}×`) + row('data-act="ob" data-do="edit"', "My plan", set.plan ? set.plan.name : "Not set") + row('data-act="runplan"', "Running plan", set.runPlan ? "Active" : "Not set"));
+  h += grp("Training", row('data-act="library"', "Exercise library", `${NFEx.LIBRARY.filter(e => !e.hidden).length + customList().length}`) + row('data-act="workouts"', "All workouts", "") + row('data-act="goto" data-id="sec-cal"', "Calendar", "") + row('data-act="goto" data-id="sec-badges"', "Badges", `${got} / ${BADGES.length}`));
+  h += grp("Connected", (stravaSettings() ? row(sp("strava"), "Strava", stGet() ? "Connected" : "Not connected") : "") + row(sp("push"), "Notifications", push==="on" ? "On" : "Off") + row(sp("cal"), "Calendar reminders", ""));
+  h += grp("App", row(sp("theme"), "Appearance", {auto:"Automatic", light:"Light", dark:"Dark"}[set.theme] || "Automatic") + row(sp("sound"), "Sound", set.restSound===false ? "Off" : "On") + row(sp("weather"), "Running weather", set.wxGeo===true ? "Where I am" : NFRun.WX_HOME.place) + row(sp("photos"), "Your photos", nPh ? `${nPh} ${nPh===1?"photo":"photos"}` : "Nova photos"));
+  h += grp("Your data", row(sp("data"), "Back up and restore", ""));
+  h += footerHtml() + tabBarHtml();
+  $("#app").innerHTML = h;
+  nfMount();
+  if(!PHOTOS) photoUrls().then(ps => { if(ps.length && screen==="me") renderMe(); }).catch(() => {});
 }
 function footerHtml(){
   return `<footer class="pfoot"><div class="pf-in">${NF_MINI}<div class="pf-cols">
@@ -1378,10 +1448,58 @@ window.addEventListener("scroll", () => { const b = document.querySelector(".btt
 function renderHome(){
   wxLoad();
   const st = stats();
-  let h = `<header class="nf" id="nfhead"><div class="nf-in">${NF_MARK}
-    <div class="topbtns nf-btns"><button class="iconbtn hb" data-act="menu" aria-label="Menu" aria-haspopup="dialog">${HB_ICON}</button></div></div></header>`;
-  h += heroHtml(st);
-
+  let h = nfHeadHtml();
+  if(TAB==="train") h += trainTabHtml(st);
+  else if(TAB==="progress") h += progressTabHtml(st);
+  else h += todayTabHtml(st);
+  h += footerHtml() + tabBarHtml();
+  $("#app").innerHTML = h;
+  nfMount();
+  if(TAB==="today") heroPhotos();
+  revealOnce();
+}
+// The NOVAFit header: the sign shrinks while scrolling; the button opens "You" (profile and settings)
+function nfHeadHtml(){
+  return `<header class="nf" id="nfhead"><div class="nf-in">${NF_MARK}
+    <div class="topbtns nf-btns"><button class="iconbtn hb" data-act="menu" aria-label="${screen==="me" ? "Close profile and settings" : "You: profile and settings"}" aria-expanded="${screen==="me"}">${HB_ICON}</button></div></div></header>`;
+}
+const TAB_ICO = {
+  today:'<path d="M4 5h16v15H4z"/><path d="M4 10h16M9 3v4M15 3v4"/>',
+  train:'<path d="M6 8v8M18 8v8M3 10v4M21 10v4M6 12h12"/>',
+  progress:'<path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/>'
+};
+function tabBarHtml(){
+  return `<nav class="tabbar" aria-label="Main">${[["today","Today"],["train","Train"],["progress","Progress"]].map(([k,l]) =>
+    `<button data-act="tab" data-t="${k}" aria-current="${screen==="home" && TAB===k ? "page" : "false"}"><svg viewBox="0 0 24 24" aria-hidden="true">${TAB_ICO[k]}</svg>${l}</button>`).join("")}</nav>`;
+}
+// A row of big numbers, like the research figures on the Nova website
+function countersHtml(items){
+  return `<div class="counters">${items.map(([n, l, act]) => act
+    ? `<button class="ctr" ${act}><b class="tnum">${n}</b><span>${l}</span></button>`
+    : `<div class="ctr"><b class="tnum">${n}</b><span>${l}</span></div>`).join("")}</div>`;
+}
+// Fixed photo per kind of training for the small tiles (your own photos stay on the big card and in reviews)
+const KIND_PHOTO = {s:"img/pack/gym-weights.jpg", r:"img/pack/campus-terrace.jpg", y:"img/pack/campus-glass-hall.jpg"};
+const kindOfW = t => { const k = (W[t]||{}).kind; return k==="run" ? "r" : k==="yoga" ? "y" : "s"; };
+const KIND_LBL = {s:"Strength", r:"Running", y:"Yoga"};
+// The next sessions of the plan after today, for "What's next"
+function upcoming(n){
+  const p = S.settings.plan; if(!p || !Array.isArray(p.sessions) || !p.sessions.length) return [];
+  const out = []; let t = Date.now() + 864e5;
+  for(let i=0; i<7 && out.length<n; i++, t += 864e5){
+    const se = NFPlan.sessionOn(p, t); if(se) out.push(Object.assign({at:t}, se));
+  }
+  return out;
+}
+function examNoteHtml(){
+  const now = Date.now();
+  if(NFYoga.examWeek(now)) return `<button class="note" data-act="study"><span><b>Exam weeks.</b> Take a 5-minute study break at your desk.</span><span aria-hidden="true">›</span></button>`;
+  const first = NFYoga.EXAM_WEEKS.map(([a]) => new Date(a + "T00:00").getTime()).filter(t => t > now).sort((a,b) => a-b)[0];
+  const days = first ? Math.ceil((first - now)/864e5) : 0;
+  return days>0 && days<=21 ? `<button class="note" data-act="study"><span><b>Finals start in ${days} ${days===1?"day":"days"}.</b> 5-minute study breaks are ready.</span><span aria-hidden="true">›</span></button>` : "";
+}
+function todayTabHtml(st){
+  let h = heroHtml(st);
   if(push==="install" && !S.settings.hideInstall){
     h += `<section class="card nudge"><b>Install as an app</b><p class="small muted" style="margin:0">In Safari, tap <b>Share</b> at the bottom and then <b>“Add to Home Screen”</b>. The app then opens full screen and can remind you to train.</p><button class="addset" data-act="hideinstall" style="align-self:flex-end">Hide</button></section>`;
   }else if(push==="off" && !S.settings.hidePush){
@@ -1389,26 +1507,50 @@ function renderHome(){
       <div class="row2"><button class="secondary" data-act="hidepush">Later</button><button class="primary" style="height:48px;font-size:17px" data-act="pushon">Allow</button></div></section>`;
   }
 
-  const left = Math.max(0, st.goal - st.thisWeek);
-  const title = left===0 ? "Weekly goal reached" : `${left} ${left===1?"session":"sessions"} to go`;
-  const sub = left===0 && st.thisWeek>0 ? "Everything from here on is a bonus." : `Goal: ${st.goal} sessions this week`;
-  h += `<section class="card goal">${ring(st.thisWeek, st.goal)}<div><h3>${title}</h3><p>${sub} · <button class="linkbtn" data-act="week" data-ws="${mondayOf(Date.now())}">Weekly review ›</button></p><div class="pills">
-    ${st.streak>0?`<span class="pill good">${st.streak} ${st.streak===1?"week":"weeks"} in a row</span>`:""}
-    ${ALL_W.map(t => st.typesWeek.has(t)?`<span class="pill ${kc(t)}">${W[t].name} ✓</span>`:"").join("")}
-  </div></div></section>`;
-
+  h += weekCardHtml() + recapCardHtml() + yearCardHtml();
+  const lr = S.history.filter(e => e.run && num(e.run.km)>0).slice(-1)[0];
+  h += countersHtml([
+    [`${st.thisWeek}/${st.goal}`, "sessions this week", `data-act="week" data-ws="${mondayOf(Date.now())}" aria-label="This week: ${st.thisWeek} of ${st.goal} sessions. Open weekly review"`],
+    lr ? [fmt(num(lr.run.km)), `km on ${WDAY[new Date(lr.start).getDay()]}`] : [fmt(st.kmMonth), "km this month"],
+    [st.streak, st.streak===1 ? "week in a row" : "weeks in a row"]
+  ]);
+  const up = upcoming(2);
+  const tiles = up.length ? up.map(se => `<button class="ntile" data-act="planday" data-d="${se.day}"><img src="${KIND_PHOTO[se.kind]||KIND_PHOTO.s}" alt="" loading="lazy"><span class="nmeta"><span>${KIND_LBL[se.kind]||""}</span><span>${new Date(se.at).toLocaleDateString("en-GB",{weekday:"short", day:"numeric"})}</span></span><b>${esc(se.title)} · ${se.min} min</b></button>`).join("")
+    : startKeys().slice(0,2).map(t => `<button class="ntile" data-act="start" data-t="${t}"><img src="${KIND_PHOTO[kindOfW(t)]}" alt="" loading="lazy"><span class="nmeta"><span>${KIND_LBL[kindOfW(t)]}</span><span>${st.lastBy[t] ? "last " + ago(st.lastBy[t]) : "new"}</span></span><b>${esc(W[t].name)}</b></button>`).join("");
+  h += `<section class="nextsec"><div class="sechead"><h2 class="sec">What's next</h2><button class="more" data-act="tab" data-t="train">${up.length ? "Full week" : "All sessions"} ›</button></div><div class="ntiles">${tiles}</div>${examNoteHtml()}</section>`;
+  const last = S.history.slice(-1)[0];
+  if(last){
+    const w = W[last.type]; let m = last.yoga ? `${fmt(num(last.yoga.min),0)} min${yogaLabel(last.yoga) ? " " + yogaLabel(last.yoga) : ""}` : last.run ? `${fmt(num(last.run.km))} km · ${hms(num(last.run.min))}` : `${fmt(Math.round(volOf(last)),0)} kg moved`;
+    h += `<section><div class="sechead"><h2 class="sec">Last time</h2><button class="more" data-act="tab" data-t="progress">Progress ›</button></div><button class="lastrow" data-act="hist" data-id="${last.id}"><span><small>${KIND_LBL[kindOfW(last.type)]} · ${dShort(last.start)}</small><b>${esc(w.name)} · ${m}</b></span><span aria-hidden="true">›</span></button></section>`;
+  }
+  return h;
+}
+function trainTabHtml(st){
+  let h = `<section class="tabhead"><p class="eyebrow">Choose your session</p><h1>Train</h1></section>`;
   h += planCardHtml();
-
-  h += `<section><h2 class="sec">Start training</h2><div class="starts">${startKeys().map(t => {
-    const w = W[t], last = st.lastBy[t];
-    return `<button class="start ${t===st.next?"next":""}" data-kind="${w.kind}" data-act="start" data-t="${t}">
-      <span class="simg simg-${w.kind}" aria-hidden="true"></span><span class="stripe"></span><span><b>${w.name}${t===st.next?`<span class="tag">Up next</span>`:""}</b><small>${t==="lauf" && S.settings.runPlan && planNext() ? `${planNext().today ? "Today per plan" : "Up next"}: ${esc(planNext().label)}` : w.desc}</small>
-      <small>${last?"Last done "+ago(last):"Not done yet"}</small>${t==="lauf"?`<small class="wxs" data-wx="short"${WX?"":" hidden"}>${wxShort()}</small>`:""}<span class="obtn" aria-hidden="true">Start</span></span></button>`;
-  }).join("")}</div><button class="optrow morew" data-act="workouts"><span>+ <b>More workouts</b> · full body, push, pull, legs or an empty session</span><span>${ALL_W.length - startKeys().length}</span></button>
-  <button class="optrow morew" data-act="library"><span>📚 <b>Exercise library</b> · ${NFEx.LIBRARY.filter(e => !e.hidden).length + customList().length} exercises</span><span>›</span></button></section>`;
-
-  h += yearCardHtml();
-
+  h += `<section><h2 class="sec">Start a session</h2><div class="ttiles">${startKeys().map(t => {
+    const w = W[t], last = st.lastBy[t], k = kindOfW(t);
+    return `<button class="ttile" data-act="start" data-t="${t}"><img src="${KIND_PHOTO[k]}" alt="" loading="lazy"><span class="nmeta"><span>${KIND_LBL[k]}</span>${t===st.next?`<span class="up">Up next</span>`:""}</span><b>${esc(w.name)}</b><small>${t==="lauf" ? `<span class="wxs" data-wx="short"${WX?"":" hidden"}>${wxShort()}</span>` : last ? "Last done " + ago(last) : "Not done yet"}</small><span class="go">Start ›</span></button>`;
+  }).join("")}</div>
+  <div class="tlinks"><button class="optrow morew" data-act="workouts"><span>+ <b>More workouts</b> · full body, push, pull, legs or an empty session</span><span>${ALL_W.length - startKeys().length}</span></button>
+  <button class="optrow morew" data-act="library"><span>📚 <b>Exercise library</b> · ${NFEx.LIBRARY.filter(e => !e.hidden).length + customList().length} exercises</span><span>›</span></button>
+  <button class="optrow morew" data-act="runplan"><span>🏃 <b>Running plan</b> · ${S.settings.runPlan ? "your goal and weeks" : "set a goal"}</span><span>›</span></button>
+  <button class="optrow morew" data-act="start" data-t="yoga"><span>🧘 <b>Yoga and short routines</b> · study break, mobility</span><span>›</span></button></div></section>`;
+  return h;
+}
+function progressTabHtml(st){
+  let h = `<section class="tabhead"><p class="eyebrow">How it's going</p><h1>Progress</h1></section>`;
+  const now = new Date(), mr = recapData(now.getFullYear(), now.getMonth());
+  h += countersHtml([[mr.n, `sessions in ${MONTHS[now.getMonth()]}`], [fmt(st.kmMonth), "km this month"], [tons(st.vol), "moved in total"]]);
+  // Reviews always reachable here; on Sunday evening they also show up on Today
+  const ws = mondayOf(Date.now()), pm = new Date(now.getFullYear(), now.getMonth()-1, 1);
+  const rows = [[`data-act="week" data-ws="${ws}"`, "This week", `${st.thisWeek} of ${st.goal} sessions`],
+    [`data-act="week" data-ws="${ws-WEEK}"`, "Last week", "and every week before"],
+    [`data-act="recap" data-y="${now.getFullYear()}" data-m="${now.getMonth()}"`, `${MONTHS[now.getMonth()]} so far`, "monthly review"],
+    [`data-act="recap" data-y="${pm.getFullYear()}" data-m="${pm.getMonth()}"`, `${MONTHS[pm.getMonth()]}`, "monthly review"]];
+  const yy = now.getMonth()===0 ? now.getFullYear()-1 : now.getFullYear();
+  if(yearData(yy).n) rows.push([`data-act="year" data-y="${yy}"`, `${yy}`, "your year in review"]);
+  h += `<section id="sec-reviews"><h2 class="sec">Reviews</h2><div class="revlist">${rows.map(([a, t, sub]) => `<button class="revrow" ${a}><b>${t}</b><span>${sub}</span><span aria-hidden="true">›</span></button>`).join("")}</div></section>`;
   // Stärker geworden + Diagramme
   h += `<section class="pblock c-kraft"><h2 class="sec">Getting stronger</h2><div class="card">${PICO.kraft}`;
   if(st.gains.length){
@@ -1452,11 +1594,7 @@ function renderHome(){
     return `<button class="hrow" data-act="hist" data-id="${e.id}"><span class="dot ${kc(w)}"></span><span><b>${w.name}</b><small>${dShort(e.start)} · ${m}</small></span><span class="muted">›</span></button>`;
   }).join("") : `<p class="empty">Your sessions show up here once you finish your first one.</p>`}</div></section>`;
 
-  h += footerHtml();
-  $("#app").innerHTML = h;
-  nfMount();
-  heroPhotos();
-  revealOnce();
+  return h;
 }
 
 /* ================= Training ================= */
@@ -2475,7 +2613,7 @@ function confetti(big){
 
 /* ================= Sheets: Verlauf, Einstellungen ================= */
 function sheet(html){ $("#layer").innerHTML = `<div class="scrim" data-act="scrim"><div class="sheet" role="dialog" aria-modal="true">${html}</div></div>`; }
-function closeSheet(){ $("#layer").innerHTML = ""; }
+function closeSheet(){ const was = !!$("#layer").innerHTML; $("#layer").innerHTML = ""; if(was && screen==="me") renderMe(); }
 
 function histSheet(id){
   const e = S.history.find(x => x.id===id); if(!e) return;
@@ -2489,11 +2627,19 @@ function histSheet(id){
   sheet(h);
 }
 
-function settingsSheet(){
+/* Settings in parts: the "You" page opens one part at a time; settingsSheet() without a part shows all */
+let SETP = "";
+function settingsSheet(part){
   const st = S.settings;
-  sheet(`<h3>Settings</h3>
+  if(part !== undefined) SETP = part;
+  const P = {
+    account: ["Account", () => `
     ${accountHtml()}
+`],
+    goal: ["Weekly goal", () => `
     <div><span class="lbl">Weekly goal</span><div class="stepper"><button data-act="goal" data-d="-1" aria-label="fewer">−</button><b id="goalv">${st.goal}</b><button data-act="goal" data-d="1" aria-label="more">+</button><span class="muted small">sessions per week</span></div></div>
+`],
+    profile: ["Profile and body", () => `
     <div class="card" style="background:var(--bg);border:0">
       <span class="lbl">My profile</span>
       <div class="rungrid"><div><label class="lbl" for="set-kg">Body weight</label><div class="field"><input inputmode="decimal" id="set-kg" data-in="bodykg" value="${esc(st.bodyKg)}" placeholder="e.g. 60"><span class="u">kg</span></div></div>
@@ -2501,39 +2647,61 @@ function settingsSheet(){
       <p class="small muted" style="margin:6px 0 10px">Only used to estimate calories after a session.</p>
       <span class="lbl">Show calories</span>
       <div class="seg theme" id="kcalseg">${[["1","On"],["0","Off"]].map(([k,l]) => `<button data-act="kcalshow" data-v="${k}" aria-pressed="${(st.showKcal!==false)===(k==="1")}">${l}</button>`).join("")}</div>
-      <span class="lbl" style="margin-top:14px">Sound when rest is over</span>
+    </div>
+`],
+    sound: ["Sound", () => `
+    <div class="card" style="background:var(--bg);border:0">
+      <span class="lbl" >Sound when rest is over</span>
       <div class="seg theme" id="restsoundseg">${[["1","On"],["0","Off"]].map(([k,l]) => `<button data-act="restsound" data-v="${k}" aria-pressed="${(st.restSound!==false)===(k==="1")}">${l}</button>`).join("")}</div>
       <p class="small muted" style="margin:6px 0 0">The screen stays on during a workout. On an iPhone set to silent the sound stays off too.</p>
     </div>
+`],
+    strava: ["Strava", () => `
     ${stravaSettings()}
+`],
+    weather: ["Running weather", () => `
     <div class="card" style="background:var(--bg);border:0">
       <span class="lbl">Running weather</span>
       <div class="seg theme" id="wxseg"><button data-act="wxhere" aria-pressed="${st.wxGeo===true}">Where I am</button><button data-act="wxhome" aria-pressed="${st.wxGeo!==true}">${NFRun.WX_HOME.place}</button></div>
       <p class="small muted" style="margin:6px 0 0">"Where I am" asks your phone for its location, rounded to about 1 km. It is only used for the forecast.</p>
     </div>
+`],
+    photos: ["Your photos", () => `
     <div class="card" style="background:var(--bg);border:0">
-      <span class="lbl">Photos for reviews <span id="phcount" class="muted" style="text-transform:none;letter-spacing:0"></span></span>
-      <p class="small muted" style="margin:0">Shown in the background of your weekly and yearly reviews. They stay on this phone and are never uploaded.</p>
+      <span class="lbl">Your photos <span id="phcount" class="muted" style="text-transform:none;letter-spacing:0"></span></span>
+      <p class="small muted" style="margin:0">Shown on the big card on Today and in the background of your reviews. Without your own photos, the Nova photos are used. They stay on this phone and are never uploaded.</p>
       <div class="phgrid" id="phgrid"></div>
       <button class="secondary" data-act="phadd">+ Choose photos</button>
       <input type="file" id="phfile" accept="image/*" multiple hidden>
     </div>
+`],
+    theme: ["Appearance", () => `
     <div><span class="lbl">Appearance</span><div class="seg theme" style="grid-template-columns:repeat(3,1fr)" id="themeseg">
       ${[["auto","Automatic"],["light","Light"],["dark","Dark"]].map(([k,l]) => `<button data-act="theme" data-v="${k}" aria-pressed="${st.theme===k}">${l}</button>`).join("")}</div>
       <p class="small muted" style="margin-top:6px">Automatic follows your phone's setting.</p></div>
+`],
+    push: ["Notifications", () => `
     <div class="card" style="background:var(--bg);border:0">
       <span class="lbl">Notifications</span>
       <div data-push>${pushHtml()}</div>
     </div>
+`],
+    cal: ["Calendar reminders", () => `
     <div class="card" style="background:var(--bg);border:0">
       <span class="lbl">Calendar reminders (alternative)</span>
       <p class="small muted">Choose your training days and a time. The app turns them into weekly events with reminders for your phone calendar.</p>
       <div class="days" id="days">${WD.map((d,i) => `<button data-act="day" data-i="${i}" aria-pressed="${st.remDays.includes(i)}">${d}</button>`).join("")}</div>
       <div class="row2"><input class="inp" type="time" id="set-time" data-in="time" value="${esc(st.remTime)}" aria-label="Time"><button class="secondary" data-act="ics">Add to calendar</button></div>
     </div>
+`],
+    data: ["Your data", () => `
     <div><span class="lbl">Your data</span><div class="row2"><button class="secondary" data-act="export">Back up</button><button class="secondary" data-act="import">Load backup</button></div>
       <input type="file" id="importf" accept=".json,application/json" hidden>
       <p class="small" style="margin:8px 0 0" data-sync>${syncHtml()}</p></div>
+`],
+  };
+  const keys = P[SETP] ? [SETP] : Object.keys(P);
+  sheet(`<h3>${P[SETP] ? P[SETP][0] : "Settings"}</h3>${keys.map(k => P[k][1]()).join("")}
     <button class="primary" data-act="closesheet">Done</button>`);
   paintPhotos();
 }
@@ -4729,7 +4897,7 @@ function render(){
   if(screen==="onboard"){ renderOnboard(); return; }
   if(screen==="session" && !S.active) screen = "home";
   if(screen==="summary" && !summary) screen = "home";
-  if(screen==="home") renderHome(); else if(screen==="session") renderSession(); else if(screen==="runplan") renderPlan(); else renderSummary();
+  if(screen==="home") renderHome(); else if(screen==="me") renderMe(); else if(screen==="session") renderSession(); else if(screen==="runplan") renderPlan(); else renderSummary();
   updateBadge();
   keepAwake(screen==="session" && !!S.active);
 }
@@ -4842,11 +5010,18 @@ document.addEventListener("click", async ev => {
     case "delask": sheet(`<h3>Delete session?</h3><p class="muted">It will be removed from your history and stats.</p>
         <button class="secondary danger" data-act="delok" data-id="${b.dataset.id}">Delete</button><button class="secondary" data-act="closesheet">Cancel</button>`); break;
     case "delok": S.history = S.history.filter(x => x.id!==b.dataset.id); save(); closeSheet(); renderHome(); break;
-    case "settings": settingsSheet(); break;
-    case "menu": menuSheet(); break;
+    case "settings": settingsSheet(""); break;
+    case "menu": closeSheet(); screen = screen==="me" ? "home" : "me"; render(); window.scrollTo(0,0); break;
+    case "tab": { closeSheet(); TAB = ["today","train","progress"].includes(b.dataset.t) ? b.dataset.t : "today"; try{ sessionStorage.setItem("nf-tab", TAB); }catch(e){} screen = "home"; render(); window.scrollTo(0,0); break; }
+    case "setp": settingsSheet(b.dataset.p); break;
     case "ob": obAct(b); break;
-    case "menutheme": closeSheet(); S.settings.theme = isDark() ? "light" : "dark"; applyTheme(); save(); renderHome(); break;
-    case "goto": { closeSheet(); const el = document.getElementById(b.dataset.id); if(el) el.scrollIntoView({behavior:smoothOk() ? "smooth" : "auto", block:"start"}); break; }
+    case "menutheme": closeSheet(); S.settings.theme = isDark() ? "light" : "dark"; applyTheme(); save(); render(); break;
+    case "goto": {
+      closeSheet();
+      // calendar, badges and reviews live on the Progress tab
+      if(!document.getElementById(b.dataset.id)){ TAB = "progress"; try{ sessionStorage.setItem("nf-tab", TAB); }catch(e){} screen = "home"; render(); }
+      const el = document.getElementById(b.dataset.id); if(el) el.scrollIntoView({behavior:smoothOk() ? "smooth" : "auto", block:"start"}); break;
+    }
     case "herostep": if(HERO_STEP) HERO_STEP(+b.dataset.d); break;
     case "totop": window.scrollTo({top:0, behavior:smoothOk() ? "smooth" : "auto"}); break;
     case "swap": swapSheet(b.dataset.base); break;
