@@ -2,6 +2,33 @@
 
 Alle Versionen der App, die neueste oben.
 
+## v2.14 – Tests in the browser
+
+- 11 end-to-end tests drive the real app in Chromium: sign-up (empty, invalid and valid), body data, the app lock with a wrong password, strength sessions (empty and logged), runs (no time, valid, watch file, wrong file, impossible time), the flexibility check, the training history import (wrong CSV, Garmin list, the same list again) and backups (broken file, markup in names)
+- They run against the security headers from `netlify.toml` and fail on any page error or blocked request, so a policy that breaks the app shows up before it goes live
+- GitHub runs them as a second job; `npm run e2e` locally
+- Playwright is the only package: a development dependency with a fixed version and a lockfile; the app itself still loads no packages
+
+## v2.13 – Security: headers, pinned scripts, protected functions
+
+- **Fixed:** a changed backup file could put HTML (and with it script) into exercise and workout names, which then ran on the Progress tab. Names from storage, backups and the cloud sync are now cleaned when they are loaded and escaped when they are shown; the custom exercise form also refuses quotes
+- Security headers for the live site (`netlify.toml`): Content-Security-Policy that only allows our own scripts and the services the app uses, no framing, no type sniffing, HTTPS only, location only for the site itself
+- The app's script moved from `index.html` into `app/app.js`, so the policy can forbid inline scripts
+- The text recognition script is checked with Subresource Integrity: a changed file on the CDN is refused, with a clear message
+- The Netlify Functions (Strava, loops) only accept calls from the site itself, limit each IP address and refuse large requests (`netlify/lib/guard.mjs`)
+- New “Security” section in the README: what is protected and the limits we know about
+- 10 new tests (176 in total)
+
+## v2.12 – Yoga that follows your goals, flexibility check
+
+- The yoga goals from the questionnaire now steer the suggestion: “Sleep better” brings Wind down from 20:00, “Exam-week stress relief” the study break in the afternoon, “Desk-proof back” Back and neck, “Touch your toes” After your run (calves and hamstrings). Time of day and today's run still come first
+- The yoga screen says why: “For your goal: touch your toes · …”
+- A suggestion is now preselected even if you picked another session before; without a suggestion your last pick stays
+- “Sleep better”: from 20:00 the Today tab shows “Wind down tonight” with a start button, until you did yoga that day
+- New **flexibility check** (yoga menu and Progress tab): stand, fold forward, tap how far you reach (knees, shins, ankles, toes, palms on the floor). Every 14 days, one per day; the result compares with the last check
+- Progress tab: new Flexibility block with the current level, the steps gained and a chart with the toes line; new badge “Toes touched”
+- `suggestWhy`, `addFlex`, `flexTrend`, `flexDueIn` in `app/yoga.js`; 7 new tests (166 in total)
+
 ## v2.11 – Runs near you
 
 - New in the running menu: **Runs near you**, at most five suggestions
