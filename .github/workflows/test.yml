@@ -12,3 +12,15 @@ jobs:
         with:
           node-version: 22
       - run: node --test
+  # The real app in a real browser: sign-up, sessions, runs, imports and backups,
+  # served with the security headers from netlify.toml
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run e2e

@@ -10,12 +10,13 @@ Notes for coding agents (and new team members) working on NOVAFit.
 - Strava connection: `netlify/functions/strava.mjs` (Netlify Function, needs `STRAVA_CLIENT_ID` and `STRAVA_CLIENT_SECRET` set in Netlify, never in the repo); Strava tokens live only in `localStorage` under `novafit-strava`, never in `S`
 - Runs near you: hand-picked routes in `app/run.js` (`NEARBY_ROUTES`, at most 4, so with the loop there are never more than 5 suggestions); the loop from here comes from `netlify/functions/route.mjs` (openrouteservice, needs `ORS_API_KEY` in Netlify); the exact position is only sent for that one request and never stored
 - Service worker and push reminders: `app/OneSignalSDKWorker.js` (bump `CACHE` when files change)
-- Tests: Node.js built-in test runner, no dependencies
+- Tests: Node.js built-in test runner; the browser tests use Playwright (the only package, a pinned dev dependency)
 
 ## Commands
 
 - Run locally: `python3 -m http.server 8000 --directory app`, then open http://localhost:8000
 - Run tests: `node --test` (or `npm test`)
+- Browser tests: `npm ci`, `npx playwright install chromium`, `npm run e2e` (files in `e2e/`, sample files in `e2e/fixtures/`)
 
 ## Conventions
 
