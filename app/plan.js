@@ -454,6 +454,18 @@
     return next.length ? { ok: true, kinds: next } : { ok: false, kinds: kinds.slice(), error: "Keep at least one sport on Train" };
   }
 
+  /* ---------- Which chapters a review shows ---------- */
+  // kinds: the sports done in the period ("s", "r", "y"); has: {goal, flex} extra data that exists.
+  // Every sport gets the same room: up to two slides each, always in the order gym, run, yoga.
+  function reviewPlan(kinds, has) {
+    const h = has || {}, k = Array.isArray(kinds) ? kinds : [], out = [];
+    if (k.includes("s")) out.push("gym", "muscles");
+    if (k.includes("r")) { out.push("run"); if (h.goal) out.push("goal"); }
+    if (k.includes("y")) { out.push("yoga"); if (h.flex) out.push("flex"); }
+    if (out.length) out.push("next");
+    return out;
+  }
+
   /* ---------- Build your own gym workout (from "Edit Train") ---------- */
   // name: 1–OWN_NAME_MAX characters, ex: 1–OWN_MAX_EX known exercise ids (known(id) → true/false).
   // Returns {ok, name, ex} or {ok:false, errors:{name?, ex?}} with a message for each field.
@@ -484,7 +496,7 @@
     rebalanceMix, mixTotal, scheduleWeek, suggestPlans, weekdayIndex, sessionOn, nextSession,
     WORKOUTS, HEAVY_LEGS, ADDONS, ADDON_FOR, SPLITS, splitsFor, splitById, recommendSplit, splitFor, validateSplit,
     OWN_MAX_EX, OWN_NAME_MAX, STRENGTH_MODES, ownDaysFor, validateOwnDays, ownDayKeys, applyOwnDays,
-    SPORTS, trainKinds, toggleKind, validateBuild, placeInPlan
+    SPORTS, trainKinds, toggleKind, reviewPlan, validateBuild, placeInPlan
   };
   if (typeof module === "object" && module.exports) module.exports = api;
   else root.NFPlan = api;
