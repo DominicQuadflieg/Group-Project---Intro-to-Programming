@@ -97,6 +97,7 @@ function normalize(s){
   const st = Object.assign(d.settings, (s.settings && typeof s.settings==="object") ? s.settings : {});
   // Text from storage, a backup file or the cloud sync is cleaned before it can reach the screen
   st.custom = NFEx.safeCustom(st.custom);
+  if(st.pcards && typeof st.pcards==="object") ["s","r","y"].forEach(k => { const l = st.pcards[k]; st.pcards[k] = Array.isArray(l) ? l.filter(x => typeof x==="string" && /^[a-z]{1,12}$/.test(x)).slice(0, 5) : undefined; }); else delete st.pcards;
   if(st.ownW && typeof st.ownW==="object") Object.keys(st.ownW).forEach(k => { const w = st.ownW[k]; if(!w || typeof w!=="object" || !/^[A-Za-z0-9_-]{1,40}$/.test(k)) delete st.ownW[k]; else w.name = NFEx.safeText(w.name, 40, "Own workout"); });
   if(st.loopName != null) st.loopName = NFEx.safeText(st.loopName, 24);
   return {v:2, active:s.active||null, history:Array.isArray(s.history)?s.history:[], settings:st, badges:(s.badges && typeof s.badges==="object") ? s.badges : null};
@@ -393,7 +394,7 @@ function initials(n){ const w = String(n||"").trim().split(/\s+/).filter(Boolean
 function renderMe(){
   const st = stats(), set = S.settings, pr = set.profile || {}, name = pr.name || "You";
   const pct = Math.min(1, st.thisWeek / Math.max(1, st.goal)), C = 2*Math.PI*33;
-  const got = BADGES.filter(x => S.badges && S.badges[x.id]).length;
+  const got = visibleBadges().filter(x => S.badges && S.badges[x.id]).length;
   const row = (attrs, label, val) => `<button class="merow" ${attrs}><span>${label}</span>${val!=null && val!=="" ? `<small>${esc(String(val))}</small>` : ""}<span class="chev" aria-hidden="true">›</span></button>`;
   const grp = (t, rows) => `<section class="megrp"><h2 class="eyeb">${t}</h2><div>${rows}</div></section>`;
   const sp = k => `data-act="setp" data-p="${k}"`;
@@ -403,7 +404,7 @@ function renderMe(){
     <div><h1>${esc(name)}</h1><p>Nova SBE${set.plan ? " · " + esc(set.plan.name) : ""}</p><button class="linkbtn" data-act="ob" data-do="edit">Edit profile and plan</button></div></section>`;
   h += countersHtml([[`${st.thisWeek}/${st.goal}`, "this week"], [st.streak, st.streak===1 ? "week in a row" : "weeks in a row"], [got, got===1 ? "badge" : "badges"]]);
   h += grp("You", row(sp("account"), "Account", pr.email || "") + row(sp("profile"), "Profile and body", [num(set.bodyKg)>0 ? fmt(num(set.bodyKg)) + " kg" : "", set.body && set.body.cm ? set.body.cm + " cm" : ""].filter(Boolean).join(" · ")) + row(sp("goal"), "Weekly goal", `${set.goal}×`) + row('data-act="ob" data-do="edit"', "My plan", set.plan ? set.plan.name : "Not set") + row('data-act="runplan"', "Running plan", set.runPlan ? "Active" : "Not set"));
-  h += grp("Training", row('data-act="library"', "Exercise library", `${NFEx.LIBRARY.filter(e => !e.hidden).length + customList().length}`) + row('data-act="workouts"', "All workouts", "") + row('data-act="goto" data-id="sec-cal"', "Calendar", "") + row('data-act="goto" data-id="sec-badges"', "Badges", `${got} / ${BADGES.length}`));
+  h += grp("Training", row('data-act="library"', "Exercise library", `${NFEx.LIBRARY.filter(e => !e.hidden).length + customList().length}`) + row('data-act="workouts"', "All workouts", "") + row('data-act="calopen"', "Calendar & history", "") + row('data-act="badgesopen"', "Badges", `${got} / ${visibleBadges().length}`));
   h += grp("Connected", (stravaSettings() ? row(sp("strava"), "Strava", stGet() ? "Connected" : "Not connected") : "") + row(sp("push"), "Notifications", push==="on" ? "On" : "Off") + row(sp("cal"), "Calendar reminders", ""));
   h += grp("App", row(sp("theme"), "Appearance", {auto:"Automatic", light:"Light", dark:"Dark"}[set.theme] || "Automatic") + row(sp("sound"), "Sound", set.restSound===false ? "Off" : "On") + row(sp("weather"), "Running weather", set.wxGeo===true ? "Where I am" : NFRun.WX_HOME.place) + row(sp("photos"), "Your photos", nPh ? `${nPh} ${nPh===1?"photo":"photos"}` : "Nova photos"));
   h += grp("Your data", row('data-act="impsheet"', "Import runs from other apps", "Garmin, Strava, files") + row(sp("data"), "Back up and restore", ""));
@@ -414,7 +415,7 @@ function renderMe(){
 }
 function footerHtml(){
   return `<footer class="pfoot"><div class="pf-in">${NF_MINI}<div class="pf-cols">
-    <div><h4>Training</h4><button data-act="runplan">Running plan</button><button data-act="goto" data-id="sec-cal">Calendar</button><button data-act="goto" data-id="sec-badges">Badges</button></div>
+    <div><h4>Training</h4><button data-act="runplan">Running plan</button><button data-act="calopen">Calendar &amp; history</button><button data-act="badgesopen">Badges</button></div>
     <div><h4>Data</h4><button data-act="settings">Settings</button><button data-act="export">Create backup</button><button data-act="menutheme">Dark mode ${isDark() ? "off" : "on"}</button></div>
   </div></div></footer>`;
 }
@@ -720,12 +721,180 @@ function trainEditSheet(err){
     <button class="primary" data-act="closesheet">Done</button>`);
 }
 
+/* ---- Progress: cards per sport (A), calendar & history and badges as previews ---- */
+const PK_NAME = {s:"Gym", r:"Running", y:"Yoga"};
+let PEXALL = false;
+const ofKind = k => S.history.filter(e => kindOfW(e.type)===k);
+const monthStart = () => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 1).getTime(); };
+const wkLabels = n => { const ws = mondayOf(Date.now()); return Array.from({length:n}, (_,i) => i===n-1 ? "now" : i%3===0 ? dTiny(ws-(n-1-i)*WEEK) : ""); };
+function pBars(vals, o){
+  o = o || {}; const n = vals.length, Wd = 330, Ht = 70, mx = Math.max(...vals, o.goal||0, .001)*1.12, bw = Wd/n, lab = o.lab || [];
+  let s = `<svg class="pchart" viewBox="0 0 ${Wd} ${Ht+16}" role="img" aria-label="${esc(o.label||"")}">`;
+  vals.forEach((v,i) => { const bh = Math.max(v ? 3 : 0, v/mx*Ht); s += `<rect x="${(i*bw+3).toFixed(1)}" y="${(Ht-bh).toFixed(1)}" width="${(bw-6).toFixed(1)}" height="${bh.toFixed(1)}" opacity="${i===n-1?1:.55}"/>`; if(lab[i]) s += `<text x="${(i*bw+bw/2).toFixed(1)}" y="${Ht+13}" text-anchor="middle">${esc(lab[i])}</text>`; });
+  if(o.goal){ const gy = (Ht - o.goal/mx*Ht).toFixed(1); s += `<line x1="0" x2="${Wd}" y1="${gy}" y2="${gy}" class="gl"/><text x="2" y="${gy-4}" class="b">${esc(o.goalTxt||"goal")}</text>`; }
+  return s + `</svg>`;
+}
+function pLine(vals, o){
+  o = o || {}; const n = vals.length; if(n<2) return "";
+  const Wd = 330, Ht = 60; let mn = Math.min(...vals), mx = Math.max(...vals); if(mn===mx){ mn -= 1; mx += 1; }
+  const P = vals.map((v,i) => [i*(Wd-8)/(n-1)+4, o.invert ? 6+(v-mn)/(mx-mn)*(Ht-12) : Ht-6-(v-mn)/(mx-mn)*(Ht-12)]);
+  return `<svg class="pchart" viewBox="0 0 ${Wd} ${Ht+14}" role="img" aria-label="${esc(o.label||"")}"><polyline points="${P.map(p => p.map(x => x.toFixed(1)).join(",")).join(" ")}" class="ln"/><circle cx="${P[n-1][0].toFixed(1)}" cy="${P[n-1][1].toFixed(1)}" r="4.5"/><text x="0" y="${Ht+12}">${esc(o.a||"")}</text><text x="${Wd}" y="${Ht+12}" text-anchor="end">${esc(o.b||"")}</text></svg>`;
+}
+function pHours(k, times){
+  const h = NFProg.hours(times), mx = Math.max(1, ...h.slots.map(x => x.n));
+  if(!h.best) return "";
+  const bars = h.slots.map(x => x.n).map((v) => v), lab = h.slots.map(x => x.h + "h");
+  return `<p class="big">${h.best.h}–${h.best.h+2} h<small>your best hours</small></p>${pBars(bars, {lab, label:"Sessions per time of day"})}`;
+}
+function pHeat(k){
+  const items = ofKind(k).map(e => ({t:e.start, k})), g = NFProg.heat(items, Date.now(), 12), n = items.filter(x => x.t >= mondayOf(Date.now()) - 11*WEEK).length;
+  let cells = ""; for(let d=0; d<7; d++) for(let w=0; w<12; w++) cells += `<i class="${g[w][d].length ? "on" : ""}"></i>`;
+  return `<div class="pheat">${cells}</div><p class="psm">Weeks left to right, Monday at the top · ${n} ${n===1?"session":"sessions"}</p>`;
+}
+const pRow = (a, b, act) => act ? `<button class="pl" ${act}><span>${a}</span><b>${b} ›</b></button>` : `<div class="pl"><span>${a}</span><b>${b}</b></div>`;
+const pEmpty = t => `<p class="psm" style="opacity:.9">${t}</p>`;
+// Best weight events in order: [{t, id, kg}]
+function prEvents(){
+  const mx = {}, out = [];
+  S.history.forEach(e => Object.entries(e.sets||{}).forEach(([id,a]) => {
+    if(exType(id)!=="w" || !a.length) return; const k = Math.max(...a.map(s => num(s.kg))); if(!(k>0)) return;
+    if(mx[id]!=null && k>mx[id]) out.push({t:e.start, id, kg:k}); mx[id] = Math.max(mx[id]||0, k);
+  }));
+  return out;
+}
+// Main lifts: the 4 weighted exercises done most often
+function mainLifts(){
+  const c = {}; ofKind("s").forEach(e => Object.entries(e.sets||{}).forEach(([id,a]) => { if(exType(id)==="w" && a.some(s => num(s.kg)>0 && num(s.r)>0)) c[id] = (c[id]||0)+1; }));
+  return Object.entries(c).sort((a,b) => b[1]-a[1]).slice(0,4).map(x => x[0]);
+}
+const bestE1 = (id, until) => S.history.filter(e => e.start<until && e.sets && e.sets[id]).reduce((m,e) => Math.max(m, ...e.sets[id].map(s => e1(num(s.kg), num(s.r)))), 0);
+function gymCard(id, st){
+  const G = ofKind("s"), ms = monthStart(), now = Date.now(), ws = mondayOf(now);
+  const noGym = pEmpty("After your first gym session this fills up.");
+  if(id==="score"){
+    const L = mainLifts(); if(!L.length) return {lab:"Strength score", h:noGym};
+    const v = Array.from({length:8}, (_,i) => L.reduce((s,x) => s + bestE1(x, ws-(6-i)*WEEK), 0));
+    const first = v.find(x => x>0) || 0, cur = v[7], pc = first ? Math.round((cur-first)/first*100) : 0;
+    return {lab:"Strength score", h:`<p class="big">${fmt(Math.round(cur),0)}<small>${pc>0 ? `+${pc} % in 8 weeks` : "points"}</small></p><p class="psm">Your estimated max on ${L.map(x => esc((EXN[x]||{}).n||x)).join(", ")}, added up.</p>${pLine(v.map(x => x||first), {a:dTiny(ws-7*WEEK), b:"now", label:"Strength score per week"})}`};
+  }
+  if(id==="record"){
+    const E = prEvents(); if(!E.length) return {lab:"Records", h:pEmpty("Lift a bit more than last time and your first record shows up here.")};
+    const l = E[E.length-1], dd = Math.floor((now-l.t)/864e5), m = E.filter(x => x.t>=ms).length, pm = new Date(ms); pm.setMonth(pm.getMonth()-1);
+    const lm = E.filter(x => x.t>=pm.getTime() && x.t<ms).length;
+    return {lab:"Last record", h:`<p class="big">${fmt(l.kg)}<small>kg</small></p><p class="psm">${esc((EXN[l.id]||{}).n||l.id)} · ${dd===0?"today":dd===1?"yesterday":dd+" days ago"}</p>${pRow("Records this month", `${m}${m>lm ? ` · ${m-lm} more than last month` : ""}`)}`};
+  }
+  if(id==="balance"){
+    const R = muscleLoad(G.filter(e => e.start>=now-56*864e5)); if(!R.rank.length) return {lab:"Balance", h:noGym};
+    const v = k => (R.rank.find(x => x.k===k)||{v:0}).v, push = v("chest")+v("shoulders")+v("triceps"), pull = v("back")+v("biceps");
+    const pp = push+pull ? Math.round(push/(push+pull)*100) : 50, up = R.upperPct, lo = R.legsPct, ul = up+lo ? Math.round(up/(up+lo)*100) : 50;
+    const word = (a, x, y) => Math.abs(a-50)<=8 ? "balanced" : a>50 ? `${y} low` : `${x} low`;
+    const all = muscleLoad(G).rank, rec = muscleLoad(G.filter(e => e.start>=now-28*864e5)).rank;
+    const least = all.filter(x => !["core","lowback","adduct"].includes(x.k)).map(x => ({n:x.n, v:(rec.find(y => y.k===x.k)||{pct:0}).pct})).sort((a,b) => a.v-b.v)[0];
+    return {lab:"Balance · last 8 weeks", h:pRow("Push : Pull", `${pp} : ${100-pp} · ${word(pp,"push","pull")}`) + pRow("Upper : Lower", `${ul} : ${100-ul} · ${word(ul,"upper","legs")}`) + (least ? pRow("Least trained, 4 weeks", esc(least.n)) : "")};
+  }
+  if(id==="volume"){
+    const v = NFProg.perWeek(G.map(e => ({t:e.start, v:volOf(e)/1000})), 8, now);
+    const ids = exIdsWithData().filter(x => exType(x)==="w" || exType(x)==="a" || exType(x)==="t");
+    const rows = ids.map(x => { const mt = metricOf(x, seriesFor(x)), g = st.gains.find(y => y.n===EXN[x].n); return pRow(`${esc(EXN[x].n)} <small>up to ${fmt(Math.max(...mt.vals))} ${mt.unit}</small>`, g ? `+${g.pct} %` : "", `data-act="chart" data-id="${x}"`); });
+    if(!G.length) return {lab:"Volume per week", h:noGym};
+    return {lab:"Volume per week", h:`<p class="big">${fmt(v[7],1)}<small>t this week</small></p>${pBars(v, {lab:wkLabels(8), label:"Tonnes per week"})}${rows.slice(0, PEXALL ? rows.length : 4).join("")}${rows.length>4 ? `<button class="pl more" data-act="pexall"><span>${PEXALL ? "Show fewer" : `All exercises (${rows.length})`}</span><b>${PEXALL ? "‹" : "›"}</b></button>` : ""}<p class="psm">${fmt(Math.round(st.vol),0)} kg in total. ${volumeLine(st.vol)}</p>`};
+  }
+  if(id==="max"){
+    const L = mainLifts(); if(!L.length) return {lab:"Estimated max (1 rep)", h:noGym};
+    return {lab:"Estimated max (1 rep)", h:L.map(x => { const c = bestE1(x, now+1), o = bestE1(x, ws-7*WEEK), d = Math.round((c-o)*2)/2; return pRow(esc(EXN[x].n), `${fmt(Math.round(c*2)/2)} kg${o && d>0 ? ` <span class="pp">+${fmt(d)}</span>` : ""}`); }).join("") + `<p class="psm">What you could lift once, from your best sets.</p>`};
+  }
+  if(id==="when") return {lab:"When you train", h:pHours("s", G.map(e => e.start)) || noGym};
+  if(id==="muscles"){
+    const R = muscleLoad(G.filter(e => e.start>=ms)); if(!R.rank.length) return {lab:"Muscles this month", h:pEmpty("No gym session this month yet.")};
+    return {lab:`Muscles in ${MONTHS[new Date().getMonth()]}`, h:R.rank.slice(0,5).map(x => `<div class="pmus"><span>${esc(x.n)}</span><i><i style="width:${Math.round(x.rel*100)}%"></i></i><b class="tnum">${x.pct} %</b></div>`).join("")};
+  }
+  if(id==="time"){
+    const M = G.filter(e => e.start>=ms && e.end>e.start), min = M.reduce((s,e) => s+(e.end-e.start)/6e4, 0);
+    if(!M.length) return {lab:"Time in the gym", h:pEmpty("No gym session this month yet.")};
+    return {lab:"Time in the gym", h:`<p class="big">${fmt(min/60,1)}<small>hours in ${MONTHS[new Date().getMonth()]}</small></p>${pRow("Per session", `${Math.round(min/M.length)} min`)}${pRow("Sessions", M.length)}`};
+  }
+  if(id==="heat") return {lab:"Consistency · 12 weeks", h:pHeat("s")};
+  return null;
+}
+function runCard(id, st){
+  const R = S.history.filter(e => kmOf(e)>0), now = Date.now(), ws = mondayOf(now), ms = monthStart();
+  const noRun = pEmpty("After your first run this fills up.");
+  const timed = R.filter(e => e.run && num(e.run.km)>0 && num(e.run.min)>0);
+  if(id==="km"){
+    const v = NFProg.perWeek(R.map(e => ({t:e.start, v:kmOf(e)})), 8, now), g = Math.round(num(S.settings.kmGoal)*12/52*10)/10;
+    return {lab:"Kilometres per week", h:`<p class="big">${fmt(v[7])}<small>km this week</small></p>${pBars(v, {lab:wkLabels(8), goal:g||0, goalTxt:`goal ${fmt(g)} km`, label:"Kilometres per week"})}`};
+  }
+  if(id==="race"){
+    if(!runForm()) return {lab:"If you raced today", h:pEmpty("Log a run of 3 km or more with a time and you see what you could run.")};
+    const rp = S.settings.runPlan, tg = rp && rp.target ? rp.target : 0;
+    return {lab:"If you raced today", h:pRow("5 km", hms(predict(5))) + pRow("10 km", `${hms(predict(10))}${tg && rp.goal==="k10" ? ` <span class="pp">goal ${hms(tg)}</span>` : ""}`) + pRow("Half marathon", `${hms(predict(21.0975))}${tg && rp.goal==="hm" ? ` <span class="pp">goal ${hms(tg)}</span>` : ""}`) + `<p class="psm">From your best run of the last 10 weeks.</p>`};
+  }
+  if(id==="pace"){
+    if(!timed.length) return {lab:"Pace", h:noRun};
+    const wk = Array.from({length:8}, (_,i) => { const a = ws-(7-i)*WEEK, L = timed.filter(e => e.start>=a && e.start<a+WEEK), km = L.reduce((s,e) => s+num(e.run.km), 0); return km ? L.reduce((s,e) => s+num(e.run.min), 0)/km : 0; }).filter(x => x>0);
+    const cur = wk[wk.length-1], d = wk.length>1 ? Math.round((wk[0]-cur)*60) : 0;
+    return {lab:"Pace trend", h:`<p class="big">${mmss(cur)}<small>/km${d>0 ? ` · ${d} s faster` : ""}</small></p>${pLine(wk, {invert:true, a:"8 weeks ago", b:"now", label:"Average pace per week"})}${pRow(`Best ${esc(LN())}`, st.bestAlster ? hms(st.bestAlster) : "–", `data-act="runchart" data-k="alster"`)}${pRow("Best pace", st.bestPace ? mmss(st.bestPace)+" /km" : "–", `data-act="runchart" data-k="pace"`)}`};
+  }
+  if(id==="goals"){
+    const rp = S.settings.runPlan, pg = rp ? planProgress(rp) : null;
+    return {lab:"Your goals", h:(rp ? pRow(esc(planTitle(rp)), pg && pg.n ? `week ${pg.i+1} of ${pg.n}` : "plan", `data-act="runplan"`) : "") + runGoalsHtml(st)};
+  }
+  if(id==="pbs"){
+    if(!R.length) return {lab:"Personal bests", h:noRun};
+    const f5 = timed.filter(e => num(e.run.km)>=5).map(e => num(e.run.min)*5/num(e.run.km)), wk = {}; R.forEach(e => { const w = mondayOf(e.start); wk[w] = (wk[w]||0)+kmOf(e); });
+    return {lab:"Personal bests", h:pRow("Fastest 5 km", f5.length ? hms(Math.min(...f5)) : "–") + pRow("Fastest pace", st.bestPace ? mmss(st.bestPace)+" /km" : "–") + pRow("Longest run", st.longest ? fmt(st.longest)+" km" : "–") + pRow("Most km in a week", fmt(Math.max(0, ...Object.values(wk)))+" km")};
+  }
+  if(id==="story"){
+    const km = st.km, s = NFProg.story(km);
+    return {lab:"Distance story", h:`<p class="big">${fmt(km)}<small>km in total</small></p><p class="psm">${s.past ? `From Nova SBE you would be past ${s.past.n}.` : "From Nova SBE you are on your way to Cascais."}${s.next ? ` Next stop: ${s.next.n}, ${fmt(s.next.km-km)} km to go.` : ""}</p><div class="pladder">${s.stops.map((x,i) => `<div class="${i<s.done?"on":""}"><i></i>${x.n}</div>`).join("")}</div>`};
+  }
+  if(id==="when") return {lab:"When you run", h:pHours("r", R.map(e => e.start)) || noRun};
+  if(id==="heat") return {lab:"Consistency · 12 weeks", h:pHeat("r")};
+  return null;
+}
+function yogaCard(id){
+  const Y = ofKind("y"), ms = monthStart();
+  const noY = pEmpty("After your first yoga session this fills up.");
+  if(id==="calm"){
+    const t = NFYoga.tension(calmEntries());
+    if(!t || !t.n) return {lab:"Calm effect", h:pEmpty("Rate your tension before and after yoga and you see what it does for you.")};
+    const pc = t.before ? Math.round((t.before-t.after)/t.before*100) : 0;
+    return {lab:"Calm effect", h:`<p class="big">${pc>0 ? "−"+pc : 0} %<small>tension</small></p><p class="psm">On average you start at ${fmt(t.before)} and finish at ${fmt(t.after)}, over ${t.n} ${t.n===1?"session":"sessions"}.</p>`};
+  }
+  if(id==="flex"){
+    const l = flexChecks(), tr = NFYoga.flexTrend(l), due = NFYoga.flexDueIn(l, Date.now());
+    const names = [1,2,3,4,5].map(v => NFYoga.flexName(v));
+    if(!tr) return {lab:"Flexibility · forward fold", h:`<p class="psm">How far can you reach in a forward fold? Do the 30-second check and watch it change every two weeks.</p><button class="pbtn" data-act="flexcheck">Start the check</button>`};
+    return {lab:"Flexibility · forward fold", h:`<p class="big">${esc(NFYoga.flexName(tr.last.v))}<small>${tr.gained>0 ? `${tr.gained} ${tr.gained===1?"step":"steps"} since ${flexDay(tr.first.t)}` : "your level"}</small></p><div class="pladder">${names.map((n,i) => `<div class="${i<tr.last.v?"on":""}"><i></i>${esc(n)}</div>`).join("")}</div>${due ? `<p class="psm">Next check in ${due} ${due===1?"day":"days"}.</p>` : `<button class="pbtn" data-act="flexcheck">Check now</button>`}`};
+  }
+  if(id==="month"){
+    const min = Y.filter(e => e.start>=ms).reduce((s,e) => s+num((e.yoga||{}).min), 0), mob = (S.settings.mob||[]).filter(t => t>=ms).length;
+    return {lab:`${MONTHS[new Date().getMonth()]}`, h:`<p class="big">${fmt(min,0)}<small>min on the mat</small></p>${pRow("Short routines between classes", mob)}${pRow("Sessions", Y.filter(e => e.start>=ms).length)}`};
+  }
+  if(id==="fav"){
+    const c = {}; Y.forEach(e => { const s = e.yoga && e.yoga.sid && NFYoga.byId(e.yoga.sid); if(s) c[s.n] = (c[s.n]||0)+1; });
+    const L = Object.entries(c).sort((a,b) => b[1]-a[1]).slice(0,3);
+    return {lab:"Favourite sessions", h:L.length ? L.map(([n,v]) => pRow(esc(n), v+"×")).join("") : noY};
+  }
+  if(id==="when") return {lab:"When you do yoga", h:pHours("y", Y.map(e => e.start)) || noY};
+  if(id==="heat") return {lab:"Consistency · 12 weeks", h:pHeat("y")};
+  return null;
+}
+function sportBlock(k, st){
+  const ids = NFProg.cardsFor(S.settings.pcards, k), fn = {s:gymCard, r:runCard, y:yogaCard}[k];
+  const cards = ids.map(id => fn(id, st)).filter(Boolean);
+  return `<section class="pblock2" id="sec-${k}"><div class="sechead"><h2 class="sec">${PK_NAME[k]}</h2><button class="pedit" data-act="pcards" data-k="${k}">Edit cards</button></div>${cards.map(c => `<div class="pc k-${k}"><p class="lab">${c.lab}</p>${c.h}</div>`).join("")}</section>`;
+}
 function progressTabHtml(st){
+  const kinds = trainKinds(), now = new Date(), ws = mondayOf(Date.now()), ms = monthStart();
   let h = `<section class="tabhead"><p class="eyebrow">How it's going</p><h1>Progress</h1></section>`;
-  const now = new Date(), mr = recapData(now.getFullYear(), now.getMonth());
-  h += countersHtml([[mr.n, `sessions in ${MONTHS[now.getMonth()]}`], [fmt(st.kmMonth), "km this month"], [tons(st.vol), "moved in total"]]);
+  const wk = S.history.filter(e => e.start>=ws), mr = recapData(now.getFullYear(), now.getMonth());
+  if(kinds.length===1 && kinds[0]==="s"){ const g = wk.filter(e => kindOfW(e.type)==="s"); h += countersHtml([[g.length, "sessions this week"], [tons(g.reduce((s,e) => s+volOf(e), 0)), "moved this week"], [prEvents().filter(x => x.t>=ms).length, `records in ${MONTHS[now.getMonth()]}`]]); }
+  else if(kinds.length===1 && kinds[0]==="r"){ const r = wk.filter(e => kmOf(e)>0); h += countersHtml([[r.length, r.length===1?"run this week":"runs this week"], [fmt(r.reduce((s,e) => s+kmOf(e), 0)), "km this week"], [fmt(st.kmMonth), `km in ${MONTHS[now.getMonth()]}`]]); }
+  else if(kinds.length===1 && kinds[0]==="y"){ const y = wk.filter(e => e.yoga), ym = S.history.filter(e => e.yoga && e.start>=ms); h += countersHtml([[y.length, "sessions this week"], [fmt(y.reduce((s,e) => s+num(e.yoga.min), 0),0), "min this week"], [fmt(ym.reduce((s,e) => s+num(e.yoga.min), 0),0), `min in ${MONTHS[now.getMonth()]}`]]); }
+  else h += countersHtml([[mr.n, `sessions in ${MONTHS[now.getMonth()]}`], [fmt(st.kmMonth), "km this month"], [tons(st.vol), "moved in total"]]);
   // Reviews always reachable here; on Sunday evening they also show up on Today
-  const ws = mondayOf(Date.now()), pm = new Date(now.getFullYear(), now.getMonth()-1, 1);
+  const pm = new Date(now.getFullYear(), now.getMonth()-1, 1);
   const rows = [[`data-act="week" data-ws="${ws}"`, "This week", `${st.thisWeek} of ${st.goal} sessions`],
     [`data-act="week" data-ws="${ws-WEEK}"`, "Last week", "and every week before"],
     [`data-act="recap" data-y="${now.getFullYear()}" data-m="${now.getMonth()}"`, `${MONTHS[now.getMonth()]} so far`, "monthly review"],
@@ -733,53 +902,73 @@ function progressTabHtml(st){
   const yy = now.getMonth()===0 ? now.getFullYear()-1 : now.getFullYear();
   if(yearData(yy).n) rows.push([`data-act="year" data-y="${yy}"`, `${yy}`, "your year in review"]);
   h += `<section id="sec-reviews"><h2 class="sec">Reviews</h2><div class="revlist">${rows.map(([a, t, sub]) => `<button class="revrow" ${a}><b>${t}</b><span>${sub}</span><span aria-hidden="true">›</span></button>`).join("")}</div></section>`;
-  // Stärker geworden + Diagramme
-  h += `<section class="pblock c-kraft"><h2 class="sec">Getting stronger</h2><div class="card">${PICO.kraft}`;
-  if(st.gains.length){
-    h += `<p class="bigline">${esc(st.gains[0].n)} <em>+${st.gains[0].pct} %</em></p><p class="small muted" style="margin:-6px 0 4px">stronger than in your first session</p>`;
-  }
-  const exs = exIdsWithData();
-  if(exs.length){
-    h += `<div class="exlist">${exs.map(id => {
-      const mt = metricOf(id, seriesFor(id)), vals = mt.vals;
-      const g = st.gains.find(x => x.n===EXN[id].n);
-      return `<button class="exrow" data-act="chart" data-id="${id}"><span class="n">${esc(EXN[id].n)}<small class="tnum">up to ${fmt(Math.max(...vals))} ${mt.unit}</small></span>${spark(vals)}${g?`<span class="pill good tnum">+${g.pct} %</span>`:`<span class="muted">›</span>`}</button>`;
-    }).join("")}</div><p class="small muted" style="margin:0">Tap an exercise to see its curve.</p>`;
-  }else{
-    h += `<p class="empty">After your first lower or upper body session, your exercises and progress curves show up here.</p>`;
-  }
-  if(st.vol>0) h += `<p class="small" style="margin:4px 0 0"><b class="tnum">${fmt(Math.round(st.vol),0)} kg</b> moved in total. ${volumeLine(st.vol)}</p>`;
-  h += `</div></section>`;
-
-  // Laufen
-  h += `<section class="pblock c-run"><h2 class="sec">Running</h2><div class="card"><div class="tiles">
-    <div class="tile run">${PICO.km}<small>This month</small><b class="tnum">${fmt(st.kmMonth)} km</b></div>
-    <button class="tile run tbtn" data-act="runchart" data-k="alster">${PICO.runde}<small>Best ${esc(LN())}</small><b class="tnum">${st.bestAlster?hms(st.bestAlster):"–"}</b></button>
-    <button class="tile run tbtn" data-act="runchart" data-k="pace">${PICO.tempo}<small>Best pace</small><b class="tnum">${st.bestPace?mmss(st.bestPace):"–"}</b></button>
-  </div>${runGoalsHtml(st)}<p class="small muted" style="margin:0">Total <b class="tnum" style="color:var(--ink)">${fmt(st.km)} km</b>${st.longest?` · longest run ${fmt(st.longest)} km`:""}</p>${st.alsterN?`<p class="alsterc">🔁 You've run your ${esc(LN())} <b class="tnum">${st.alsterN}×</b>.</p>`:""}</div></section>`;
-
-  // Kalender
-  h += flexHtml();
-  h += `<section id="sec-cal"><h2 class="sec">Calendar</h2><div class="card" id="calcard">${calendarHtml()}</div>${yearLinkHtml()}</section>`;
-
-  // Abzeichen
-  const got = BADGES.filter(x => S.badges && S.badges[x.id]).length;
-  h += `<section id="sec-badges"><h2 class="sec">Badges <span class="tnum" style="letter-spacing:0">${got} / ${BADGES.length}</span></h2><div class="card">${nextBadgeHtml()}<div class="badges">${BADGES.map(x => badgeEl(x)).join("")}</div></div></section>`;
-
-  // Verlauf
-  const recent = S.history.slice(-8).reverse();
-  h += `<section><h2 class="sec">History</h2><div class="card hist">${recent.length ? recent.map(e => {
-    const w = W[e.type]; let m = "";
-    if(e.yoga) m = `${fmt(num(e.yoga.min),0)} min${yogaLabel(e.yoga) ? " " + yogaLabel(e.yoga) : ""}`;
-    else if(e.run) m = `${fmt(num(e.run.km))} km · ${hms(num(e.run.min))}`;
-    else m = `${fmt(Math.round(volOf(e)),0)} kg volume`;
-    if(e.tread) m += ` · Treadmill ${fmt(num(e.tread.min),0)} min${num(e.tread.incline)?" · "+fmt(num(e.tread.incline))+" %":""}`;
-    return `<button class="hrow" data-act="hist" data-id="${e.id}"><span class="dot ${kc(w)}"></span><span><b>${esc(w.name)}</b><small>${dShort(e.start)} · ${m}</small></span><span class="muted">›</span></button>`;
-  }).join("") : `<p class="empty">Your sessions show up here once you finish your first one.</p>`}</div></section>`;
-
+  kinds.forEach(k => h += sportBlock(k, st));
+  // Calendar & history preview
+  const today = (new Date().getDay()+6)%7, last = calList()[0];
+  const cell = i => { const L = S.history.filter(e => e.start>=ws+i*864e5 && e.start<ws+(i+1)*864e5 && kinds.includes(kindOfW(e.type))); return `<span class="pwd"><i class="${L.length ? "k-"+kindOfW(L[0].type) : ""} ${i===today?"t":""}"></i>${WD[i]}</span>`; };
+  h += `<section id="sec-cal"><h2 class="sec">Calendar &amp; history</h2><button class="pbox" data-act="calopen"><span class="pbt"><b>This week</b><span>${MONTHS[now.getMonth()]}: ${mr.n} ${mr.n===1?"session":"sessions"}</span></span><span class="pweek">${[0,1,2,3,4,5,6].map(cell).join("")}</span>${last ? `<span class="pses"><i class="k-${kindOfW(last.type)}"></i><span><b>${esc(W[last.type].name)}</b><small>Last session · ${dShort(last.start)}</small></span></span>` : ""}</button><button class="pmore" data-act="calopen"><span>Open calendar &amp; history</span><span>›</span></button></section>`;
+  // Badges preview
+  const vis = visibleBadges(), got = vis.filter(b => S.badges && S.badges[b.id]).sort((a,b) => S.badges[b.id]-S.badges[a.id]), nb = nextBadge();
+  h += `<section id="sec-badges"><h2 class="sec">Badges</h2><div class="pbox"><span class="pbt"><b>${got.length} of ${vis.length} earned</b><span>${got.length ? "last: " + esc(got[0].t) : ""}</span></span><span class="pbrow">${got.slice(0,3).map(b => badgeEl(b, true)).join("")}${nb ? `<span class="pbn"><b>Almost: ${esc(nb.b.t)}</b><small>${esc(nb.p.txt)}</small><span class="btrack"><i style="width:${Math.round(nb.p.pct*100)}%"></i></span></span>` : ""}</span></div><button class="pmore" data-act="badgesopen"><span>All badges</span><span>›</span></button></section>`;
   return h;
 }
+function pcardsSheet(k){
+  const sel = NFProg.cardsFor(S.settings.pcards, k);
+  sheet(`<h3>${PK_NAME[k]} cards</h3><p class="muted small">Pick what you want to see. Up to ${NFProg.MAX_CARDS} cards.</p><div class="pcopts">${NFProg.CARDS[k].map(c => { const on = sel.includes(c.id); return `<button class="pcopt" data-act="pcardtog" data-k="${k}" data-id="${c.id}" aria-pressed="${on}"><span class="ck">${on ? "✓" : ""}</span><span class="tx"><b>${esc(c.t)}${c.nw ? ` <span class="nw">NEW</span>` : ""}</b><small>${esc(c.d)}</small></span></button>`; }).join("")}</div><button class="primary" data-act="pcardsdone">Done</button>`);
+}
 
+/* ---- Calendar & history: month grid or the full list ---- */
+let CAL = {view:"month", sel:null, f:"all", n:8};
+function calList(){ const k = trainKinds(); return S.history.filter(e => k.includes(kindOfW(e.type)) && (CAL.f==="all" || kindOfW(e.type)===CAL.f)).slice().reverse(); }
+function sesLine(e){
+  let m;
+  if(e.yoga) m = `${fmt(num(e.yoga.min),0)} min${e.yoga.calm ? ` · tension ${e.yoga.calm.b} → ${e.yoga.calm.a}` : ""}`;
+  else if(e.run) m = `${fmt(num(e.run.km))} km · ${hms(num(e.run.min))}`;
+  else m = `${fmt(Math.round(volOf(e)),0)} kg`;
+  if(e.tread) m += ` · treadmill ${fmt(num(e.tread.min),0)} min`;
+  return `<button class="cses" data-act="hist" data-id="${e.id}"><i class="k-${kindOfW(e.type)}"></i><span><b>${esc(W[e.type].name)}</b><small>${dShort(e.start)} · ${m}</small></span><span aria-hidden="true">›</span></button>`;
+}
+function renderCal(){
+  const kinds = trainKinds();
+  let h = `<section class="pghead"><button class="spback dark" data-act="tab" data-t="progress">‹ Progress</button><p class="eyebrow">Every session</p><h1>Calendar &amp; history</h1></section><div class="pgbody">`;
+  h += `<div class="cseg">${["month","list"].map(v => `<button data-act="calview" data-v="${v}" aria-pressed="${CAL.view===v}">${v==="month"?"Month":"List"}</button>`).join("")}</div>`;
+  if(CAL.view==="month"){
+    const now = new Date(), ref = new Date(now.getFullYear(), now.getMonth()+calOff, 1), y = ref.getFullYear(), m = ref.getMonth(), days = new Date(y, m+1, 0).getDate(), lead = (ref.getDay()+6)%7;
+    const H = S.history.filter(e => kinds.includes(kindOfW(e.type))), by = {}; H.forEach(e => (by[dkey(e.start)] = by[dkey(e.start)] || []).push(e));
+    const inM = H.filter(e => { const d = new Date(e.start); return d.getFullYear()===y && d.getMonth()===m; });
+    h += `<div class="cnav"><button data-act="cal" data-d="-1" aria-label="Previous month">‹</button><b>${MONTHS[m]} ${y}</b><button data-act="cal" data-d="1" aria-label="Next month" ${calOff>=0?"disabled":""}>›</button></div><div class="cgrid">${WD.map(d => `<span class="wd">${d.toUpperCase()}</span>`).join("")}`;
+    for(let i=0;i<lead;i++) h += `<span></span>`;
+    for(let d=1; d<=days; d++){
+      const k = y+"-"+(m+1)+"-"+d, L = by[k] || [], ks = [...new Set(L.map(e => kindOfW(e.type)))], tday = calOff===0 && d===now.getDate();
+      const cls = `cday ${ks.length ? "k-"+ks[0] : ""} ${ks.length>1 ? "two k2-"+ks[1] : ""} ${tday?"t":""} ${CAL.sel===k?"sel":""}`;
+      h += L.length ? `<button class="${cls}" data-act="calday" data-k="${k}" aria-label="${d} ${MONTHS[m]}: ${L.map(e => esc(W[e.type].name)).join(", ")}"><span>${d}</span></button>` : `<span class="${cls}"><span>${d}</span></span>`;
+    }
+    h += `</div><div class="clegend">${kinds.map(k => `<span><i class="k-${k}"></i>${{s:"Gym",r:"Run",y:"Yoga"}[k]}</span>`).join("")}<span style="margin-left:auto">Today framed</span></div>`;
+    const sum = [[inM.length, inM.length===1?"session":"sessions", ""]];
+    if(kinds.includes("s")) sum.push([inM.filter(e => kindOfW(e.type)==="s").length, "gym", "s"]);
+    if(kinds.includes("r")){ const r = inM.filter(e => kmOf(e)>0); sum.push([fmt(r.reduce((s,e) => s+kmOf(e), 0)) + " km", `${r.length} ${r.length===1?"run":"runs"}`, "r"]); }
+    if(kinds.includes("y")) sum.push([fmt(inM.filter(e => e.yoga).reduce((s,e) => s+num(e.yoga.min), 0),0) + "′", "yoga", "y"]);
+    h += `<div class="csum">${sum.map(([a,b,k]) => `<div><b class="tnum">${a}</b><span>${k ? `<i class="k-${k}"></i>` : ""}${b}</span></div>`).join("")}</div>`;
+    const selL = CAL.sel ? (by[CAL.sel] || []) : [];
+    if(selL.length) h += `<div class="cday-l"><h4>${new Date(selL[0].start).toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"})}</h4>${selL.map(sesLine).join("")}</div>`;
+    else h += `<p class="small muted" style="margin:14px 0 0">Tap a day to see its sessions.</p>`;
+    if(inM.length) h += `<button class="pmore" data-act="recap" data-y="${y}" data-m="${m}" style="margin-top:18px"><span>${MONTHS[m]} review</span><span>›</span></button>`;
+    const yy = now.getMonth()===0 ? now.getFullYear()-1 : now.getFullYear();
+    if(yearData(yy).n) h += `<button class="pmore" data-act="year" data-y="${yy}"><span>Your ${yy} in review</span><span>›</span></button>`;
+  }else{
+    if(kinds.length>1) h += `<div class="cchips">${["all"].concat(kinds).map(f => `<button data-act="calf" data-f="${f}" aria-pressed="${CAL.f===f}">${{all:"All",s:"Gym",r:"Run",y:"Yoga"}[f]}</button>`).join("")}</div>`;
+    const L = calList(), wk = {}; L.forEach(e => (wk[mondayOf(e.start)] = wk[mondayOf(e.start)] || []).push(e));
+    const keys = Object.keys(wk).map(Number).sort((a,b) => b-a);
+    if(!keys.length) h += `<p class="empty">Your sessions show up here once you finish your first one.</p>`;
+    keys.slice(0, CAL.n).forEach(w => {
+      const n = S.history.filter(e => e.start>=w && e.start<w+WEEK).length;
+      h += `<div class="cday-l"><h4><span>Week of ${new Date(w).getDate()} ${MONTHS[new Date(w).getMonth()].slice(0,3)}</span><span class="cwk">${wk[w].length} ${wk[w].length===1?"session":"sessions"}${n>=S.settings.goal ? " · goal reached" : ""}</span></h4>${wk[w].map(sesLine).join("")}</div>`;
+    });
+    if(keys.length>CAL.n) h += `<button class="pmore" data-act="calmore" style="margin-top:14px"><span>Show older weeks</span><span>›</span></button>`;
+  }
+  h += `</div>` + tabBarHtml();
+  $("#app").innerHTML = h;
+}
 /* ================= Training ================= */
 function blank(n){ return Array.from({length:n}, () => ({r:"", kg:"", ok:false})); }
 /* Werte vom letzten Training vorausfüllen */
@@ -2289,33 +2478,44 @@ function facts(){
   keys.forEach(k => { if(weeks[k].n>=goal){ cur = (prev!==null && k-prev<WEEK*1.5 && weeks[prev].n>=goal) ? cur+1 : 1; streakMax = Math.max(streakMax, cur); } prev = k; });
   return {total:H.length, km, vol, early, hipMax, prs, bestAlster, streakMax, yoga:H.filter(e => e.yoga).length,
     flexBest:Math.max(0, ...NFYoga.flexList(S.settings.flex).map(c => c.v)),
-    goalWeeks:keys.filter(k => weeks[k].n>=goal).length, allround:keys.some(k => { const g = [...weeks[k].types].map(t => (W[t]||{}).group);
-      return weeks[k].types.has("lauf") && g.some(x => ["lower","legs","full"].includes(x)) && g.some(x => ["upper","push","pull","full"].includes(x)); })};
+    goalWeeks:keys.filter(k => weeks[k].n>=goal).length, ...NFProg.specials(H.map(e => ({t:e.start, k:kindOfW(e.type)})), (S.settings.mob||[]).length)};
 }
 const BADGES = [
-  {id:"toes", l:"✋", t:"Toes touched", d:"You reached your toes in the flexibility check.", ok:f => f.flexBest>=4},
-  {id:"first", l:"1", t:"First session", d:"You finished your very first session.", ok:f => f.total>=1},
-  {id:"t10", l:"10", t:"10 sessions", d:"Completed 10 sessions.", ok:f => f.total>=10},
-  {id:"t25", l:"25", t:"25 sessions", d:"Completed 25 sessions.", ok:f => f.total>=25},
-  {id:"t50", l:"50", t:"50 sessions", d:"Completed 50 sessions.", ok:f => f.total>=50},
-  {id:"goal1", l:"3/3", t:"Weekly goal", d:"You reached your weekly goal for the first time.", ok:f => f.goalWeeks>=1},
-  {id:"streak4", l:"4W", t:"4 weeks straight", d:"You reached your weekly goal 4 weeks in a row.", ok:f => f.streakMax>=4},
-  {id:"streak8", l:"8W", t:"8 weeks straight", d:"You reached your weekly goal 8 weeks in a row.", ok:f => f.streakMax>=8},
-  {id:"allround", l:"3×", t:"All-rounder", d:"Lower body, a run and upper body in one week.", ok:f => f.allround},
-  {id:"km10", l:"10k", t:"10 km", d:"Ran 10 km in total.", ok:f => f.km>=10, run:true},
-  {id:"km50", l:"50k", t:"50 km", d:"Ran 50 km in total.", ok:f => f.km>=50, run:true},
-  {id:"km100", l:"100k", t:"100 km", d:"Ran 100 km in total.", ok:f => f.km>=100, run:true},
-  {id:"al45", l:"<45", t:"Loop under 45", d:"Your loop in under 45 minutes.", ok:f => f.bestAlster<45, run:true},
-  {id:"al40", l:"<40", t:"Loop under 40", d:"Your loop in under 40 minutes.", ok:f => f.bestAlster<40, run:true},
-  {id:"ht50", l:"50kg", t:"Hip Thrust 50 kg", d:"Hip thrust with 50 kg.", ok:f => f.hipMax>=50},
-  {id:"ht80", l:"80kg", t:"Hip Thrust 80 kg", d:"Hip thrust with 80 kg.", ok:f => f.hipMax>=80},
-  {id:"pr5", l:"PR5", t:"5 records", d:"Set a new best weight 5 times.", ok:f => f.prs>=5},
-  {id:"pr20", l:"PR20", t:"20 records", d:"Set a new best weight 20 times.", ok:f => f.prs>=20},
-  {id:"vol10t", l:"10t", t:"10 tonnes", d:"Moved 10,000 kg in total.", ok:f => f.vol>=10000},
-  {id:"yoga1", l:"Om", t:"First yoga", d:"Your first yoga session.", ok:f => f.yoga>=1, yoga:true},
-  {id:"yoga10", l:"10×", t:"Yogi", d:"Completed 10 yoga sessions.", ok:f => f.yoga>=10, yoga:true},
-  {id:"early", l:"AM", t:"Early bird", d:"A session before 8 am.", ok:f => f.early}
+  // Special · Nova (need: only shown if that sport is on Train; all3: only with gym, run and yoga)
+  {id:"triple", g:"special", all3:true, l:"3×", u:"NOVA", t:"Triple week", d:"Gym, a run and yoga in one week.", ok:f => f.triple},
+  {id:"sunrise", g:"special", need:"r", l:"☀", u:"SUNRISE", t:"Carcavelos sunrise", d:"A run before 8 am on a Saturday or Sunday.", ok:f => f.sunrise},
+  {id:"comeback", g:"special", l:"↩", u:"COMEBACK", t:"Comeback", d:"Back to training after two weeks or more off.", ok:f => f.comeback},
+  {id:"breaks", g:"special", need:"y", l:"10", u:"BREAKS", t:"Study break hero", d:"10 short routines between classes.", ok:f => f.breaks>=10},
+  {id:"night", g:"special", secret:true, l:"21h", u:"LATE", t:"Night owl", d:"A session after 9 pm.", ok:f => f.night},
+  {id:"advent", g:"special", secret:true, l:"24", u:"DECEMBER", t:"Advent streak", d:"A session in every week of December, from the 1st to the 28th.", ok:f => f.advent},
+  // General
+  {id:"first", g:"general", l:"1", u:"FIRST", t:"First session", d:"You finished your very first session.", ok:f => f.total>=1},
+  {id:"t10", g:"general", l:"10", u:"SESSIONS", t:"10 sessions", d:"Completed 10 sessions.", ok:f => f.total>=10},
+  {id:"t25", g:"general", l:"25", u:"SESSIONS", t:"25 sessions", d:"Completed 25 sessions.", ok:f => f.total>=25},
+  {id:"t50", g:"general", l:"50", u:"SESSIONS", t:"50 sessions", d:"Completed 50 sessions.", ok:f => f.total>=50},
+  {id:"goal1", g:"general", l:"✓", u:"GOAL", t:"Weekly goal", d:"You reached your weekly goal for the first time.", ok:f => f.goalWeeks>=1},
+  {id:"streak4", g:"general", l:"4W", u:"STREAK", t:"4 weeks straight", d:"You reached your weekly goal 4 weeks in a row.", ok:f => f.streakMax>=4},
+  {id:"streak8", g:"general", l:"8W", u:"STREAK", t:"8 weeks straight", d:"You reached your weekly goal 8 weeks in a row.", ok:f => f.streakMax>=8},
+  {id:"early", g:"general", l:"AM", u:"EARLY", t:"Early bird", d:"A session before 8 am.", ok:f => f.early},
+  // Gym
+  {id:"pr5", g:"gym", l:"5", u:"RECORDS", t:"5 records", d:"Set a new best weight 5 times.", ok:f => f.prs>=5},
+  {id:"pr20", g:"gym", l:"20", u:"RECORDS", t:"20 records", d:"Set a new best weight 20 times.", ok:f => f.prs>=20},
+  {id:"vol10t", g:"gym", l:"10t", u:"MOVED", t:"10 tonnes", d:"Moved 10,000 kg in total.", ok:f => f.vol>=10000},
+  {id:"ht50", g:"gym", l:"50", u:"HIP THRUST", t:"Hip thrust 50 kg", d:"Hip thrust with 50 kg.", ok:f => f.hipMax>=50},
+  {id:"ht80", g:"gym", l:"80", u:"HIP THRUST", t:"Hip thrust 80 kg", d:"Hip thrust with 80 kg.", ok:f => f.hipMax>=80},
+  // Running
+  {id:"km10", g:"run", l:"10", u:"KM", t:"10 km", d:"Ran 10 km in total.", ok:f => f.km>=10, run:true},
+  {id:"km50", g:"run", l:"50", u:"KM", t:"50 km", d:"Ran 50 km in total.", ok:f => f.km>=50, run:true},
+  {id:"km100", g:"run", l:"100", u:"KM", t:"100 km", d:"Ran 100 km in total.", ok:f => f.km>=100, run:true},
+  {id:"al45", g:"run", l:"<45", u:"LOOP", t:"Loop under 45", d:"Your loop in under 45 minutes.", ok:f => f.bestAlster<45, run:true},
+  {id:"al40", g:"run", l:"<40", u:"LOOP", t:"Loop under 40", d:"Your loop in under 40 minutes.", ok:f => f.bestAlster<40, run:true},
+  // Yoga
+  {id:"yoga1", g:"yoga", l:"1", u:"YOGA", t:"First yoga", d:"Your first yoga session.", ok:f => f.yoga>=1, yoga:true},
+  {id:"yoga10", g:"yoga", l:"10", u:"YOGA", t:"Yogi", d:"Completed 10 yoga sessions.", ok:f => f.yoga>=10, yoga:true},
+  {id:"toes", g:"yoga", l:"✓", u:"TOES", t:"Toes touched", d:"You reached your toes in the flexibility check.", ok:f => f.flexBest>=4, yoga:true}
 ];
+const BGROUPS = [["special", "Special · Nova"], ["general", "General"], ["gym", "Gym"], ["run", "Running"], ["yoga", "Yoga"]];
+const visibleBadges = () => BADGES.filter(b => NFProg.badgeVisible(b, trainKinds()));
 function checkBadges(silent){
   if(!S.badges) S.badges = {};
   const f = facts(), fresh = [];
@@ -2329,7 +2529,8 @@ function factsC(){ const l = S.history[S.history.length-1], k = S.history.length
 function badgeProg(b){
   const f = factsC(), id = b.id;
   const T = {first:[f.total,1],t10:[f.total,10],t25:[f.total,25],t50:[f.total,50],goal1:[f.goalWeeks,1],streak4:[f.streakMax,4," weeks"],streak8:[f.streakMax,8," weeks"],
-    km10:[f.km,10," km"],km50:[f.km,50," km"],km100:[f.km,100," km"],ht50:[f.hipMax,50," kg"],ht80:[f.hipMax,80," kg"],pr5:[f.prs,5],pr20:[f.prs,20],vol10t:[f.vol/1000,10," t"],yoga1:[f.yoga,1],yoga10:[f.yoga,10]};
+    km10:[f.km,10," km"],km50:[f.km,50," km"],km100:[f.km,100," km"],ht50:[f.hipMax,50," kg"],ht80:[f.hipMax,80," kg"],pr5:[f.prs,5],pr20:[f.prs,20],vol10t:[f.vol/1000,10," t"],yoga1:[f.yoga,1],yoga10:[f.yoga,10],
+    breaks:[f.breaks,10]};
   if(id==="al45" || id==="al40"){
     const goal = id==="al45" ? 45 : 40, best = isFinite(f.bestAlster) ? f.bestAlster : 0;
     return best ? {pct:Math.min(1, goal/best), txt:`Best time ${hms(best)}${best>goal?` · ${hms(best-goal)} faster to go`:""}`} : {pct:0, txt:"No loop with a time yet"};
@@ -2338,24 +2539,40 @@ function badgeProg(b){
   const [c, t, u] = T[id];
   return {pct:Math.min(1, Math.max(0, c/t)), txt:t>1 ? `${fmt(Math.min(c,t), u===" t"?1:0)} / ${t}${u||""}` : ""};
 }
-function nextBadgeHtml(){
-  const cand = BADGES.filter(b => !(S.badges && S.badges[b.id])).map(b => ({b, p:badgeProg(b)})).filter(x => x.p.pct>0 && x.p.pct<1).sort((x,y) => y.p.pct-x.p.pct)[0];
-  if(!cand) return "";
-  const {b, p} = cand;
-  return `<button class="nextb" data-act="badge" data-id="${b.id}"><span class="e">${BEMO[b.id]||"🏅"}</span><span class="nb-t"><b>Almost there: ${esc(b.t)}</b><span>${esc(b.d)}${p.txt?" · "+esc(p.txt):""}</span><span class="bar2"><i style="width:${p.pct*100}%"></i></span></span></button>`;
+function nextBadge(){
+  return visibleBadges().filter(b => !b.secret && !(S.badges && S.badges[b.id])).map(b => ({b, p:badgeProg(b)})).filter(x => x.p.pct>0 && x.p.pct<1).sort((x,y) => y.p.pct-x.p.pct)[0] || null;
 }
-
-function badgeEl(b, small){
-  const got = S.badges && S.badges[b.id];
-  const pr = got ? null : badgeProg(b);
-  return `<button class="badge ${got?"got":""} ${b.run?"run":b.yoga?"yoga":""} ${small?"sm":""}" data-act="badge" data-id="${b.id}" aria-label="${esc(b.t)}${got?"":" (not yet)"}"><span class="hx"><i></i><em>${BEMO[b.id]||"🏅"}</em></span>${small?"":`<small>${esc(b.t)}</small>`}${!small && pr && pr.pct>0 ? `<span class="bbar"><b style="width:${pr.pct*100}%"></b></span>` : ""}</button>`;
+function nextBadgeHtml(){
+  const cand = nextBadge(); if(!cand) return "";
+  const {b, p} = cand;
+  return `<button class="bnext" data-act="badge" data-id="${b.id}">${badgeEl(b, true, true)}<span class="bn-t"><b>Almost there: ${esc(b.t)}</b><span>${esc(p.txt || b.d)}</span><span class="btrack"><i style="width:${Math.round(p.pct*100)}%"></i></span></span></button>`;
+}
+// Nova square: black when earned with a line in the colour of its group, grey with progress when not
+function badgeEl(b, small, plain){
+  const got = S.badges && S.badges[b.id], sec = b.secret && !got, pr = got ? null : badgeProg(b);
+  const name = sec ? "Secret badge" : b.t;
+  const inner = `<span class="sq"><b>${sec ? "?" : esc(b.l)}</b><u>${sec ? "SECRET" : esc(b.u)}</u>${!got && pr && pr.pct>0 && !plain ? `<s><i style="width:${Math.round(pr.pct*100)}%"></i></s>` : ""}</span>`;
+  if(plain) return `<span class="nbq sm ${got?"got":""} g-${b.g}" aria-hidden="true">${inner}</span>`;
+  return `<button class="nbq ${got?"got":""} g-${b.g} ${sec?"secret":""} ${small?"sm":""}" data-act="badge" data-id="${b.id}" aria-label="${esc(name)}${got?"":" (not yet)"}">${inner}${small?"":`<small>${esc(name)}</small>`}</button>`;
 }
 function badgeSheet(id){
-  const b = BADGES.find(x => x.id===id), got = S.badges && S.badges[id];
-  sheet(`<div style="display:flex;gap:14px;align-items:center">${badgeEl(b,true)}<div><h3>${esc(b.t)}</h3><p class="muted small">${got?"Earned on "+new Date(got).toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"}):"Not earned yet"+(badgeProg(b).txt?" · "+esc(badgeProg(b).txt):"")}</p></div></div>
-    <p>${esc(b.d)}</p><button class="secondary" data-act="closesheet">Close</button>`);
+  const b = BADGES.find(x => x.id===id); if(!b) return;
+  const got = S.badges && S.badges[id], sec = b.secret && !got, pr = badgeProg(b);
+  sheet(`<div style="display:flex;gap:14px;align-items:center">${badgeEl(b, true, true)}<div><h3>${esc(sec ? "Secret badge" : b.t)}</h3><p class="muted small">${got ? "Earned on " + new Date(got).toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"}) : "Not earned yet" + (!sec && pr.txt ? " · " + esc(pr.txt) : "")}</p></div></div>
+    <p>${sec ? "A secret badge. Keep training to find out what it is." : esc(b.d)}</p><button class="secondary" data-act="closesheet">Close</button>`);
 }
-
+function renderBadges(){
+  const vis = visibleBadges(), got = vis.filter(b => S.badges && S.badges[b.id]).length;
+  let h = `<section class="pghead"><button class="spback dark" data-act="tab" data-t="progress">‹ Progress</button><p class="eyebrow">${got} of ${vis.length} earned</p><h1>Badges</h1></section><div class="pgbody">`;
+  h += nextBadgeHtml();
+  BGROUPS.forEach(([g, name]) => {
+    const L = vis.filter(b => b.g===g); if(!L.length) return;
+    const n = L.filter(b => S.badges && S.badges[b.id]).length;
+    h += `<div class="bgroup g-${g}"><h3><span>${name}</span><span class="tnum">${n} / ${L.length}</span></h3><div class="bgrid">${L.map(b => badgeEl(b)).join("")}</div></div>`;
+  });
+  h += `</div>` + tabBarHtml();
+  $("#app").innerHTML = h;
+}
 /* ================= Kalender & Monatsrückblick ================= */
 let calOff = 0;
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
@@ -4416,7 +4633,7 @@ function render(){
   if(screen==="onboard"){ renderOnboard(); return; }
   if(screen==="session" && !S.active) screen = "home";
   if(screen==="summary" && !summary) screen = "home";
-  if(screen==="home") renderHome(); else if(screen==="me") renderMe(); else if(screen==="session") renderSession(); else if(screen==="runplan") renderPlan(); else if(screen==="sport") renderSport(); else renderSummary();
+  if(screen==="home") renderHome(); else if(screen==="me") renderMe(); else if(screen==="session") renderSession(); else if(screen==="runplan") renderPlan(); else if(screen==="sport") renderSport(); else if(screen==="cal") renderCal(); else if(screen==="badges") renderBadges(); else renderSummary();
   updateBadge();
   keepAwake(screen==="session" && !!S.active);
 }
@@ -4562,8 +4779,19 @@ document.addEventListener("click", async ev => {
     case "chart": chartSheet(b.dataset.id); break;
     case "runchart": runChartSheet(b.dataset.k); break;
     case "badge": badgeSheet(b.dataset.id); break;
-    case "cal": calOff = Math.min(0, calOff + (+b.dataset.d)); { const c = $("#calcard"); if(c) c.innerHTML = calendarHtml(); } break;
-    case "calday": daySheet(b.dataset.k); break;
+    case "cal": calOff = Math.min(0, calOff + (+b.dataset.d)); CAL.sel = null; if(screen==="cal") renderCal(); else { const c = $("#calcard"); if(c) c.innerHTML = calendarHtml(); } break;
+    case "calday": if(screen==="cal"){ CAL.sel = CAL.sel===b.dataset.k ? null : b.dataset.k; renderCal(); } else daySheet(b.dataset.k); break;
+    case "calopen": closeSheet(); CAL = {view:"month", sel:null, f:"all", n:8}; calOff = 0; screen = "cal"; render(); window.scrollTo(0,0); break;
+    case "calview": CAL.view = b.dataset.v==="list" ? "list" : "month"; renderCal(); break;
+    case "calf": CAL.f = ["s","r","y"].includes(b.dataset.f) ? b.dataset.f : "all"; CAL.n = 8; renderCal(); break;
+    case "calmore": CAL.n += 8; renderCal(); break;
+    case "badgesopen": closeSheet(); screen = "badges"; render(); window.scrollTo(0,0); break;
+    case "pcards": pcardsSheet(["s","r","y"].includes(b.dataset.k) ? b.dataset.k : "s"); break;
+    case "pcardtog": { const k = b.dataset.k, r = NFProg.toggleCard(NFProg.cardsFor(S.settings.pcards, k), b.dataset.id, k);
+      if(r.err==="max") toast(`Up to ${NFProg.MAX_CARDS} cards. Switch one off first.`); else if(r.err==="min") toast("Keep at least one card.");
+      else if(!r.err){ S.settings.pcards = Object.assign({}, S.settings.pcards, {[k]:r.list}); save(); } pcardsSheet(k); break; }
+    case "pcardsdone": closeSheet(); render(); break;
+    case "pexall": PEXALL = !PEXALL; render(); break;
     case "week": if(b.dataset.seen){ S.settings.weekSeen = +b.dataset.seen; save(); renderHome(); } closeSheet(); openWeek(+b.dataset.ws); break;
     case "recap": if(b.dataset.seen){ S.settings.recapSeen = b.dataset.seen; save(); renderHome(); } closeSheet(); if(STORY) closeStory(); openMonth(+b.dataset.y, +b.dataset.m); break;
     case "rungoals": runGoalsSheet(); break;

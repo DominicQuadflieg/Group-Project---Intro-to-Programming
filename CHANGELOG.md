@@ -2,6 +2,10 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Progress per sport, Calendar & history, Nova badges
+
+Progress shows only the sports you train, each with cards you pick (Edit cards). Calendar and history now have their own page with a month view and the full list. Badges are Nova squares, grouped by sport, with new special badges.
+
 ## Unreleased – Reviews follow your sports
 
 The weekly review now shows only the chapters for the sports you did: gym, running, yoga or a balanced mix. Every slide uses your photo with the same calm overlay, and the end slide says your name.
