@@ -643,6 +643,7 @@ a.dl{display:grid;place-items:center;text-decoration:none;color:var(--ink)}
 .pbars i{flex:1;border-radius:calc(var(--rs) * 4px) calc(var(--rs) * 4px) calc(var(--rs) * 2px) calc(var(--rs) * 2px);background:rgba(255,255,255,.28)}
 .pbars i.d{background:rgba(255,255,255,.95)}.pbars i.c{background:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.45)}
 .pfoot{display:flex;justify-content:space-between;font-size:12px;opacity:.9;margin-top:8px}
+.plan-meta{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 12px;font-size:12px;opacity:.9;margin-top:8px}
 .pweek{display:flex;flex-direction:column}
 .pweek h3{margin:0 0 4px;font:700 18px var(--display);text-transform:uppercase;display:flex;justify-content:space-between;align-items:baseline}
 .pweek h3 span{font:600 12px var(--body);color:var(--muted);text-transform:none}
@@ -1048,6 +1049,36 @@ section[id]{scroll-margin-top:calc(var(--nf-hmin) + 14px)}
 .sheet .credit a{color:inherit}
 .dayex{margin:0;padding-left:18px;font-size:14px;display:grid;gap:3px}
 .dayex small{color:var(--muted)}
+/* Yoga hub: full sessions and small resets between classes */
+.yhub-hero{background:#285b9e;color:#fff;padding:26px 24px 24px;display:flex;flex-direction:column;align-items:flex-start;gap:0}
+.yhub-eyebrow{font-size:12px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;line-height:1.5}
+.sheet .yhub-hero h3{font:700 64px/1.05 var(--display);letter-spacing:-.035em;margin:18px 0 12px;text-transform:none}
+.sheet .yhub-intro{font-size:18px;line-height:1.5;margin:0 0 22px}
+.yhub-meta{display:flex;flex-wrap:wrap;gap:8px 14px;font-size:13px;line-height:1.5;margin-bottom:20px}
+.yhub-meta span+span{border-left:1px solid #ffffff66;padding-left:14px}
+.yhub-cta{width:100%;border:0;background:#fff;color:#183f74;padding:14px 16px;text-align:center;font:700 15px/1.4 var(--body);cursor:pointer}
+.yhub-cta:hover{background:#eaf0f8}.yhub-last{margin-top:12px;font-size:12px;line-height:1.5;color:#fff}
+.yhub-breaks{padding:16px 0 0}
+.yhub-breaks .yhub-eyebrow{color:var(--muted)}
+.yhub-breaks h4{font:700 32px/1.15 var(--display);letter-spacing:-.02em;margin:6px 0 8px}
+.sheet .yhub-desc{font-size:14px;color:var(--muted);line-height:1.5;margin:0 0 18px}
+.yhub-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.yhub-routine{display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:7px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:16px;cursor:pointer;min-width:0}
+.yhub-time{font:700 12px/1.4 var(--body);color:var(--muted)}
+.yhub-routine b{font:700 18px/1.2 var(--display)}
+.yhub-routine small{font-size:13px;line-height:1.5;color:var(--muted)}
+.yhub-routine:hover{border-color:var(--ink)}
+.yhub-check{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;border:0;border-top:1px solid var(--line);padding:18px 0 8px;background:transparent;color:var(--ink);text-align:left;cursor:pointer;margin-top:8px}
+.yhub-check b{display:block;font-size:14px}.yhub-check small{display:block;margin-top:4px;font-size:12px;color:var(--muted);line-height:1.5}
+.yhub-due{background:var(--accent-soft);color:var(--ink);padding:4px 8px;font-size:12px;font-weight:700}
+.yhub-cta:focus-visible,.yhub-routine:focus-visible,.yhub-check:focus-visible{outline:3px solid var(--yoga);outline-offset:3px}
+@media(max-width:350px){.yhub-grid{grid-template-columns:1fr}.yhub-hero{padding:22px 20px}}
+/* Running chooser: keep the compact cards, promote the next planned run */
+.run-menu{display:flex;flex-direction:column;gap:12px}
+.run-menu .start{padding:12px 14px 12px 12px;align-items:center}
+.run-menu .start.next{background:var(--run-soft)}
+.run-menu .start .run-next-label{font:700 11px/1.5 var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--run);margin-bottom:5px}
+.run-menu .wx1{font-size:12px;color:var(--muted);line-height:1.5}
 </style>
 </head>
 <body>

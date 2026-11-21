@@ -2,6 +2,22 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Running chooser
+
+- Put the next planned run first and highlight it when a running goal has an upcoming run
+- Keep Outdoor run, Treadmill at the gym and My running goal in the existing compact card layout, with a small weather line
+- Remove Runs near you from this menu and keep the Strava connection available
+
+## Unreleased – Running goal layout fix
+
+- Give the running plan’s week and race-date row its own class, so the page footer’s full-width black background and shadow cannot cover the plan
+
+## Unreleased – Clearer Yoga menu
+
+- Give Yoga a prominent Nova-inspired blue block and group Short routines under Between classes, with compact cards and copy for campus life; keep duration and level controls in the session picker
+- Move glute activation alongside the other short mobility routines instead of presenting Glute Mobility as a separate main option
+- Keep the flexibility check available below the routines and refresh the offline cache
+
 ## v2.14 – Tests in the browser
 
 - 11 end-to-end tests drive the real app in Chromium: sign-up (empty, invalid and valid), body data, the app lock with a wrong password, strength sessions (empty and logged), runs (no time, valid, watch file, wrong file, impossible time), the flexibility check, the training history import (wrong CSV, Garmin list, the same list again) and backups (broken file, markup in names)

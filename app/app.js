@@ -767,14 +767,15 @@ function runSheet(){
   const p = S.settings.runPlan, nx = p ? planNext() : null;
   const lo = [...S.history].reverse().find(e => e.run && e.run.mode!=="band"), lb = [...S.history].reverse().find(e => e.run && e.run.mode==="band");
   const pg = p ? planProgress(p) : null;
-  sheet(`<h3>Running</h3>
+  wxLoad();
+  sheet(`<div class="run-menu"><h3>Running</h3>
+    <div class="wx1" data-wx="plain"${wxInfo()?"":" hidden"}>${wxPlain()}</div>
+    ${nx ? `<button class="start next" data-kind="run" data-act="runout"><span class="stripe"></span><span><small class="run-next-label">${nx.today ? "Today in your plan" : "Up next · " + WDAY[new Date(nx.date).getDay()]}</small><b>${esc(nx.label)}</b><small>${esc(nx.desc || "")}</small></span><span class="arrow">›</span></button>` : ""}
     <button class="start" data-kind="run" data-act="runout"><span class="stripe"></span><span><b>Outdoor run</b><small>Upload a screenshot or enter it yourself</small><small>${lo?"Last done "+ago(lo.start)+" · "+fmt(num(lo.run.km))+" km":"Not done yet"}</small></span><span class="arrow">›</span></button>
     <button class="start" data-kind="run" data-act="runband"><span class="stripe"></span><span><b>Treadmill at the gym</b><small>Enter km and time from the display</small><small>${lb?"Last done "+ago(lb.start):"Not done yet"}</small></span><span class="arrow">›</span></button>
+    <button class="start" data-kind="run" data-act="runplan"><span class="stripe"></span><span><b>My running goal</b><small>${p ? esc(planTitle(p)) + (pg.n ? ` · Week ${pg.i+1} of ${pg.n}` : "") : "Set a goal and get your running plan"}</small>${pg && pg.n ? `<span class="gbar"><i style="width:${Math.round(pg.f*100)}%"></i></span>` : ""}</span><span class="arrow">›</span></button>
     ${stravaRow()}
-    <button class="start" data-kind="run" data-act="near"><span class="stripe"></span><span><b>Runs near you</b><small>Routes close by, or a loop from where you are</small></span><span class="arrow">›</span></button>
-    <button class="start goalc" data-kind="run" data-act="runplan"><span class="stripe"></span><span><b>My running goal</b><small>${p ? esc(planTitle(p)) + (pg.n ? ` · Week ${pg.i+1} of ${pg.n}` : "") : "Set a goal and get your running plan"}</small>${pg && pg.n ? `<span class="gbar"><i style="width:${Math.round(pg.f*100)}%"></i></span>` : ""}</span><span class="arrow">›</span></button>
-    ${nx ? `<div class="plantoday">${rico(nx.type)}<div><small>${nx.today ? "Today per plan" : "Up next · " + WDAY[new Date(nx.date).getDay()]}</small><b>${esc(nx.label)}</b></div></div>` : ""}
-    <button class="secondary" data-act="closesheet">Cancel</button>`);
+    <button class="secondary" data-act="closesheet">Cancel</button></div>`);
 }
 
 /* ---- Form & Prognose ---- */
@@ -922,7 +923,7 @@ function planView(p){
   let h = `<div class="plview"><section class="planhd"><small>My running goal</small><h2>${esc(planTitle(p))}</h2>
     <p>${p.date ? `${left} ${left===1?"week":"weeks"} to go` : "no end date"}${pred ? ` · Current forecast: ${hms(pred)}` : ""}</p>
     <div class="pbars">${bars}</div>
-    <div class="pfoot"><span>${pg.n ? `Week ${pg.i+1} of ${pg.n}` : `Week ${pg.i+1}`}</span><span>${p.date ? (p.goal==="alster" ? "Test on " : "Race day ") + new Date(p.date).toLocaleDateString("en-GB", {day:"numeric", month:"short"}) : ""}</span></div></section>`;
+    <div class="plan-meta"><span>${pg.n ? `Week ${pg.i+1} of ${pg.n}` : `Week ${pg.i+1}`}</span><span>${p.date ? (p.goal==="alster" ? "Test on " : "Race day ") + new Date(p.date).toLocaleDateString("en-GB", {day:"numeric", month:"short"}) : ""}</span></div></section>`;
   h += wk(cw, "This week", true);
   if(nw) h += wk(nw, "Next week", false);
   if(planAll) W2.slice(pg.i+2).forEach(w => h += wk(w, `Week ${w.i+1} · ${weekRange(w.ws)}`, false));
@@ -2813,15 +2814,36 @@ function addonFor(e){
   return id ? MOB[id] : null;
 }
 function yogaSheet(){
-  const ml = S.settings.mob || [], last = ml.length ? ml[ml.length-1] : 0, ly = S.history.filter(e => e.yoga).slice(-1)[0];
-  sheet(`<h3>Yoga</h3>
-    <button class="start" data-kind="yoga" data-act="yogaflow"><span class="stripe"></span><span><b>Yoga session</b><small>7 sessions to choose from, 5 to 45 min · counts as a session</small><small>${ly?"Last done "+ago(ly.start):"Not done yet"}</small></span><span class="arrow">›</span></button>
-    <button class="start" data-kind="yoga" data-act="mobility"><span class="stripe"></span><span><b>Glute Mobility</b><small>${stepsMin(curMob().steps)} min · today: ${esc(curMob().n)} · no session clock</small><small>${last?"Last done "+ago(last):"Not done yet"}</small></span><span class="arrow">›</span></button>
-    <p class="small muted" style="margin:0">Glute mobility doesn't count as a session. It helps with sore muscles and keeps your hips mobile.</p>
-    <p class="exn" style="margin:4px 0 0;font-weight:600">Short routines</p>
-    <div class="alts"><button class="altrow" data-act="flexcheck"><b>Flexibility check · 30 s${NFYoga.flexDueIn(S.settings.flex, Date.now()) ? "" : ` <span class="ysug">Due</span>`}</b><small>How far you reach in a forward fold. Every two weeks.</small></button><button class="altrow" data-act="study"><b>Study break · 5 min</b><small>Neck, shoulders and breathing on your chair. No mat needed.</small></button>${["hips","shoulders","runner","stretch"].map(id => `<button class="altrow" data-act="mob" data-id="${id}"><b>${esc(MOB[id].n)} · ${stepsMin(MOB[id].steps)} min</b><small>${esc(MOB[id].why)}</small></button>`).join("")}</div>
-    <button class="secondary" data-act="closesheet">Cancel</button>`);
+  const ly = S.history.filter(e => e.yoga).slice(-1)[0];
+  const breaks = [
+    {act:"study", n:"Study break", min:5, desc:"A chair, a few breaths. Ready for your next class."},
+    {id:"hips", desc:"Ease out of a long lecture."},
+    {id:"shoulders", desc:"Give your neck and upper back a break."},
+    {id:"runner", desc:"Loosen up after your campus run."},
+    {id:"stretch", desc:"Stretch out after a day on campus."},
+    {id:"glutes", desc:"Wake up your hips after sitting."}
+  ];
+  sheet(`<section class="yhub-hero" aria-label="Yoga sessions">
+      <p class="yhub-eyebrow">A little space for yourself</p>
+      <h3>Yoga</h3>
+      <p class="yhub-intro">Find your flow.<br>Make room to breathe.</p>
+      <div class="yhub-meta"><span>${NFYoga.SESSIONS.length} sessions</span><span>5–45 min</span><span>Your pace</span></div>
+      <button class="yhub-cta" data-act="yogaflow">Explore sessions</button>
+      ${ly?`<small class="yhub-last">Last session ${ago(ly.start)}</small>`:""}
+    </section>
+    <section class="yhub-breaks" aria-labelledby="yhub-break-title">
+      <p class="yhub-eyebrow">Between classes</p>
+      <h4 id="yhub-break-title">Short routines</h4>
+      <p class="yhub-desc">Close the laptop. Take a little break.</p>
+      <div class="yhub-grid">${breaks.map(x => {
+        const r = x.id ? MOB[x.id] : x;
+        return `<button class="yhub-routine" data-act="${x.act || "mob"}"${x.id?` data-id="${x.id}"`:""}><span class="yhub-time">${x.min || stepsMin(r.steps)} min</span><b>${esc(r.n)}</b><small>${esc(x.desc)}</small></button>`;
+      }).join("")}</div>
+    </section>
+    <button class="yhub-check" data-act="flexcheck"><span><b>Flexibility check</b><small>A 30-second check-in. Every two weeks.</small></span>${NFYoga.flexDueIn(S.settings.flex, Date.now()) ? "" : '<span class="yhub-due">Due</span>'}</button>
+    <button class="secondary" data-act="closesheet">Close</button>`);
 }
+
 // id: one of MOB; without an id the glute routines take turns
 function startMobility(id){
   const r = MOB[id], fl = r ? {n:r.n, steps:r.steps} : curMob();
