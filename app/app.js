@@ -517,16 +517,28 @@ function todayTabHtml(st){
 function trainTabHtml(st){
   let h = `<section class="tabhead"><p class="eyebrow">Choose your session</p><h1>Train</h1></section>`;
   h += planCardHtml();
-  h += `<section><h2 class="sec">Start a session</h2><div class="ttiles">${startKeys().map(t => {
+  const keys = trainKeys();
+  h += `<section><h2 class="sec">Start a session</h2>${keys.length ? `<div class="ttiles">${keys.map(t => {
     const w = W[t], last = st.lastBy[t], k = kindOfW(t);
     return `<button class="ttile" data-act="start" data-t="${t}"><img src="${KIND_PHOTO[k]}" alt="" loading="lazy"><span class="nmeta"><span>${KIND_LBL[k]}</span>${t===st.next?`<span class="up">Up next</span>`:""}</span><b>${esc(w.name)}</b><small>${t==="lauf" ? `<span class="wxs" data-wx="short"${WX?"":" hidden"}>${wxShort()}</span>` : last ? "Last done " + ago(last) : "Not done yet"}</small><span class="go">Start ›</span></button>`;
-  }).join("")}</div>
-  <div class="tlinks"><button class="optrow morew" data-act="workouts"><span>+ <b>More workouts</b> · full body, push, pull, legs or an empty session</span><span>${ALL_W.length - startKeys().length}</span></button>
-  <button class="optrow morew" data-act="library"><span>📚 <b>Exercise library</b> · ${NFEx.LIBRARY.filter(e => !e.hidden).length + customList().length} exercises</span><span>›</span></button>
-  <button class="optrow morew" data-act="runplan"><span>🏃 <b>Running plan</b> · ${S.settings.runPlan ? "your goal and weeks" : "set a goal"}</span><span>›</span></button>
-  <button class="optrow morew" data-act="start" data-t="yoga"><span>🧘 <b>Yoga and short routines</b> · study break, mobility</span><span>›</span></button></div></section>`;
+  }).join("")}</div>` : `<p class="empty">Nothing on Train right now. Use Edit to add sessions.</p>`}
+  <button class="secondary tedit" data-act="trainedit">${PEN_ICO}Edit what's on Train</button></section>`;
   return h;
 }
+/* ---- Edit Train: hide plan sessions, add any other workout ---- */
+const PEN_ICO = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4"/></svg>';
+function trainKeys(){ return NFPlan.trainList(startKeys(), S.settings.trainEdit, ALL_W); }
+function trainEditSheet(){
+  const base = startKeys(), ed = S.settings.trainEdit || {}, hide = Array.isArray(ed.hide) ? ed.hide : [], add = (Array.isArray(ed.add) ? ed.add : []).filter(k => W[k] && !base.includes(k));
+  const row = (k, on, note, label) => `<div class="terow${on?"":" off"}"><span><small>${KIND_LBL[kindOfW(k)]}</small><b>${esc(W[k].name)}</b><small>${note}</small></span><button class="tetog" data-act="trtog" data-t="${k}" aria-pressed="${on}" aria-label="${label} ${esc(W[k].name)}">${label}</button></div>`;
+  const rest = ALL_W.filter(k => W[k] && !base.includes(k) && !add.includes(k));
+  sheet(`<h3>Edit Train</h3><p class="muted small">Starts from your plan. Hide what you don't do, add any other workout. Hidden sessions stay in your plan.</p>
+    <p class="eyebrow tehd">On Train</p><div class="telist">${base.map(k => hide.includes(k) ? row(k, false, "hidden", "Show") : row(k, true, "in your plan", "Hide")).join("")}${add.map(k => row(k, true, "you added it", "Remove")).join("")}</div>
+    ${rest.length ? `<p class="eyebrow tehd">Add a workout</p><div class="telist">${rest.map(k => `<div class="terow"><span><small>${KIND_LBL[kindOfW(k)]}</small><b>${esc(W[k].name)}</b>${W[k].desc?`<small>${esc(W[k].desc)}</small>`:""}</span><button class="tetog add" data-act="trtog" data-t="${k}" aria-label="Add ${esc(W[k].name)}">+ Add</button></div>`).join("")}</div>` : ""}
+    ${hide.length || add.length ? `<button class="linkbtn" data-act="trreset">Reset to my plan</button>` : ""}
+    <button class="primary" data-act="closesheet">Done</button>`);
+}
+
 function progressTabHtml(st){
   let h = `<section class="tabhead"><p class="eyebrow">How it's going</p><h1>Progress</h1></section>`;
   const now = new Date(), mr = recapData(now.getFullYear(), now.getMonth());
@@ -4384,6 +4396,9 @@ document.addEventListener("click", async ev => {
     case "mobility": closeSheet(); startMobility(); break;
     case "mob": closeSheet(); startMobility(b.dataset.id); break;
     case "workouts": workoutsSheet(); break;
+    case "trainedit": trainEditSheet(); break;
+    case "trtog": { const k = b.dataset.t; if(!ALL_W.includes(k) || !W[k]) break; S.settings.trainEdit = NFPlan.trainToggle(S.settings.trainEdit, k, startKeys()); save(); trainEditSheet(); break; }
+    case "trreset": delete S.settings.trainEdit; save(); trainEditSheet(); break;
     case "library": openLibrary("browse"); break;
     case "addex": openLibrary("add"); break;
     case "libfilter": LIB[b.dataset.k] = b.dataset.v; document.querySelectorAll(`[data-act="libfilter"][data-k="${b.dataset.k}"]`).forEach(x => x.setAttribute("aria-pressed", String(x.dataset.v===b.dataset.v))); { const l = $("#liblist"); if(l) l.innerHTML = libListHtml(); } break;

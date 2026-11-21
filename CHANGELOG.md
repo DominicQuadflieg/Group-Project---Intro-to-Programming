@@ -2,6 +2,12 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Train: Edit instead of the extra rows
+
+- The four dashed rows under "Start a session" on Train (More workouts, Exercise library, Running plan, Yoga) are gone. In their place, "Edit what's on Train" opens a sheet that starts from your plan: hide sessions you never do, show them again, add any other workout (full body, push, pull, legs, an empty session …) or reset to your plan. Hidden sessions stay in your plan
+- The exercise library stays in the menu (top right), the running plan in the running menu
+- New `NFPlan.trainList` / `NFPlan.trainToggle` with tests in `tests/train-edit.test.js`
+
 ## Unreleased – Today photo shows more of the campus
 
 - The photo card on Today is a little shorter, the text and Start button sit smaller in the lower left, and the dark fade only covers the bottom, so more of the picture shows
