@@ -2,6 +2,11 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Next sets take over your reps and weight
+
+- In a workout, typing reps or weight in a set fills the same value into the later sets of that exercise (e.g. 10 reps, 62.5 kg in set 1 → sets 2 and 3 show 10 and 62.5). They stay suggestions until you tick them or change them; sets you already entered or ticked are never overwritten
+- New `NFEx.carryForward` with tests in `tests/carry-sets.test.js`
+
 ## Unreleased – Build your own workout from Edit Train
 
 - In "Edit Train", the Strength block has "+ Build your own workout": give it a name, pick exercises from the library (or create your own exercise), and save. It goes on Train with a "Yours" label and can be edited later
