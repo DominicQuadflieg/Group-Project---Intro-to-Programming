@@ -772,7 +772,6 @@ function runSheet(){
     <div class="wx1" data-wx="plain"${wxInfo()?"":" hidden"}>${wxPlain()}</div>
     ${nx ? `<button class="start next" data-kind="run" data-act="runout"><span class="stripe"></span><span><small class="run-next-label">${nx.today ? "Today in your plan" : "Up next · " + WDAY[new Date(nx.date).getDay()]}</small><b>${esc(nx.label)}</b><small>${esc(nx.desc || "")}</small></span><span class="arrow">›</span></button>` : ""}
     <button class="start" data-kind="run" data-act="runout"><span class="stripe"></span><span><b>Outdoor run</b><small>Upload a screenshot or enter it yourself</small><small>${lo?"Last done "+ago(lo.start)+" · "+fmt(num(lo.run.km))+" km":"Not done yet"}</small></span><span class="arrow">›</span></button>
-    <button class="txtbtn run-near" data-act="near">Routes near you, or a loop from where you are ›</button>
     <button class="start" data-kind="run" data-act="runband"><span class="stripe"></span><span><b>Treadmill at the gym</b><small>Enter km and time from the display</small><small>${lb?"Last done "+ago(lb.start):"Not done yet"}</small></span><span class="arrow">›</span></button>
     <button class="start" data-kind="run" data-act="runplan"><span class="stripe"></span><span><b>My running goal</b><small>${p ? esc(planTitle(p)) + (pg.n ? ` · Week ${pg.i+1} of ${pg.n}` : "") : "Set a goal and get your running plan"}</small>${pg && pg.n ? `<span class="gbar"><i style="width:${Math.round(pg.f*100)}%"></i></span>` : ""}</span><span class="arrow">›</span></button>
     ${stravaRow()}
