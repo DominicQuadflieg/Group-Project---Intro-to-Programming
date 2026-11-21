@@ -2,6 +2,15 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Train with your week, and one page each for Gym, Run and Yoga
+
+- **Train**: "Train" with "3 of 6 this week", a thin week line coloured by sport (Upper, Lower, Run …; done crossed out, today marked), today's session with Start, then one Nova photo per sport (Gym, Run, Yoga). The heavy footer is gone from Train
+- **Edit what's on Train** is now just three switches (Gym, Run, Yoga); at least one stays on. Without a choice Train shows the sports in your plan. With one sport only, its picture is bigger
+- **Gym page**: week line, the session that is up (today, still open, or next), your plan with days and ticks, your templates ("Save a new template", Edit), ready-made workouts, the exercise library
+- **Run page**: week line, today's run, Outdoor / Treadmill, your plan runs, your running goal with progress, import
+- **Yoga page**: suggested session, short routines, all sessions with their figure and length (each starts directly), flexibility check
+- Replaces the per-session Edit from #43/#46 (`NFPlan.trainList`/`trainToggle` → `NFPlan.trainKinds`/`toggleKind`, tests in `tests/train-sports.test.js`). Own workouts are now "templates" under Gym
+
 ## Unreleased – Next sets take over your reps and weight
 
 - In a workout, typing reps or weight in a set fills the same value into the later sets of that exercise (e.g. 10 reps, 62.5 kg in set 1 → sets 2 and 3 show 10 and 62.5). They stay suggestions until you tick them or change them; sets you already entered or ticked are never overwritten
