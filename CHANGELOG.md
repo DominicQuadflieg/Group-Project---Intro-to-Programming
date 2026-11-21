@@ -2,6 +2,10 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Reviews follow your sports
+
+The weekly review now shows only the chapters for the sports you did: gym, running, yoga or a balanced mix. Every slide uses your photo with the same calm overlay, and the end slide says your name.
+
 ## Unreleased – Train with your week, and one page each for Gym, Run and Yoga
 
 - **Train**: "Train" with "3 of 6 this week", a thin week line coloured by sport (Upper, Lower, Run …; done crossed out, today marked), today's session with Start, then one Nova photo per sport (Gym, Run, Yoga). The heavy footer is gone from Train

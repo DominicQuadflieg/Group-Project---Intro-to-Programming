@@ -3469,7 +3469,7 @@ function drawShare(sp){
   y += bh + 90;
   if(sp.kcal){ x.font = `600 52px ${B}`; x.fillText(`🔥 about ${fmt(sp.kcal,0)} kcal burned`, 80, y); y += 86; }
   (sp.items||[]).forEach(t => { if(y > H0-190) return; let fs = 44; x.font = `500 ${fs}px ${B}`; while(x.measureText(t).width > 920 && fs>34){ fs -= 2; x.font = `500 ${fs}px ${B}`; } wrapText(x, t, 920).slice(0,2).forEach(l => { x.fillText(l, 80, y); y += 58; }); y += 16; });
-  x.globalAlpha = .85; x.font = `500 38px ${B}`; x.fillText("❤️ " + sp.foot, 80, H0-90); x.globalAlpha = 1;
+  x.globalAlpha = .85; x.font = `500 38px ${B}`; x.fillText(sp.foot, 80, H0-90); x.globalAlpha = 1;
   return c;
 }
 function prepShare(sp){
@@ -3580,28 +3580,73 @@ function weekData(ws){
   r.tips = Object.entries(tips).map(([id,kg]) => ({n:EXN[id] ? EXN[id].n : id, kg}));
   return r;
 }
+const withName = t => firstName() ? `${t}, ${esc(firstName())}.` : t + ".";
+const SPORT_WORD = {s:"Gym", r:"Run", y:"Yoga"};
 function weekSlides(r){
-  const sl = [], dl = ms => ` style="animation-delay:${ms}ms"`, g = r.goal;
-  const msg = r.n>=g ? "Weekly goal reached! 🎉" : r.n>0 ? (r.cur ? "The week isn't over yet." : "Every session counts.") : (r.cur ? "This week is still wide open." : "Rest week. That's part of it too.");
+  const sl = [], dl = ms => ` style="animation-delay:${ms}ms"`, g = r.goal, H = r.H;
+  const kindOfE = e => kindOfW(e.type);
+  const kinds = NFPlan.SPORTS.filter(k => H.some(e => kindOfE(e)===k));
+  const flex = NFYoga.flexList(S.settings.flex);
+  const plan = NFPlan.reviewPlan(kinds, {goal:!!S.settings.runPlan, flex:flex.length>0});
+  const msg = r.n>=g ? "Weekly goal reached." : r.n>0 ? (r.cur ? "The week isn't over yet." : "Every session counts.") : (r.cur ? "This week is still wide open." : "Rest week. That's part of it too.");
   sl.push({c:"s1", h:`<p class="sy-eb">Weekly review</p><h2 class="sy-big pop">${r.cur?"Your week":"Your week of"}</h2><p class="sy-p fadeup"${dl(300)}>${weekRange(r.ws)}</p><p class="sy-hint">Tap to continue</p>`});
   if(r.n){
     const today = r.cur ? (new Date().getDay()+6)%7 : -1;
-    const strip = r.days.map((d,i) => `<div class="wd${d.length?" on":""}${i===today?" today":""}"><span class="wdc">${d.length ? d.map(e => TYPE_EMO[e.type]||"✓").slice(0,2).join("") : ""}</span><small>${WD[i]}</small></div>`).join("");
-    sl.push({c:"s2", h:`<p class="sy-eb">Sessions</p><h2 class="sy-num pop tnum">${r.n}<span class="sy-of">/${g}</span></h2><p class="sy-p">${msg}</p><div class="wdstrip fadeup"${dl(400)}>${strip}</div>`});
-    const hl = [];
-    r.gains.slice(0,3).forEach(x => hl.push(`<p>🏆 <b>${esc(x.n)}</b> new best: ${fmt(x.to)} kg <span class="sy-pill">+${fmt(x.d)} kg</span></p>`));
-    if(r.bestAlW && r.bestAlW<=stats().bestAlster+1e-9) hl.push(`<p>⏱️ Fastest ${esc(LN())} ever: <b class="tnum">${hms(r.bestAlW)}</b></p>`);
-    r.badges.slice(0,2).forEach(b => hl.push(`<p>🏅 New badge: <b>${esc(b.t)}</b></p>`));
-    if(r.badges.length>2) hl.push(`<p>🏅 … and ${r.badges.length-2} more badges</p>`);
-    if(r.vol>0 || hl.length) sl.push({c:"s5", h:`<p class="sy-eb">Highlights</p>${r.vol>0?`<h2 class="sy-num pop tnum"${fmt(Math.round(r.vol),0).length>3?' style="font-size:72px"':""}>${fmt(Math.round(r.vol),0)} kg</h2><p class="sy-p">is what you moved this week.</p>`:`<h2 class="sy-big pop">Your wins</h2>`}${hl.length?`<div class="sy-list fadeup"${dl(400)}>${hl.join("")}</div>`:`<p class="sy-p fadeup"${dl(400)} style="opacity:.85">No new records this time, but showing up is the most important part. 💪</p>`}`});
-    const msw = muscleSlide(r.H, "week"); if(msw){ msw.c = "s1"; sl.push(msw); }
-    if(r.runs) sl.push({c:"s4", h:`<p class="sy-eb">Running</p><h2 class="sy-num pop tnum">${fmt(r.km)} km</h2><p class="sy-p">is how far you ran this week.</p><div class="sy-list fadeup"${dl(400)}>${r.alster?`<p>🔁 <b>${r.alster}×</b> your ${esc(LN())}</p>`:""}${r.bestAlW?`<p>⏱️ Best loop: <b class="tnum">${hms(r.bestAlW)}</b></p>`:""}<p>🗺️ <b class="tnum">${fmt(stats().km,0)} km</b> in total so far</p></div>`});
-    if(r.yoga || r.mob || r.kcal) sl.push({c:"s6", h:`<p class="sy-eb">Body and mind</p>${r.yoga?`<h2 class="sy-num pop tnum">${fmt(r.yogaMin,0)} min</h2><p class="sy-p">of yoga this week. Namaste 🧘‍♀️</p>`:`<h2 class="sy-big pop">Kind to yourself</h2>`}<div class="sy-list fadeup"${dl(400)}>${r.mob?`<p>🤸‍♀️ ${r.mob}× glute mobility</p>`:""}${r.kcal?`<p>🔥 about <b class="tnum">${fmt(r.kcal,0)} kcal</b> burned</p>`:""}</div>`});
-    if(r.tips.length || r.streak>1) sl.push({c:"s3", h:`<p class="sy-eb">Next week</p>${r.streak>1?`<h2 class="sy-num pop tnum">${r.streak}</h2><p class="sy-p">weeks in a row you reached your goal. 🔥</p>`:`<h2 class="sy-big pop">${r.n>=g?"Keep it going":"There's more in you"}</h2>`}${r.tips.length?`<div class="sy-list fadeup"${dl(400)}><p class="sy-sm">Try next time</p>${r.tips.map(t => `<p>💪 <b>${esc(t.n)}</b> with <b class="tnum">${fmt(t.kg)} kg</b></p>`).join("")}</div>`:""}`});
+    const emo = e => { const k = kindOfE(e); return k==="r" ? TYPE_EMO.lauf : k==="y" ? TYPE_EMO.yoga : (TYPE_EMO[e.type] || TYPE_EMO.oben); };
+    const strip = r.days.map((d,i) => `<div class="wd${d.length?" on":""}${i===today?" today":""}"><span class="wdc">${d.length ? d.map(emo).slice(0,2).join("") : ""}</span><small>${WD[i]}</small></div>`).join("");
+    const per = kinds.map(k => `${SPORT_WORD[k]} ${H.filter(e => kindOfE(e)===k).length}`).join(" · ");
+    sl.push({c:"s2", h:`<p class="sy-eb">Sessions</p><h2 class="sy-num pop tnum">${r.n}<span class="sy-of">/${g}</span></h2><p class="sy-p">${msg}</p><div class="wdstrip fadeup"${dl(400)}>${strip}</div>${kinds.length>1 ? `<p class="sy-p sy-sm fadeup"${dl(600)}>${per}</p>` : ""}`});
+    const gymH = H.filter(e => kindOfE(e)==="s"), runH = H.filter(e => kmOf(e)>0), yoH = H.filter(e => e.yoga);
+    plan.forEach(id => {
+      if(id==="gym"){
+        const M = muscleLoad(gymH), top = M.rank.slice(0,2).map(x => x.n).join(" and ");
+        const rows = r.gains.slice(0,3).map(x => `<p>🏆 <b>${esc(x.n)}</b> ${fmt(x.to)} kg <span class="sy-pill">+${fmt(x.d)} kg</span></p>`);
+        if(top) rows.push(`<p>💪 Most trained: <b>${esc(top)}</b></p>`);
+        sl.push({c:"s5", h:`<p class="sy-eb">Gym · ${gymH.length} ${gymH.length===1?"session":"sessions"}</p>${r.vol>0 ? `<h2 class="sy-num pop tnum"${fmt(Math.round(r.vol),0).length>3?' style="font-size:72px"':""}>${fmt(Math.round(r.vol),0)} kg</h2><p class="sy-p">is what you moved this week.</p>` : `<h2 class="sy-big pop">${gymH.length} ${gymH.length===1?"session":"sessions"}</h2>`}${rows.length ? `<div class="sy-list fadeup"${dl(400)}>${rows.join("")}</div>` : ""}`});
+      }else if(id==="muscles"){
+        const m = muscleSlide(gymH, "week"); if(m){ m.c = "s1"; sl.push(m); }
+      }else if(id==="run"){
+        const km = runH.reduce((x,e) => x+kmOf(e), 0), byDay = Array.from({length:7}, (_,i) => r.days[i].reduce((x,e) => x+kmOf(e), 0)), mx = Math.max(...byDay, .1);
+        const longest = runH.reduce((x,e) => !x || kmOf(e)>kmOf(x) ? e : x, null);
+        const pace = L => { const p = L.filter(e => e.run && num(e.run.km)>0 && num(e.run.min)>0).map(e => paceOf(num(e.run.km), num(e.run.min))); return p.length ? Math.min(...p) : 0; };
+        const bp = pace(runH), pp = pace(S.history.filter(e => e.start>=r.ws-WEEK && e.start<r.ws)), dd = pp && bp ? Math.round((pp-bp)*60) : 0;
+        const bars = byDay.map((v,i) => `<div class="mbw"><div class="mb${v?"":" lo"}" style="height:${Math.max(4, v/mx*90)}px;animation-delay:${300+i*80}ms">${v?`<em class="tnum">${fmt(v,1)}</em>`:""}</div><small>${WD[i]}</small></div>`).join("");
+        const rows = [];
+        if(longest) rows.push(`<p>📏 Longest run: <b>${fmt(kmOf(longest))} km</b> · ${WD[(new Date(longest.start).getDay()+6)%7]}</p>`);
+        if(bp) rows.push(`<p>⚡ Best pace: <b>${mmss(bp)} /km</b>${dd>0 ? ` <span class="sy-pill">${dd} s faster</span>` : ""}</p>`);
+        if(r.alster) rows.push(`<p>🔁 <b>${r.alster}×</b> your ${esc(LN())}${r.bestAlW ? ` · best ${hms(r.bestAlW)}` : ""}</p>`);
+        sl.push({c:"s4", h:`<p class="sy-eb">Running · ${runH.length} ${runH.length===1?"run":"runs"}</p><h2 class="sy-num pop tnum">${fmt(km)} km</h2><p class="sy-p">${kmFun(km)}</p><div class="sy-panel fadeup"${dl(250)}><div class="mbars sm" style="height:120px">${bars}</div></div>${rows.length?`<div class="sy-list fadeup"${dl(450)}>${rows.join("")}</div>`:""}`});
+      }else if(id==="goal"){
+        const rp = S.settings.runPlan, pg = planProgress(rp), d = planDist(rp), pr = d ? predict(d) : 0;
+        const wk = pg.W[pg.i], done = wk ? wk.runs.filter(x => x.done).length : 0;
+        const pred = pr && rp.target ? (pr<=rp.target ? `Right now you would make it: about <b>${hms(pr)}</b>.` : `Right now you would run about <b>${hms(pr)}</b>. ${hms(pr-rp.target)} to go.`) : "Keep going, the plan does the rest.";
+        sl.push({c:"s3", h:`<p class="sy-eb">Your goal${pg.n ? ` · week ${pg.i+1} of ${pg.n}` : ""}</p><h2 class="sy-big pop">${esc(planTitle(rp))}</h2><p class="sy-p">${pred}</p><div class="sy-panel fadeup"${dl(300)}><div class="sy-goalbar"><i style="width:${Math.round(pg.f*100)}%"></i></div><p class="sy-sm">${wk ? `${done} of ${wk.runs.length} plan runs done this week` : ""}${rp.date ? ` · race day ${new Date(rp.date).getDate()} ${MONTHS[new Date(rp.date).getMonth()].slice(0,3)}` : ""}</p></div>`});
+      }else if(id==="yoga"){
+        const t = NFYoga.tension(calmEntries().filter(x => x.t>=r.ws && x.t<r.ws+WEEK));
+        const fav = Object.entries(yoH.reduce((o,e) => { const n = (e.yoga.sid && NFYoga.byId(e.yoga.sid) || {}).n; if(n) o[n] = (o[n]||0)+1; return o; }, {})).sort((a,b) => b[1]-a[1])[0];
+        const rows = [];
+        if(t && t.n) rows.push(`<p>😌 Tension <b>${fmt(t.before)} → ${fmt(t.after)}</b> on average</p>`);
+        if(fav) rows.push(`<p>🧘 Most done: <b>${esc(fav[0])}</b>${fav[1]>1 ? ` · ${fav[1]}×` : ""}</p>`);
+        if(r.mob) rows.push(`<p>🪑 <b>${r.mob}</b> short ${r.mob===1?"routine":"routines"} between classes</p>`);
+        sl.push({c:"s6", h:`<p class="sy-eb">Yoga · ${yoH.length} ${yoH.length===1?"session":"sessions"}</p><h2 class="sy-num pop tnum">${fmt(r.yogaMin,0)} min</h2><p class="sy-p">on the mat this week.</p>${rows.length?`<div class="sy-list fadeup"${dl(400)}>${rows.join("")}</div>`:""}`});
+      }else if(id==="flex"){
+        const tr = NFYoga.flexTrend(flex), pts = flex.slice(-6), dd2 = t => `${new Date(t).getDate()}.${new Date(t).getMonth()+1}.`;
+        const chart = pts.length>=2 ? lineSvg(pts.map(c => ({v:c.v})), {lab:v => NFYoga.flexName(Math.round(v)), x0:dd2(pts[0].t), x1:dd2(pts[pts.length-1].t)}) : "";
+        sl.push({c:"s7", h:`<p class="sy-eb">Flexibility · forward fold</p><h2 class="sy-big pop">${esc(NFYoga.flexName(tr.last.v))}</h2><p class="sy-p">${tr.gained>0 ? `That is ${tr.gained} ${tr.gained===1?"step":"steps"} further than your first check.` : tr.n>1 ? "Holding steady. Every two weeks shows the change." : "Your first check. In two weeks you will see the change."}</p>${chart ? `<div class="sy-panel fadeup"${dl(250)}>${chart}</div>` : ""}`});
+      }else if(id==="next"){
+        const tips = [];
+        if(kinds.includes("s") && r.tips[0]) tips.push(`<p>🏋️ <b>Gym</b> · ${esc(r.tips[0].n)} with ${fmt(r.tips[0].kg)} kg</p>`);
+        if(kinds.includes("r")){ const rp = S.settings.runPlan, d = rp && planDist(rp); tips.push(`<p>🏃 <b>Run</b> · ${rp && rp.target && d ? `goal pace ${mmss(rp.target/d)} /km` : "one easy run, one a bit faster"}</p>`); }
+        if(kinds.includes("y")){ const due = NFYoga.flexDueIn(S.settings.flex, Date.now()); tips.push(`<p>🧘 <b>Yoga</b> · ${due ? `${esc((NFYoga.byId(ySuggest() || "winddown") || {n:"Wind down"}).n)} after a long day` : "your flexibility check is due"}</p>`); }
+        if(tips.length) sl.push({c:"s3", h:`<p class="sy-eb">Next week</p>${r.streak>1 ? `<h2 class="sy-num pop tnum">${r.streak}</h2><p class="sy-p">weeks in a row you reached your goal. 🔥</p>` : `<h2 class="sy-big pop">One step each</h2>`}<div class="sy-list fadeup"${dl(400)}>${tips.join("")}</div>`});
+      }
+    });
   }
-  const end = r.n>=g ? "Weekly goal reached" : r.n>0 ? "Every session counts" : "A fresh week starts Monday";
+  const end = r.n>=g ? "Weekly goal reached" : r.n>0 ? "Well done" : "A fresh week starts Monday";
+  const sum = [r.n ? `${r.n} ${r.n===1?"session":"sessions"}` : "", r.vol ? `${fmt(Math.round(r.vol),0)} kg` : "", r.km ? `${fmt(r.km)} km` : "", r.yogaMin ? `${fmt(r.yogaMin,0)} min of yoga` : ""].filter(Boolean).join(" · ");
+  const badges = r.badges.length ? `<p class="sy-p sy-sm">🏅 ${r.badges.length} new ${r.badges.length===1?"badge":"badges"}: ${r.badges.slice(0,2).map(b => esc(b.t)).join(", ")}</p>` : "";
   const prevBtn = `<button class="sy-btn ghost" data-act="week" data-ws="${r.ws-WEEK}">‹ View previous week</button>`;
-  sl.push({c:"s8", end:r.n>=g, h:`<p class="sy-eb">${weekRange(r.ws)}</p><h2 class="sy-big pop">${end}</h2><p class="sy-p fadeup"${dl(300)}>${r.n ? `${r.n} ${r.n===1?"session":"sessions"}${r.km?`, ${fmt(r.km)} km`:""}${r.vol?`, ${fmt(Math.round(r.vol),0)} kg moved`:""}.` : msg}</p><div class="sy-btns fadeup"${dl(600)}>${r.n?`<button class="sy-btn" data-act="share">📤 Share</button>`:""}${prevBtn}${r.cur?"":`<button class="sy-btn ghost" data-act="week" data-ws="${r.ws+WEEK}">Next week ›</button>`}<button class="sy-btn ghost" data-act="storyclose">Close</button></div>`});
+  sl.push({c:"s8", end:r.n>=g, h:`<p class="sy-eb">${weekRange(r.ws)}</p><h2 class="sy-big pop">${withName(end)}</h2><p class="sy-p fadeup"${dl(300)}>${r.n ? sum : msg}</p>${badges}${r.cur ? `<p class="sy-p sy-sm">See you on Monday.</p>` : ""}<div class="sy-btns fadeup"${dl(600)}>${r.n?`<button class="sy-btn" data-act="share">📤 Share</button>`:""}${prevBtn}${r.cur?"":`<button class="sy-btn ghost" data-act="week" data-ws="${r.ws+WEEK}">Next week ›</button>`}<button class="sy-btn ghost" data-act="storyclose">Close</button></div>`});
   return sl;
 }
 function weekShareSpec(r){
@@ -3753,8 +3798,8 @@ function attachPhotos(st){
   defaultPhotos().then(ps => {
     if(!ps.length || STORY!==st) return;
     const sh = ps.slice().sort(() => Math.random()-.5);
-    let j = 0;   // Folien mit Diagrammen (nophoto) bleiben ohne Foto, damit sie lesbar sind
-    st.photos = st.slides.map(sl => sl.nophoto ? null : sh[j++ % sh.length]);
+    let j = 0;   // every slide gets a photo; charts sit on a dark panel so they stay readable
+    st.photos = st.slides.map(() => sh[j++ % sh.length]);
     drawStory(true);
   }).catch(() => {});
 }
@@ -3944,7 +3989,7 @@ function monthSlides(r){
   sl.push({c:"s7", nophoto:true, h:`<p class="sy-eb">Your rhythm</p><h2 class="sy-big pop">${WDAY[(fav+1)%7]}</h2><p class="sy-p">is your favourite day. You mostly train <b>${tod}</b></p><div class="sy-panel fadeup"${dl(250)}><div class="mbars sm" style="height:130px">${r.wd.map((n,i) => `<div class="mbw"><div class="mb ${i===fav?"":"lo"}" style="height:${Math.max(4, n/wmx*96)}px;animation-delay:${300+i*80}ms"></div><small>${WD[i]}</small></div>`).join("")}</div></div>`});
   // 9 Abschluss
   const nx = MONTHS[(r.m+1)%12];
-  sl.push({c:"s8", end:true, h:`<p class="sy-eb">${M} ${r.y}</p><h2 class="sy-big pop">What a month ❤️</h2>${r.badges.length?`<p class="sy-p">${r.badges.length} ${r.badges.length===1?"new badge":"new badges"}:</p><div class="badges sy-badges fadeup"${dl(300)}>${r.badges.slice(0,4).map(b => badgeEl(b, true).replace(/data-act="[^"]*"/g, "")).join("")}</div>`:`<p class="sy-p">${r.n} ${r.n===1?"session":"sessions"}${r.km?`, ${fmt(r.km)} km`:""}${r.vol?`, ${fmt(Math.round(r.vol),0)} kg moved`:""}.</p>`}<p class="sy-p fadeup"${dl(500)}>Here's to a strong ${nx}!</p><div class="sy-btns fadeup"${dl(700)}><button class="sy-btn" data-act="share">📤 Share</button>${r.prev.n?`<button class="sy-btn ghost" data-act="recap" data-y="${new Date(r.y, r.m-1, 1).getFullYear()}" data-m="${r.prevM}">‹ View ${MONTHS[r.prevM]}</button>`:""}<button class="sy-btn ghost" data-act="storyclose">Close</button></div>`});
+  sl.push({c:"s8", end:true, h:`<p class="sy-eb">${M} ${r.y}</p><h2 class="sy-big pop">${withName("What a month")}</h2>${r.badges.length?`<p class="sy-p">${r.badges.length} ${r.badges.length===1?"new badge":"new badges"}:</p><div class="badges sy-badges fadeup"${dl(300)}>${r.badges.slice(0,4).map(b => badgeEl(b, true).replace(/data-act="[^"]*"/g, "")).join("")}</div>`:`<p class="sy-p">${r.n} ${r.n===1?"session":"sessions"}${r.km?`, ${fmt(r.km)} km`:""}${r.vol?`, ${fmt(Math.round(r.vol),0)} kg moved`:""}.</p>`}<p class="sy-p fadeup"${dl(500)}>Here's to a strong ${nx}!</p><div class="sy-btns fadeup"${dl(700)}><button class="sy-btn" data-act="share">📤 Share</button>${r.prev.n?`<button class="sy-btn ghost" data-act="recap" data-y="${new Date(r.y, r.m-1, 1).getFullYear()}" data-m="${r.prevM}">‹ View ${MONTHS[r.prevM]}</button>`:""}<button class="sy-btn ghost" data-act="storyclose">Close</button></div>`});
   return sl;
 }
 function monthShareSpec(r){
