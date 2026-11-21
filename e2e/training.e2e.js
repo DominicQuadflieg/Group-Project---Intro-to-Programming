@@ -90,7 +90,7 @@ test("yoga: the flexibility check saves a level and shows it on the Progress tab
   await page.click('[data-act="flexpick"][data-v="3"]');
   assert.match(await text(page, ".sheet h3"), /starting point: Ankles/);
   await page.click('.sheet [data-act="closesheet"]');
-  await page.evaluate(() => { TAB = "progress"; render(); });
-  assert.match(await text(page, 'section:has(h2:has-text("Flexibility"))'), /Ankles/);
+  await page.evaluate(() => { S.settings.trainKinds = ["s", "r", "y"]; TAB = "progress"; render(); });
+  assert.match(await text(page, '#sec-y .pc:has-text("Flexibility")'), /Ankles/);
   assert.deepEqual(await page.done(), []);
 });
