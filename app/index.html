@@ -1304,6 +1304,39 @@ button.cday{cursor:pointer;border-color:transparent;color:#fff}
 .pcopt[aria-pressed="true"] .ck{background:var(--ink);color:var(--bg)}
 .pcopt .tx{flex:1}.pcopt .tx b{display:block;font-size:14.5px}.pcopt .tx small{color:var(--muted);font-size:12.5px}
 .pcopt .nw{font:700 9.5px var(--body);letter-spacing:.1em;background:#ED1B34;color:#fff;padding:2px 6px;vertical-align:2px}
+/* ===== Guided tour (guide.js) ===== */
+#guide{position:fixed;inset:0;z-index:10000;pointer-events:none;font:14px/1.45 var(--body)}
+#guide>*{pointer-events:auto}
+.tg-block{position:fixed;inset:0;background:transparent}
+.tg-spot{position:fixed;pointer-events:none!important;box-shadow:0 0 0 9999px rgba(0,0,0,.62);outline:3px solid #fff}
+.tg-spot.soft{box-shadow:0 0 0 9999px rgba(0,0,0,.22);outline:0}
+.tg-ring{position:fixed;pointer-events:none!important;border:3px solid #ED1B34;box-shadow:0 0 0 7px rgba(237,27,52,.35);animation:tgpulse 1.4s ease-in-out infinite}
+@keyframes tgpulse{50%{box-shadow:0 0 0 12px rgba(237,27,52,.15)}}
+@media (prefers-reduced-motion:reduce){.tg-ring{animation:none}}
+.tg-tap{position:fixed;pointer-events:none!important;background:#ED1B34;color:#fff;font:800 11px var(--body);letter-spacing:.12em;padding:4px 8px;text-transform:uppercase}
+.tg-card{position:fixed;left:14px;right:14px;max-width:520px;margin:0 auto;background:#fff;color:#000;padding:18px 18px 14px;border-top:5px solid #ED1B34;box-shadow:0 8px 30px rgba(0,0,0,.3)}
+.tg-card.compact{padding:12px 14px 10px}.tg-card.compact h3{font-size:20px}.tg-card.compact p{font-size:13px}.tg-card.compact .tg-dots{margin:8px 0 6px}
+.tg-eb{display:flex;justify-content:space-between;margin:0;font:700 11px var(--body);letter-spacing:.16em;text-transform:uppercase;color:#4a4a4a}
+.tg-card h3{margin:6px 0;font:700 24px/1.15 var(--display)}
+.tg-card p{margin:0;color:#222}
+.tg-dots{display:flex;gap:5px;margin:14px 0 12px}.tg-dots i{flex:1;height:3px;background:#e3e3e5}.tg-dots i.on{background:#000}
+.tg-btns{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.tg-skip{border:0;background:none;padding:8px 0;min-height:44px;font:600 13px var(--body);color:#4a4a4a;text-decoration:underline;cursor:pointer}
+.tg-next{border:0;background:#000;color:#fff;font:700 14px var(--body);padding:12px 22px;min-height:44px;cursor:pointer}
+.tg-hint{font:600 13px var(--body);color:#ED1B34}
+.tg-bar{position:fixed;left:0;right:0;bottom:64px;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 16px;background:rgba(0,0,0,.86);color:#fff;font:600 13px var(--body);border-top:3px solid #ED1B34;cursor:pointer}
+.tg-pill{position:fixed;left:50%;transform:translateX(-50%);bottom:86px;z-index:2;border:0;border-top:3px solid #ED1B34;background:#000;color:#fff;font:700 14px var(--body);padding:12px 18px;box-shadow:0 4px 14px rgba(0,0,0,.35);white-space:nowrap;cursor:pointer;max-width:calc(100% - 24px);overflow:hidden;text-overflow:ellipsis}
+.tg-pill span{color:#ff6b7d}
+.tg-extag{position:fixed;top:max(58px, calc(env(safe-area-inset-top) + 48px));left:16px;background:#ED1B34;color:#fff;font:800 11px var(--body);letter-spacing:.14em;padding:5px 9px;text-transform:uppercase;pointer-events:none!important}
+.tg-full{position:fixed;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:28px 22px max(36px, env(safe-area-inset-bottom));color:#fff;background:linear-gradient(180deg,rgba(0,0,0,.15),rgba(0,0,0,.86)),url(img/pack/campus-glass-hall.jpg) center/cover #000;overflow:auto}
+.tg-full.end{background-image:linear-gradient(180deg,rgba(0,0,0,.15),rgba(0,0,0,.86)),url(img/pack/gym-weights.jpg)}
+.tg-full .tg-eb{color:#fff}
+.tg-full h2{margin:10px 0 12px;font:700 38px/1.08 var(--display)}
+.tg-full>p{margin:0 0 8px;font-size:15px;opacity:.95}
+.tg-full ul{margin:8px 0 14px;padding:0;list-style:none;font-size:14px}.tg-full li{padding:7px 0;border-top:1px solid rgba(255,255,255,.25)}.tg-full li b{display:inline-block;width:80px}
+.tg-ex{display:flex;gap:10px;align-items:center;margin:0 0 16px;font-size:13px;opacity:.95}.tg-ex input{width:20px;height:20px;accent-color:#ED1B34}
+.tg-big{display:block;width:100%;border:0;background:#fff;color:#000;font:700 15px var(--body);padding:15px;margin-bottom:10px;cursor:pointer;min-height:48px}
+.tg-ghost{display:block;width:100%;border:0;background:none;color:#fff;font:600 14px var(--body);text-decoration:underline;padding:10px;cursor:pointer;min-height:44px}
 </style>
 </head>
 <body>
@@ -1317,6 +1350,8 @@ button.cday{cursor:pointer;border-color:transparent;color:#fff}
 <script src="muscles.js"></script>
 <script src="yoga.js"></script>
 <script src="progress.js"></script>
+<script src="tour.js"></script>
 <script src="app.js"></script>
+<script src="guide.js"></script>
 </body>
 </html>

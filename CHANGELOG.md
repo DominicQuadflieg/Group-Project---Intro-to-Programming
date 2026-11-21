@@ -2,6 +2,10 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Guided tour
+
+After sign-up a guided tour walks through Today, Train (Gym, Run, Yoga) and Progress on the real screens: you tap the highlighted buttons, pauses show each new screen, the library can be browsed and a yoga session tried. Optional example data, removed again at the end. Restart it any time under Menu › Guided tour.
+
 ## Unreleased – Progress per sport, Calendar & history, Nova badges
 
 Progress shows only the sports you train, each with cards you pick (Edit cards). Calendar and history now have their own page with a month view and the full list. Badges are Nova squares, grouped by sport, with new special badges.
