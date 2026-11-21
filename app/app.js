@@ -554,6 +554,52 @@ function trainTabHtml(st){
   return h;
 }
 /* ---- Edit Train: hide plan sessions, add any other workout ---- */
+const PLUS_ICO = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
+/* ---- Build your own gym workout: name, exercises, optional plan day ---- */
+let BUILD = null;
+function buildNew(){ BUILD = {key:null, name:"", ex:[], day:"", err:{}}; buildSheet(); }
+function buildEdit(k){
+  const d = S.settings.ownW && S.settings.ownW[k]; if(!d) return;
+  const p = S.settings.plan, s = p && Array.isArray(p.sessions) ? p.sessions.find(x => x.kind==="s" && x.workout===k) : null;
+  BUILD = {key:k, name:d.name || "", ex:(d.ex||[]).filter(id => EXN[id]), day:s ? String(s.day) : "", err:{}}; buildSheet();
+}
+function buildCapture(){ if(!BUILD) return; const n = $("#b-name"), d = $("#b-day"); if(n) BUILD.name = n.value; if(d) BUILD.day = d.value; }
+function buildSheet(){
+  const b = BUILD, e = b.err || {}, p = S.settings.plan;
+  const days = p && Array.isArray(p.sessions) ? p.sessions.filter(x => x.kind==="s").sort((x,y) => x.day-y.day) : [];
+  const DN = NFPlan.DAY_NAMES;
+  sheet(`<h3>${b.key ? "Edit your workout" : "Build your own workout"}</h3><p class="muted small">Saved as your own. It goes on Train${days.length ? " and can take a strength day in your plan" : ""}. During the workout you can still swap or add exercises.</p>
+    <label class="lbl" for="b-name">Name</label><input class="inp" id="b-name" maxlength="${NFPlan.OWN_NAME_MAX}" autocomplete="off" placeholder="e.g. My Push Day" value="${esc(b.name)}"${e.name ? ` aria-invalid="true" aria-describedby="b-name-err"` : ""}>
+    ${e.name ? `<p class="err" id="b-name-err" role="alert">${esc(e.name)}</p>` : ""}
+    <p class="eyebrow tehd">Exercises · ${b.ex.length}</p>
+    ${b.ex.length ? `<div class="telist">${b.ex.map(id => `<div class="terow"><span><b>${esc(EXN[id].n)}</b><small>${esc([EXN[id].part, EXN[id].eq].filter(Boolean).join(" · "))}</small></span><button class="tetog" data-act="brm" data-ex="${esc(id)}" aria-label="Remove ${esc(EXN[id].n)}">Remove</button></div>`).join("")}</div>` : ""}
+    <button class="tecreate" data-act="bpick"${e.ex ? ` aria-describedby="b-ex-err"` : ""}>${PLUS_ICO}<span><b>${b.ex.length ? "Add or change exercises" : "Add exercises"}</b><small>From the library, or create your own exercise</small></span></button>
+    ${e.ex ? `<p class="err" id="b-ex-err" role="alert">${esc(e.ex)}</p>` : ""}
+    ${days.length ? `<label class="lbl" for="b-day" style="margin-top:18px">In your plan</label><select class="inp" id="b-day"><option value="">${b.key && days.some(x => x.workout===b.key) ? "Leave my plan as it is" : "No, just on Train"}</option>${days.map(x => `<option value="${x.day}"${String(x.day)===String(b.day)?" selected":""}>${DN[x.day]} · instead of ${esc(x.title || (W[x.workout]||{}).name || "")}</option>`).join("")}</select>` : ""}
+    <button class="primary" data-act="bsave" style="margin-top:18px">Save</button>
+    <button class="secondary" data-act="trainedit">Back</button>`);
+}
+function buildSave(){
+  buildCapture();
+  const v = NFPlan.validateBuild({name:BUILD.name, ex:BUILD.ex}, id => !!EXN[id]);
+  if(!v.ok){ BUILD.err = v.errors; buildSheet(); const f = $(v.errors.name ? "#b-name" : "[data-act=bpick]"); if(f) f.focus(); return; }
+  S.settings.ownW = S.settings.ownW || {};
+  let key = BUILD.key;
+  if(!key){ let i = 1; while(W["my"+i] || S.settings.ownW["my"+i]) i++; key = "my"+i; }
+  S.settings.ownW[key] = {name:v.name, ex:v.ex};
+  registerOwn();
+  const p = S.settings.plan, day = BUILD.day==="" ? null : Number(BUILD.day);
+  if(p && Array.isArray(p.sessions)){
+    if(day !== null && Number.isInteger(day)) S.settings.plan = NFPlan.placeInPlan(p, day, key, v.name);
+    S.settings.plan.sessions.forEach(x => { if(x.workout===key) x.title = v.name; });
+  }
+  if(!startKeys().includes(key)){
+    const ed = S.settings.trainEdit || {}, add = Array.isArray(ed.add) ? ed.add : [];
+    S.settings.trainEdit = {hide:(Array.isArray(ed.hide) ? ed.hide : []).filter(k => k!==key), add:add.includes(key) ? add : add.concat(key)};
+  }
+  save(); BUILD = null; toast(`Saved: ${v.name}`); trainEditSheet();
+}
+
 const PEN_ICO = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4"/></svg>';
 // Workouts that can be on Train: the built-in ones plus your own from "Build my own"
 function trainPool(){ return ALL_W.concat(Object.keys(W).filter(k => W[k] && W[k].own && !ALL_W.includes(k))); }
@@ -563,7 +609,8 @@ function trainEditSheet(){
   const pool = trainPool(), add = (Array.isArray(ed.add) ? ed.add : []).filter(k => W[k] && pool.includes(k) && !base.includes(k));
   const shown = trainKeys();
   const yours = k => W[k] && W[k].own ? `<span class="yours">Yours</span>` : "";
-  const row = (k, on, note, label) => `<div class="terow${on?"":" off"}"><span><span class="tename"><b>${esc(W[k].name)}</b>${yours(k)}</span><small>${note}</small></span><button class="tetog" data-act="trtog" data-t="${k}" aria-pressed="${on}" aria-label="${label} ${esc(W[k].name)}">${label}</button></div>`;
+  const editBtn = k => W[k] && W[k].own && S.settings.ownW && S.settings.ownW[k] ? `<button class="tetog ghost" data-act="bedit" data-t="${k}" aria-label="Edit ${esc(W[k].name)}">Edit</button>` : "";
+  const row = (k, on, note, label) => `<div class="terow${on?"":" off"}"><span><span class="tename"><b>${esc(W[k].name)}</b>${yours(k)}</span><small>${note}</small></span>${editBtn(k)}<button class="tetog" data-act="trtog" data-t="${k}" aria-pressed="${on}" aria-label="${label} ${esc(W[k].name)}">${label}</button></div>`;
   const addRow = k => `<div class="terow"><span><span class="tename"><b>${esc(W[k].name)}</b>${yours(k)}</span>${W[k].desc?`<small>${esc(W[k].desc)}</small>`:""}</span><button class="tetog add" data-act="trtog" data-t="${k}" aria-label="Add ${esc(W[k].name)}">+ Add</button></div>`;
   const block = kind => {
     const mine = k => kindOfW(k)===kind;
@@ -573,6 +620,7 @@ function trainEditSheet(){
     const n = shown.filter(mine).length;
     return `<section class="teblock"><div class="tebhead"><img src="${KIND_PHOTO[kind]}" alt="" loading="lazy"><b>${KIND_LBL[kind]}</b><small>${n ? `${n} on Train` : "off"}</small></div>
       ${rows.length ? `<div class="telist">${rows.join("")}</div>` : ""}
+      ${kind==="s" ? `<button class="tecreate" data-act="bnew">${PLUS_ICO}<span><b>Build your own workout</b><small>Name it, pick exercises, put it on Train or in your plan</small></span></button>` : ""}
       ${rest.length ? `<p class="eyebrow tehd">${kind==="s" ? "Templates" : "Add"}</p><div class="telist">${rest.map(addRow).join("")}</div>` : ""}</section>`;
   };
   sheet(`<h3>Edit Train</h3><p class="muted small">Everything on Train, sorted by kind. Hide what you skip, add what you want. Hidden sessions stay in your plan.</p>
@@ -3090,13 +3138,13 @@ function libListHtml(){
 }
 function libSheet(){
   const chips = (list, key, label) => `<div class="libchips" role="group" aria-label="${label}">${["", ...list].map(v => `<button class="lchip" data-act="libfilter" data-k="${key}" data-v="${esc(v)}" aria-pressed="${LIB[key]===v}">${v || "All"}</button>`).join("")}</div>`;
-  const pick = LIB.mode==="pick", day = pick && OB.a && OB.a.own && OB.a.own.days[LIB.day];
+  const pick = LIB.mode==="pick", day = pick && (LIB.build && BUILD ? {name:BUILD.name || "your workout"} : OB.a && OB.a.own && OB.a.own.days[LIB.day]);
   sheet(`${pick ? `<div class="libtop"><h3 style="margin:0">Add to ${esc((day && day.name) || "your day")}</h3><button class="primary" id="libdone" data-act="libpickdone">${pickLabel()}</button></div>` : `<h3>${LIB.mode==="add" ? "Add exercise" : "Exercise library"}</h3>`}
     <input class="inp" id="libq" data-in="libq" type="search" enterkeyhint="search" autocomplete="off" placeholder="Search, e.g. row or dumbbell" value="${esc(LIB.q)}" aria-label="Search exercises">
     ${chips(NFEx.PARTS, "part", "Body part")}${chips(NFEx.EQUIP, "eq", "Equipment")}
     <div class="liblist" id="liblist">${libListHtml()}</div>
     <button class="secondary" data-act="libnew">+ Create your own exercise</button>
-    <button class="secondary" data-act="closesheet">Close</button>`);
+    <button class="secondary" data-act="${pick && LIB.build ? "libpickdone" : "closesheet"}">${pick && LIB.build ? "Back" : "Close"}</button>`);
 }
 function openLibrary(mode){ LIB = {q:"", part:"", eq:"", mode}; libSheet(); }
 // Picks exercises for an own day during onboarding: several at once, then back to the day list
@@ -4438,7 +4486,12 @@ document.addEventListener("click", async ev => {
     case "mobility": closeSheet(); startMobility(); break;
     case "mob": closeSheet(); startMobility(b.dataset.id); break;
     case "workouts": workoutsSheet(); break;
-    case "trainedit": trainEditSheet(); break;
+    case "trainedit": BUILD = null; trainEditSheet(); break;
+    case "bnew": buildNew(); break;
+    case "bedit": buildEdit(b.dataset.t); break;
+    case "brm": buildCapture(); BUILD.ex = BUILD.ex.filter(id => id!==b.dataset.ex); buildSheet(); break;
+    case "bpick": buildCapture(); BUILD.err = {}; LIB = {q:"", part:"", eq:"", mode:"pick", build:true, sel:BUILD.ex.slice()}; libSheet(); break;
+    case "bsave": buildSave(); break;
     case "trtog": { const k = b.dataset.t; if(!trainPool().includes(k) || !W[k]) break; S.settings.trainEdit = NFPlan.trainToggle(S.settings.trainEdit, k, startKeys()); save(); trainEditSheet(); break; }
     case "trreset": delete S.settings.trainEdit; save(); if($("#layer").innerHTML) trainEditSheet(); else renderHome(); break;
     case "library": openLibrary("browse"); break;
@@ -4460,6 +4513,7 @@ document.addEventListener("click", async ev => {
       break;
     }
     case "libpickdone": {
+      if(LIB.build && BUILD){ BUILD.ex = (LIB.sel||[]).slice(); buildSheet(); break; }
       const day = OB.a && OB.a.own && OB.a.own.days[LIB.day];
       if(day) day.ex = (LIB.sel||[]).slice();
       closeSheet(); if(screen==="onboard") renderOnboard(); break;

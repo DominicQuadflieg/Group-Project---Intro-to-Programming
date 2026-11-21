@@ -466,6 +466,29 @@
     return e;
   }
 
+  /* ---------- Build your own gym workout (from "Edit Train") ---------- */
+  // name: 1–OWN_NAME_MAX characters, ex: 1–OWN_MAX_EX known exercise ids (known(id) → true/false).
+  // Returns {ok, name, ex} or {ok:false, errors:{name?, ex?}} with a message for each field.
+  function validateBuild(b, known) {
+    const name = String((b && b.name) || "").replace(/\s+/g, " ").trim();
+    const ex = [...new Set((Array.isArray(b && b.ex) ? b.ex : []).filter(id => typeof id === "string" && (!known || known(id))))];
+    const errors = {};
+    if (!name) errors.name = "Give your workout a name";
+    else if (name.length > OWN_NAME_MAX) errors.name = `At most ${OWN_NAME_MAX} characters`;
+    if (!ex.length) errors.ex = "Add at least one exercise";
+    else if (ex.length > OWN_MAX_EX) errors.ex = `At most ${OWN_MAX_EX} exercises`;
+    return Object.keys(errors).length ? { ok: false, errors } : { ok: true, name, ex };
+  }
+  // Puts a workout on a strength day of the plan (replaces that day's workout). Other days stay as they are;
+  // a day without a strength session leaves the plan unchanged. Never changes the plan it was given.
+  function placeInPlan(plan, day, key, title) {
+    if (!plan || !Array.isArray(plan.sessions)) return plan;
+    const out = JSON.parse(JSON.stringify(plan));
+    const s = out.sessions.find(x => x.day === day && x.kind === "s");
+    if (s && typeof key === "string" && key) { s.workout = key; s.title = String(title || s.title); }
+    return out;
+  }
+
   const api = {
     KINDS, KIND_LABEL, DAY_NAMES, GOALS, LEVELS, MINUTES, MIN_DAYS, MAX_DAYS, MAX_GOALS, MAX_PER_KIND,
     SEXES, MIN_AGE, MAX_AGE, MIN_KG, MAX_KG, MIN_CM, MAX_CM,
@@ -473,7 +496,7 @@
     rebalanceMix, mixTotal, scheduleWeek, suggestPlans, weekdayIndex, sessionOn, nextSession,
     WORKOUTS, HEAVY_LEGS, ADDONS, ADDON_FOR, SPLITS, splitsFor, splitById, recommendSplit, splitFor, validateSplit,
     OWN_MAX_EX, OWN_NAME_MAX, STRENGTH_MODES, ownDaysFor, validateOwnDays, ownDayKeys, applyOwnDays,
-    trainList, trainToggle
+    trainList, trainToggle, validateBuild, placeInPlan
   };
   if (typeof module === "object" && module.exports) module.exports = api;
   else root.NFPlan = api;

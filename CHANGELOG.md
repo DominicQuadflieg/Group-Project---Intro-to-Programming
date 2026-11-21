@@ -2,6 +2,13 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Build your own workout from Edit Train
+
+- In "Edit Train", the Strength block has "+ Build your own workout": give it a name, pick exercises from the library (or create your own exercise), and save. It goes on Train with a "Yours" label and can be edited later
+- Optional: "In your plan" puts it on one of your strength days instead of that day's workout (e.g. Fri · instead of Lower Body B)
+- Errors show next to the field: a name (up to 30 characters) and at least one exercise (up to 15) are needed
+- Saved like the own workouts from "Build my own". New `NFPlan.validateBuild` / `NFPlan.placeInPlan` with tests in `tests/build-workout.test.js`
+
 ## Unreleased – Edit Train sorted by kind
 
 - "Edit Train" is now sorted into Strength, Running and Yoga, each with a small photo and how many are on Train. Your own workouts carry a "Yours" label; templates you can add sit under their kind
