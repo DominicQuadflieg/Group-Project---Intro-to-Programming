@@ -2,6 +2,10 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Running menu without "Runs near you"
+
+- Removed the "Runs near you" link from the running menu again; the menu now matches the new design exactly (Up next, Outdoor run, Treadmill, My running goal)
+
 ## Unreleased – Runs near you stays in the running menu
 
 - "Runs near you" (hand-picked routes and a loop from where you are) is reachable again: a small link under "Outdoor run" in the running menu, since the new menu no longer has its own card
