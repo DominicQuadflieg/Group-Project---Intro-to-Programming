@@ -549,7 +549,7 @@ function trainTabHtml(st){
   h += `<section><h2 class="sec">Start a session</h2>${keys.length ? `<div class="ttiles">${keys.map(t => {
     const w = W[t], last = st.lastBy[t], k = kindOfW(t);
     return `<button class="ttile" data-act="start" data-t="${t}"><img src="${KIND_PHOTO[k]}" alt="" loading="lazy"><span class="nmeta"><span>${KIND_LBL[k]}</span>${t===st.next?`<span class="up">Up next</span>`:""}</span><b>${esc(w.name)}</b><small>${t==="lauf" ? `<span class="wxs" data-wx="short"${WX?"":" hidden"}>${wxShort()}</span>` : last ? "Last done " + ago(last) : "Not done yet"}</small><span class="go">Start ›</span></button>`;
-  }).join("")}</div>` : `<p class="empty">Nothing on Train right now. Use Edit to add sessions.</p>`}
+  }).join("")}</div>` : `<div class="tempty"><p class="eyebrow">Nothing on Train</p><b>Pick what you want to see here</b><p class="small muted">You have hidden everything. Bring back your plan, or add any workout.</p><button class="linkbtn" data-act="trreset">Reset to my plan</button></div>`}
   <button class="secondary tedit" data-act="trainedit">${PEN_ICO}Edit what's on Train</button></section>`;
   return h;
 }
@@ -559,13 +559,25 @@ const PEN_ICO = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" str
 function trainPool(){ return ALL_W.concat(Object.keys(W).filter(k => W[k] && W[k].own && !ALL_W.includes(k))); }
 function trainKeys(){ return NFPlan.trainList(startKeys(), S.settings.trainEdit, trainPool()); }
 function trainEditSheet(){
-  const base = startKeys(), ed = S.settings.trainEdit || {}, hide = Array.isArray(ed.hide) ? ed.hide : [], add = (Array.isArray(ed.add) ? ed.add : []).filter(k => W[k] && !base.includes(k));
-  const row = (k, on, note, label) => `<div class="terow${on?"":" off"}"><span><small>${KIND_LBL[kindOfW(k)]}</small><b>${esc(W[k].name)}</b><small>${note}</small></span><button class="tetog" data-act="trtog" data-t="${k}" aria-pressed="${on}" aria-label="${label} ${esc(W[k].name)}">${label}</button></div>`;
-  const rest = trainPool().filter(k => W[k] && !base.includes(k) && !add.includes(k));
-  sheet(`<h3>Edit Train</h3><p class="muted small">Starts from your plan. Hide what you don't do, add any other workout. Hidden sessions stay in your plan.</p>
-    <p class="eyebrow tehd">On Train</p><div class="telist">${base.map(k => hide.includes(k) ? row(k, false, "hidden", "Show") : row(k, true, "in your plan", "Hide")).join("")}${add.map(k => row(k, true, "you added it", "Remove")).join("")}</div>
-    ${rest.length ? `<p class="eyebrow tehd">Add a workout</p><div class="telist">${rest.map(k => `<div class="terow"><span><small>${KIND_LBL[kindOfW(k)]}</small><b>${esc(W[k].name)}</b>${W[k].desc?`<small>${esc(W[k].desc)}</small>`:""}</span><button class="tetog add" data-act="trtog" data-t="${k}" aria-label="Add ${esc(W[k].name)}">+ Add</button></div>`).join("")}</div>` : ""}
-    ${hide.length || add.length ? `<button class="linkbtn" data-act="trreset">Reset to my plan</button>` : ""}
+  const base = startKeys(), ed = S.settings.trainEdit || {}, hide = Array.isArray(ed.hide) ? ed.hide : [];
+  const pool = trainPool(), add = (Array.isArray(ed.add) ? ed.add : []).filter(k => W[k] && pool.includes(k) && !base.includes(k));
+  const shown = trainKeys();
+  const yours = k => W[k] && W[k].own ? `<span class="yours">Yours</span>` : "";
+  const row = (k, on, note, label) => `<div class="terow${on?"":" off"}"><span><span class="tename"><b>${esc(W[k].name)}</b>${yours(k)}</span><small>${note}</small></span><button class="tetog" data-act="trtog" data-t="${k}" aria-pressed="${on}" aria-label="${label} ${esc(W[k].name)}">${label}</button></div>`;
+  const addRow = k => `<div class="terow"><span><span class="tename"><b>${esc(W[k].name)}</b>${yours(k)}</span>${W[k].desc?`<small>${esc(W[k].desc)}</small>`:""}</span><button class="tetog add" data-act="trtog" data-t="${k}" aria-label="Add ${esc(W[k].name)}">+ Add</button></div>`;
+  const block = kind => {
+    const mine = k => kindOfW(k)===kind;
+    const rows = base.filter(mine).map(k => hide.includes(k) ? row(k, false, "hidden", "Show") : row(k, true, W[k].own ? "in your plan · built by you" : "in your plan", "Hide"))
+      .concat(add.filter(mine).map(k => row(k, true, W[k].own ? "built by you" : "you added it", "Remove")));
+    const rest = pool.filter(k => W[k] && mine(k) && !base.includes(k) && !add.includes(k));
+    const n = shown.filter(mine).length;
+    return `<section class="teblock"><div class="tebhead"><img src="${KIND_PHOTO[kind]}" alt="" loading="lazy"><b>${KIND_LBL[kind]}</b><small>${n ? `${n} on Train` : "off"}</small></div>
+      ${rows.length ? `<div class="telist">${rows.join("")}</div>` : ""}
+      ${rest.length ? `<p class="eyebrow tehd">${kind==="s" ? "Templates" : "Add"}</p><div class="telist">${rest.map(addRow).join("")}</div>` : ""}</section>`;
+  };
+  sheet(`<h3>Edit Train</h3><p class="muted small">Everything on Train, sorted by kind. Hide what you skip, add what you want. Hidden sessions stay in your plan.</p>
+    ${["s","r","y"].map(block).join("")}
+    ${hide.length || add.length ? `<button class="linkbtn tereset" data-act="trreset">Reset to my plan</button>` : ""}
     <button class="primary" data-act="closesheet">Done</button>`);
 }
 
@@ -4428,7 +4440,7 @@ document.addEventListener("click", async ev => {
     case "workouts": workoutsSheet(); break;
     case "trainedit": trainEditSheet(); break;
     case "trtog": { const k = b.dataset.t; if(!trainPool().includes(k) || !W[k]) break; S.settings.trainEdit = NFPlan.trainToggle(S.settings.trainEdit, k, startKeys()); save(); trainEditSheet(); break; }
-    case "trreset": delete S.settings.trainEdit; save(); trainEditSheet(); break;
+    case "trreset": delete S.settings.trainEdit; save(); if($("#layer").innerHTML) trainEditSheet(); else renderHome(); break;
     case "library": openLibrary("browse"); break;
     case "addex": openLibrary("add"); break;
     case "libfilter": LIB[b.dataset.k] = b.dataset.v; document.querySelectorAll(`[data-act="libfilter"][data-k="${b.dataset.k}"]`).forEach(x => x.setAttribute("aria-pressed", String(x.dataset.v===b.dataset.v))); { const l = $("#liblist"); if(l) l.innerHTML = libListHtml(); } break;
