@@ -437,7 +437,7 @@ function renderHome(){
   if(TAB==="train") h += trainTabHtml(st);
   else if(TAB==="progress") h += progressTabHtml(st);
   else h += todayTabHtml(st);
-  h += footerHtml() + tabBarHtml();
+  h += (TAB==="train" ? "" : footerHtml()) + tabBarHtml();
   $("#app").innerHTML = h;
   nfMount();
   if(TAB==="today") heroPhotos();
@@ -543,16 +543,130 @@ function newsLoad(){
   }).catch(() => {}).finally(() => { newsBusy = false; });
 }
 function trainTabHtml(st){
-  let h = `<section class="tabhead"><p class="eyebrow">Choose your session</p><h1>Train</h1></section>`;
-  h += planCardHtml();
-  const keys = trainKeys();
-  h += `<section><h2 class="sec">Start a session</h2>${keys.length ? `<div class="ttiles">${keys.map(t => {
-    const w = W[t], last = st.lastBy[t], k = kindOfW(t);
-    return `<button class="ttile" data-act="start" data-t="${t}"><img src="${KIND_PHOTO[k]}" alt="" loading="lazy"><span class="nmeta"><span>${KIND_LBL[k]}</span>${t===st.next?`<span class="up">Up next</span>`:""}</span><b>${esc(w.name)}</b><small>${t==="lauf" ? `<span class="wxs" data-wx="short"${WX?"":" hidden"}>${wxShort()}</span>` : last ? "Last done " + ago(last) : "Not done yet"}</small><span class="go">Start ›</span></button>`;
-  }).join("")}</div>` : `<div class="tempty"><p class="eyebrow">Nothing on Train</p><b>Pick what you want to see here</b><p class="small muted">You have hidden everything. Bring back your plan, or add any workout.</p><button class="linkbtn" data-act="trreset">Reset to my plan</button></div>`}
-  <button class="secondary tedit" data-act="trainedit">${PEN_ICO}Edit what's on Train</button></section>`;
+  const kinds = trainKinds(), p = S.settings.plan;
+  const tot = p && Array.isArray(p.sessions) ? p.sessions.length : 0, nd = tot ? p.sessions.filter(x => weekDone().has(x.day)).length : 0;
+  let h = `<section class="trhead"><h1>Train</h1>${tot ? `<span><b>${nd} of ${tot}</b> this week</span>` : ""}</section>`;
+  h += trLineHtml() + trTodayHtml();
+  h += `<section class="tsports${kinds.length===1 ? " one" : ""}" aria-label="Sports">${kinds.map(sportBanner).join("")}</section>`;
+  h += `<button class="trlink" data-act="trainedit">Edit what's on Train</button>`;
   return h;
 }
+/* ---- Train: today, the week in words, one picture per sport ---- */
+const SPORT_NAME = {s:"Gym", r:"Run", y:"Yoga"};
+function trainKinds(){ return NFPlan.trainKinds(S.settings.plan, S.settings.trainKinds); }
+// What a plan session is called in the week line: "Upper", "Lower B", "Run", "Yoga"
+function shortName(se){
+  if(!se) return "";
+  if(se.kind==="r") return "Run";
+  if(se.kind==="y") return "Yoga";
+  const n = (W[se.workout] && W[se.workout].name) || se.title || "Gym";
+  return n.replace(/ Body\b/, "").replace(/ Workout$/, "").slice(0, 9);
+}
+const sessKey = se => se.kind==="r" ? "lauf" : se.kind==="y" ? "yoga" : se.workout;
+function weekDone(){
+  const ws = mondayOf(Date.now());
+  return new Set(S.history.filter(e => e.start>=ws && e.start<ws+WEEK).map(e => NFPlan.weekdayIndex(e.start)));
+}
+function trToday(){
+  const p = S.settings.plan; if(!p || !Array.isArray(p.sessions)) return null;
+  const now = Date.now(), today = NFPlan.weekdayIndex(now), done = weekDone();
+  const td = NFPlan.sessionOn(p, now);
+  if(td && !done.has(today) && (td.kind!=="s" || W[td.workout])) return {se:td, when:"Today"};
+  const nx = NFPlan.nextSession(p, now + 864e5);
+  if(!nx || (nx.kind==="s" && !W[nx.workout])) return null;
+  return {se:nx, when:"Next · " + (nx.inDays===0 ? "tomorrow" : NFPlan.DAY_NAMES[nx.day])};
+}
+function trTodayHtml(){
+  if(!S.settings.plan) return `<div class="trrow"><span><small>No plan yet</small><b>Four quick questions</b><em>NOVAFit plans your week. You can still do anything below.</em></span><button class="tstart" data-act="ob" data-do="edit">Get a plan</button></div>`;
+  const t = trToday();
+  if(!t) return `<div class="trrow"><span><small>Today</small><b>Rest day</b><em>Nothing planned. Pick anything below.</em></span></div>`;
+  const se = t.se, k = sessKey(se), w = W[k] || {};
+  const sub = se.kind==="s" ? (se.min ? se.min + " min · " : "") + (w.desc || "") : se.min ? se.min + " min" : se.kind==="r" ? "Outside or on the treadmill" : "Your pace";
+  return `<div class="trrow k-${se.kind}"><span><small>${t.when}</small><b>${esc(se.title || w.name || "")}${se.min && se.kind!=="s" ? " · " + se.min + " min" : ""}</b><em>${esc(sub)}</em></span><button class="tstart" data-act="${se.kind==="r" ? "runout" : se.kind==="y" ? "yogaopen" : "start"}" data-t="${esc(k)}" data-id="${se.kind==="y" ? esc(ySuggest() || "vinyasa") : ""}">Start</button></div>`;
+}
+function trLineHtml(only){
+  const p = S.settings.plan; if(!p || !Array.isArray(p.sessions) || (only && !p.sessions.some(x => x.kind===only))) return "";
+  const today = NFPlan.weekdayIndex(Date.now()), done = weekDone();
+  const cols = NFPlan.DAY_NAMES.map((d, i) => { const se = p.sessions.find(x => x.day===i && (!only || x.kind===only));
+    const st = !se ? "off" : done.has(i) ? "done" : i===today ? "today" : i<today ? "open" : "plan";
+    return `<li class="${se ? "k-" + se.kind : ""} ${st}" aria-label="${d}: ${se ? esc(shortName(se)) + ", " + (st==="done" ? "done" : st==="today" ? "today" : st==="open" ? "still open" : "planned") : "rest"}"><small>${d}</small><b>${se ? esc(shortName(se)) : "–"}</b></li>`; }).join("");
+  return `<ol class="trline" aria-label="Your week">${cols}</ol>`;
+}
+function sportSub(k){
+  const p = S.settings.plan, ses = p && Array.isArray(p.sessions) ? p.sessions.filter(x => x.kind===k) : [];
+  if(k==="s"){
+    const names = [...new Set(ses.map(shortName))], own = ownTemplates().filter(x => !ses.some(se => se.workout===x)).length;
+    return names.concat(own ? [own + (own===1 ? " of yours" : " of yours")] : []).join(" · ") || "Templates and your own workouts";
+  }
+  if(k==="r") return [...new Set(ses.map(x => String(x.title||"").replace(/ run$/i, "")))].filter(Boolean).join(" · ") || "Outside or on the treadmill";
+  return "Sessions · short routines";
+}
+function sportBanner(k){
+  const t = trToday(), today = t && t.se.kind===k && t.when==="Today";
+  const act = `data-act="sport" data-k="${k}"`;
+  return `<button class="tsport k-${k}" ${act}><img src="${KIND_PHOTO[k]}" alt="" loading="lazy"><span class="ts-txt"><b>${SPORT_NAME[k]}</b><small>${esc(sportSub(k))}</small>${today ? `<span class="ts-today">Today</span>` : ""}</span><span class="ts-go" aria-hidden="true">›</span></button>`;
+}
+const ownTemplates = () => Object.keys(S.settings.ownW || {}).filter(k => W[k] && W[k].own);
+
+/* ---- Gym, Run, Yoga: one page each, same rhythm as Train ---- */
+let SPORT = "s";
+const CK_GREY = '<span class="spdone" role="img" aria-label="Done"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg></span>';
+function spRow(act, left, title, sub, right, dim){
+  return `<button class="sprow" ${act}><span class="spday">${left||""}</span><span class="sptx"><b${dim ? ' class="dim"' : ""}>${esc(title)}</b><small>${esc(sub||"")}</small></span>${right || '<span class="chev" aria-hidden="true">›</span>'}</button>`;
+}
+const spSec = (t, right) => `<div class="spsec"><span>${t}</span>${right ? `<span>${right}</span>` : ""}</div>`;
+// The session of this sport that is up: today, still open this week, or the next one
+function spUp(k){
+  const p = S.settings.plan, ses = p && Array.isArray(p.sessions) ? p.sessions.filter(x => x.kind===k && (k!=="s" || W[x.workout])).sort((a,b) => a.day-b.day) : [];
+  if(!ses.length) return null;
+  const today = NFPlan.weekdayIndex(Date.now()), done = weekDone(), D = NFPlan.DAY_NAMES;
+  const td = ses.find(x => x.day===today && !done.has(x.day)); if(td) return {se:td, lbl:"Today in your plan"};
+  const open = ses.filter(x => x.day<today && !done.has(x.day)).pop(); if(open) return {se:open, lbl:"Still open from " + D[open.day]};
+  const nx = ses.find(x => x.day>today) || ses[0]; return {se:nx, lbl:"Next · " + D[nx.day]};
+}
+function spHead(k, title, sub){
+  return `<section class="sphead k-${k}"><img src="${KIND_PHOTO[k]}" alt=""><button class="spback" data-act="tab" data-t="train">‹ Train</button><div><h1>${title}</h1><p>${sub}</p></div></section>`;
+}
+function renderSport(){
+  const k = ["s","r","y"].includes(SPORT) ? SPORT : "s", p = S.settings.plan;
+  const ses = p && Array.isArray(p.sessions) ? p.sessions.filter(x => x.kind===k && (k!=="s" || W[x.workout])).sort((a,b) => a.day-b.day) : [];
+  const done = weekDone(), today = NFPlan.weekdayIndex(Date.now()), D = NFPlan.DAY_NAMES, up = spUp(k);
+  const nd = ses.filter(x => done.has(x.day)).length;
+  const planRight = x => done.has(x.day) ? CK_GREY : x.day===today ? `<span class="sptag k-${k}">Today</span>` : "";
+  let h;
+  if(k==="s"){
+    h = spHead("s", "Gym", p && p.split ? esc(p.split.name) : "Your workouts") + `<div class="spbody">` + trLineHtml("s");
+    if(up){ const w = W[up.se.workout]; h += `<div class="trrow k-s"><span><small>${up.lbl}</small><b>${esc(w.name)}</b><em>${up.se.min ? up.se.min + " min · " : ""}${esc(w.desc||"")}</em></span><button class="tstart" data-act="start" data-t="${esc(up.se.workout)}">Start</button></div>`; }
+    if(ses.length) h += spSec("Your plan", `${nd} of ${ses.length} done`) + `<div class="splist">${ses.map(x => spRow(`data-act="start" data-t="${esc(x.workout)}"`, D[x.day], W[x.workout].name, W[x.workout].desc, planRight(x), done.has(x.day))).join("")}</div>`;
+    const own = ownTemplates().filter(w => !ses.some(x => x.workout===w));
+    h += spSec("Your templates") + (own.length ? `<div class="splist">${own.map(w => `<div class="sprow2">${spRow(`data-act="start" data-t="${esc(w)}"`, "", W[w].name, W[w].desc || "Your own workout", `<span class="yours">Yours</span>`)}<button class="tetog ghost" data-act="bedit" data-t="${esc(w)}" aria-label="Edit ${esc(W[w].name)}">Edit</button></div>`).join("")}</div>` : "")
+      + `<button class="tecreate" data-act="bnew">${PLUS_ICO}<span><b>Save a new template</b><small>Name it, pick exercises from the library</small></span></button>`;
+    const inPlan = new Set(ses.map(x => x.workout));
+    h += spSec("Ready-made") + `<div class="splist">${NFEx.TEMPLATE_ORDER.filter(w => W[w] && w!=="empty" && !inPlan.has(w)).map(w => spRow(`data-act="start" data-t="${w}"`, "", W[w].name, W[w].desc)).join("")}${W.empty ? spRow(`data-act="start" data-t="empty"`, "", "Empty session", "Pick exercises as you go") : ""}</div>`;
+    h += spSec("Library") + `<div class="splist">${spRow(`data-act="library"`, "", "Exercise library", `${NFEx.LIBRARY.filter(e => !e.hidden).length + customList().length} exercises with drawings and cues`)}</div>`;
+  }else if(k==="r"){
+    wxLoad();
+    const rp = S.settings.runPlan, pg = rp ? planProgress(rp) : null;
+    h = spHead("r", "Run", WX ? `<span data-wx="short">${wxShort()}</span>` : new Date().toLocaleDateString("en-GB", {weekday:"long"})) + `<div class="spbody">` + trLineHtml("r");
+    if(up) h += `<div class="trrow k-r"><span><small>${up.lbl}</small><b>${esc(up.se.title || "Run")}${up.se.min ? " · " + up.se.min + " min" : ""}</b><em>Outside or on the treadmill</em></span><button class="tstart" data-act="runout">Start</button></div>`;
+    h += spSec("Log a run") + `<div class="splog"><button data-act="runout"><b>Outdoor</b><small>Screenshot, watch or by hand</small></button><button data-act="runband"><b>Treadmill</b><small>km and time from the display</small></button></div>`;
+    if(ses.length) h += spSec("Your plan", `${nd} of ${ses.length} done`) + `<div class="splist">${ses.map(x => spRow(`data-act="runout"`, D[x.day], x.title || "Run", x.min ? x.min + " min" : "", planRight(x), done.has(x.day))).join("")}</div>`;
+    h += spSec("Your goal") + (rp ? `<button class="spgoal" data-act="runplan"><span><b>${esc(planTitle(rp))}</b>${pg.n ? `<small>week ${pg.i+1} of ${pg.n}</small>` : ""}</span><i aria-hidden="true"><i style="width:${Math.round(pg.f*100)}%"></i></i></button>`
+      : `<div class="splist">${spRow(`data-act="runplan"`, "", "Set a running goal", "10 km, half marathon or your loop, with a plan")}</div>`);
+    h += `<div class="splist">${spRow(`data-act="impsheet"`, "", "Import runs", "Garmin, Strava, files")}</div>`;
+  }else{
+    const sug = ySuggest() || "vinyasa", sg = NFYoga.byId(sug) || NFYoga.byId("vinyasa");
+    h = spHead("y", "Yoga", "Your pace") + `<div class="spbody">` + trLineHtml("y");
+    h += `<div class="trrow k-y"><span><small>${up ? up.lbl : "Suggested now"}</small><b>${esc(sg.n)} · ${stepsMin(ySteps(sg.id))} min</b><em>${esc(sg.desc)}</em></span><button class="tstart" data-act="${sg.id==="study" ? "study" : "yogaopen"}" data-id="${sg.id}">Start</button></div>`;
+    const breaks = [{act:"study", n:"Study break", min:5}].concat(["hips","shoulders","runner","stretch","glutes"].filter(id => MOB[id]).map(id => ({act:"mob", id, n:MOB[id].n, min:stepsMin(MOB[id].steps)})));
+    h += spSec("Short routines", "between classes") + `<div class="spchips">${breaks.map(x => `<button data-act="${x.act}"${x.id ? ` data-id="${x.id}"` : ""}><small>${x.min} min</small><b>${esc(x.n)}</b></button>`).join("")}</div>`;
+    h += spSec("Sessions", "15–45 min") + `<div class="splist">${NFYoga.SESSIONS.filter(x => x.id!=="study").map(x => `<button class="sprow" data-act="yogaopen" data-id="${x.id}"><span class="sppose">${poseSvg(yPose(x.id), "thumb")}</span><span class="sptx"><b>${esc(x.n)}</b><small>${esc(x.desc)}</small></span><span class="spmin">${stepsMin(ySteps(x.id))} min</span></button>`).join("")}</div>`;
+    h += spSec("Every two weeks") + `<div class="splist">${spRow(`data-act="flexcheck"`, "", "Flexibility check", "Forward fold · 30 seconds", NFYoga.flexDueIn(S.settings.flex, Date.now()) ? "" : `<span class="sptag k-y">Due</span>`)}</div>`;
+  }
+  h += `</div>` + tabBarHtml();
+  $("#app").innerHTML = h;
+}
+
 /* ---- Edit Train: hide plan sessions, add any other workout ---- */
 const PLUS_ICO = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
 /* ---- Build your own gym workout: name, exercises, optional plan day ---- */
@@ -568,7 +682,7 @@ function buildSheet(){
   const b = BUILD, e = b.err || {}, p = S.settings.plan;
   const days = p && Array.isArray(p.sessions) ? p.sessions.filter(x => x.kind==="s").sort((x,y) => x.day-y.day) : [];
   const DN = NFPlan.DAY_NAMES;
-  sheet(`<h3>${b.key ? "Edit your workout" : "Build your own workout"}</h3><p class="muted small">Saved as your own. It goes on Train${days.length ? " and can take a strength day in your plan" : ""}. During the workout you can still swap or add exercises.</p>
+  sheet(`<h3>${b.key ? "Edit your template" : "Save a new template"}</h3><p class="muted small">Saved as your own template under Gym${days.length ? ", and it can take a strength day in your plan" : ""}. During the workout you can still swap or add exercises.</p>
     <label class="lbl" for="b-name">Name</label><input class="inp" id="b-name" maxlength="${NFPlan.OWN_NAME_MAX}" autocomplete="off" placeholder="e.g. My Push Day" value="${esc(b.name)}"${e.name ? ` aria-invalid="true" aria-describedby="b-name-err"` : ""}>
     ${e.name ? `<p class="err" id="b-name-err" role="alert">${esc(e.name)}</p>` : ""}
     <p class="eyebrow tehd">Exercises · ${b.ex.length}</p>
@@ -577,7 +691,7 @@ function buildSheet(){
     ${e.ex ? `<p class="err" id="b-ex-err" role="alert">${esc(e.ex)}</p>` : ""}
     ${days.length ? `<label class="lbl" for="b-day" style="margin-top:18px">In your plan</label><select class="inp" id="b-day"><option value="">${b.key && days.some(x => x.workout===b.key) ? "Leave my plan as it is" : "No, just on Train"}</option>${days.map(x => `<option value="${x.day}"${String(x.day)===String(b.day)?" selected":""}>${DN[x.day]} · instead of ${esc(x.title || (W[x.workout]||{}).name || "")}</option>`).join("")}</select>` : ""}
     <button class="primary" data-act="bsave" style="margin-top:18px">Save</button>
-    <button class="secondary" data-act="trainedit">Back</button>`);
+    <button class="secondary" data-act="closesheet">Cancel</button>`);
 }
 function buildSave(){
   buildCapture();
@@ -593,39 +707,16 @@ function buildSave(){
     if(day !== null && Number.isInteger(day)) S.settings.plan = NFPlan.placeInPlan(p, day, key, v.name);
     S.settings.plan.sessions.forEach(x => { if(x.workout===key) x.title = v.name; });
   }
-  if(!startKeys().includes(key)){
-    const ed = S.settings.trainEdit || {}, add = Array.isArray(ed.add) ? ed.add : [];
-    S.settings.trainEdit = {hide:(Array.isArray(ed.hide) ? ed.hide : []).filter(k => k!==key), add:add.includes(key) ? add : add.concat(key)};
-  }
-  save(); BUILD = null; toast(`Saved: ${v.name}`); trainEditSheet();
+  save(); BUILD = null; toast(`Saved: ${v.name}`); closeSheet(); render();
 }
 
 const PEN_ICO = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4"/></svg>';
 // Workouts that can be on Train: the built-in ones plus your own from "Build my own"
-function trainPool(){ return ALL_W.concat(Object.keys(W).filter(k => W[k] && W[k].own && !ALL_W.includes(k))); }
-function trainKeys(){ return NFPlan.trainList(startKeys(), S.settings.trainEdit, trainPool()); }
-function trainEditSheet(){
-  const base = startKeys(), ed = S.settings.trainEdit || {}, hide = Array.isArray(ed.hide) ? ed.hide : [];
-  const pool = trainPool(), add = (Array.isArray(ed.add) ? ed.add : []).filter(k => W[k] && pool.includes(k) && !base.includes(k));
-  const shown = trainKeys();
-  const yours = k => W[k] && W[k].own ? `<span class="yours">Yours</span>` : "";
-  const editBtn = k => W[k] && W[k].own && S.settings.ownW && S.settings.ownW[k] ? `<button class="tetog ghost" data-act="bedit" data-t="${k}" aria-label="Edit ${esc(W[k].name)}">Edit</button>` : "";
-  const row = (k, on, note, label) => `<div class="terow${on?"":" off"}"><span><span class="tename"><b>${esc(W[k].name)}</b>${yours(k)}</span><small>${note}</small></span>${editBtn(k)}<button class="tetog" data-act="trtog" data-t="${k}" aria-pressed="${on}" aria-label="${label} ${esc(W[k].name)}">${label}</button></div>`;
-  const addRow = k => `<div class="terow"><span><span class="tename"><b>${esc(W[k].name)}</b>${yours(k)}</span>${W[k].desc?`<small>${esc(W[k].desc)}</small>`:""}</span><button class="tetog add" data-act="trtog" data-t="${k}" aria-label="Add ${esc(W[k].name)}">+ Add</button></div>`;
-  const block = kind => {
-    const mine = k => kindOfW(k)===kind;
-    const rows = base.filter(mine).map(k => hide.includes(k) ? row(k, false, "hidden", "Show") : row(k, true, W[k].own ? "in your plan · built by you" : "in your plan", "Hide"))
-      .concat(add.filter(mine).map(k => row(k, true, W[k].own ? "built by you" : "you added it", "Remove")));
-    const rest = pool.filter(k => W[k] && mine(k) && !base.includes(k) && !add.includes(k));
-    const n = shown.filter(mine).length;
-    return `<section class="teblock"><div class="tebhead"><img src="${KIND_PHOTO[kind]}" alt="" loading="lazy"><b>${KIND_LBL[kind]}</b><small>${n ? `${n} on Train` : "off"}</small></div>
-      ${rows.length ? `<div class="telist">${rows.join("")}</div>` : ""}
-      ${kind==="s" ? `<button class="tecreate" data-act="bnew">${PLUS_ICO}<span><b>Build your own workout</b><small>Name it, pick exercises, put it on Train or in your plan</small></span></button>` : ""}
-      ${rest.length ? `<p class="eyebrow tehd">${kind==="s" ? "Templates" : "Add"}</p><div class="telist">${rest.map(addRow).join("")}</div>` : ""}</section>`;
-  };
-  sheet(`<h3>Edit Train</h3><p class="muted small">Everything on Train, sorted by kind. Hide what you skip, add what you want. Hidden sessions stay in your plan.</p>
-    ${["s","r","y"].map(block).join("")}
-    ${hide.length || add.length ? `<button class="linkbtn tereset" data-act="trreset">Reset to my plan</button>` : ""}
+function trainEditSheet(err){
+  const on = trainKinds(), D = {s:"Your split, your templates, the library", r:"Outdoor, treadmill, your running goal", y:"Sessions and short routines"};
+  sheet(`<h3>What's on Train</h3><p class="muted small">Pick the sports you do. Sessions and your own templates are changed inside Gym, Run and Yoga.</p>
+    <div class="telist">${["s","r","y"].map(k => `<div class="terow${on.includes(k) ? "" : " off"}"><span><b>${SPORT_NAME[k]}</b><small>${D[k]}</small></span><button class="tetog" data-act="trkind" data-k="${k}" aria-pressed="${on.includes(k)}" aria-label="${SPORT_NAME[k]} on Train"${err ? ` aria-describedby="tk-err"` : ""}>${on.includes(k) ? "On" : "Off"}</button></div>`).join("")}</div>
+    ${err ? `<p class="err" id="tk-err" role="alert">${esc(err)}</p>` : ""}
     <button class="primary" data-act="closesheet">Done</button>`);
 }
 
@@ -4261,20 +4352,6 @@ document.addEventListener("submit", ev => { const f = ev.target; if(f && f.id===
 document.addEventListener("input", ev => { const t = ev.target; if(t && t.closest && t.closest("#ob-form") && t.getAttribute("aria-invalid")==="true") obError(t.id + "-err", ""); });
 
 /* Plan card on the home screen */
-function planCardHtml(){
-  const p = S.settings.plan;
-  if(!p || !Array.isArray(p.sessions)) return `<section class="card plancard"><b>Get your personal plan</b><p class="small muted" style="margin:0">Answer four quick questions and NOVAFit suggests a training week that fits your goals.</p><button class="secondary" data-act="ob" data-do="edit">Create my plan</button></section>`;
-  const now = Date.now(), ws = mondayOf(now), today = NFPlan.weekdayIndex(now);
-  const done = new Set(S.history.filter(e => e.start>=ws && e.start<ws+WEEK).map(e => NFPlan.weekdayIndex(e.start)));
-  const wk = NFPlan.DAY_NAMES.map((n,i) => { const s = p.sessions.find(x => x.day===i);
-    return `<button class="wkd ${s?"k-"+s.kind:"pr-rest"}${i===today?" today":""}${done.has(i)?" done":""}" data-act="planday" data-d="${i}" aria-label="${n}: ${s?esc(s.title):"Rest day"}${done.has(i)?", done":""}"><small>${n}</small><i aria-hidden="true">${done.has(i)?"✓":s?KICON[s.kind]:"·"}</i></button>`; }).join("");
-  const td = NFPlan.sessionOn(p, now);
-  let nx = td && !done.has(today) ? Object.assign({inDays:0}, td) : NFPlan.nextSession(p, now + 864e5);
-  if(nx && !(td && !done.has(today))) nx.inDays += 1;
-  const when = !nx ? "" : nx.inDays===0 ? "Today" : nx.inDays===1 ? "Tomorrow" : WDAY[(nx.day+1)%7];
-  return `<section class="card plancard"><div class="pnext"><div><small>${esc(p.name)} · ${p.days} sessions a week${p.split ? " · " + esc(p.split.name) : ""}</small><b>${when}: ${esc(nx ? nx.title : "")}</b><small>${nx ? nx.min + " min" : ""}${nx && nx.addon && MOB[nx.addon.id] ? ` + ${esc(MOB[nx.addon.id].n.toLowerCase())} ${stepsMin(MOB[nx.addon.id].steps)} min` : ""}</small></div>${nx && nx.inDays===0 ? `<button class="primary" data-act="start" data-t="${esc(nx.workout)}">Start</button>` : ""}</div>
-    <div class="wk">${wk}</div><button class="addset" data-act="ob" data-do="edit">Change plan ›</button></section>`;
-}
 
 /* Account section in settings */
 function accountHtml(){
@@ -4294,7 +4371,7 @@ function render(){
   if(screen==="onboard"){ renderOnboard(); return; }
   if(screen==="session" && !S.active) screen = "home";
   if(screen==="summary" && !summary) screen = "home";
-  if(screen==="home") renderHome(); else if(screen==="me") renderMe(); else if(screen==="session") renderSession(); else if(screen==="runplan") renderPlan(); else renderSummary();
+  if(screen==="home") renderHome(); else if(screen==="me") renderMe(); else if(screen==="session") renderSession(); else if(screen==="runplan") renderPlan(); else if(screen==="sport") renderSport(); else renderSummary();
   updateBadge();
   keepAwake(screen==="session" && !!S.active);
 }
@@ -4492,8 +4569,11 @@ document.addEventListener("click", async ev => {
     case "brm": buildCapture(); BUILD.ex = BUILD.ex.filter(id => id!==b.dataset.ex); buildSheet(); break;
     case "bpick": buildCapture(); BUILD.err = {}; LIB = {q:"", part:"", eq:"", mode:"pick", build:true, sel:BUILD.ex.slice()}; libSheet(); break;
     case "bsave": buildSave(); break;
-    case "trtog": { const k = b.dataset.t; if(!trainPool().includes(k) || !W[k]) break; S.settings.trainEdit = NFPlan.trainToggle(S.settings.trainEdit, k, startKeys()); save(); trainEditSheet(); break; }
-    case "trreset": delete S.settings.trainEdit; save(); if($("#layer").innerHTML) trainEditSheet(); else renderHome(); break;
+    case "trkind": { const r = NFPlan.toggleKind(trainKinds(), b.dataset.k); if(r.ok){ S.settings.trainKinds = r.kinds; save(); renderHome(); } trainEditSheet(r.ok ? "" : r.error); break; }
+    case "sport": closeSheet(); SPORT = b.dataset.k || "s"; screen = "sport"; render(); window.scrollTo(0,0); break;
+    case "yogaopen": { const id = b.dataset.id; if(!NFYoga.byId(id)) break; if(id==="study"){ closeSheet(); primeVoice(); startStudyBreak(); break; }
+      if(S.active){ if(S.active.type==="yoga"){ S.active.yoga.sid = id; save(); screen = "session"; render(); } else toast("Finish your open session first."); break; }
+      closeSheet(); S.settings.yogaSid = id; startSession("yoga"); S.active.yoga.sid = id; save(); renderSession(); break; }
     case "library": openLibrary("browse"); break;
     case "addex": openLibrary("add"); break;
     case "libfilter": LIB[b.dataset.k] = b.dataset.v; document.querySelectorAll(`[data-act="libfilter"][data-k="${b.dataset.k}"]`).forEach(x => x.setAttribute("aria-pressed", String(x.dataset.v===b.dataset.v))); { const l = $("#liblist"); if(l) l.innerHTML = libListHtml(); } break;

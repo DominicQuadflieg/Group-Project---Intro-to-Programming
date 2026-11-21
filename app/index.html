@@ -830,6 +830,89 @@ button.ctr{cursor:pointer}
 .newsrow svg{flex:none;margin-top:3px;color:var(--muted)}
 .newsrow:focus-visible{outline:3px solid var(--run);outline-offset:2px}
 .newsnote{margin:8px 0 0;font-size:11px}
+/* Train: today, week in words, one picture per sport */
+.trhead{display:flex;justify-content:space-between;align-items:baseline;padding:6px 0 12px}
+.trhead h1{margin:0;font:900 30px var(--display)}
+.trhead span{font-size:12px;color:var(--muted)}
+.trhead b{color:var(--ink)}
+.trrow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:16px;padding:12px 14px;border-left:5px solid var(--kc,var(--ink));background:color-mix(in srgb,var(--ink) 5%,transparent)}
+.trrow > span{display:flex;flex-direction:column;gap:1px;min-width:0}
+.trrow small{font:800 11px var(--num);letter-spacing:.16em;text-transform:uppercase;color:var(--kc,var(--muted))}
+.trrow b{font-size:16px;font-weight:700}
+.trrow em{font-style:normal;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tstart{flex:none;min-height:42px;padding:0 14px;border:0;background:var(--ink);color:var(--bg);font:800 11px var(--num);letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
+.trline{display:flex;list-style:none;margin:0;padding:0;gap:2px}
+.trline li{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 0 0;border-top:3px solid var(--kc,var(--line))}
+.trline li.off{border-top-color:var(--line)}
+.trline li.plan,.trline li.open{border-top-style:solid;opacity:1}
+.trline li.plan{border-top-color:color-mix(in srgb,var(--kc) 35%,transparent)}
+.trline li small{font:800 10px var(--num);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.trline li b{font-size:11px;letter-spacing:-.01em;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trline li.done b{color:var(--muted);text-decoration:line-through;text-decoration-thickness:1.5px}
+.trline li.off b{color:var(--muted);font-weight:500}
+.trline li.today{border-top-width:5px;padding-top:5px}
+.trline li.today small,.trline li.today b{color:var(--ink)}
+.trline li.open b::after{content:" ·";color:var(--kc)}
+.tsports{display:flex;flex-direction:column;gap:6px;margin-top:16px}
+.tsport{position:relative;display:block;width:100%;height:108px;padding:0;border:0;overflow:hidden;background:#111;color:#fff;text-align:left;cursor:pointer}
+.tsports.one .tsport{height:200px}
+.tsport img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.tsport::before{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(to right,rgba(10,10,14,.78),rgba(10,10,14,.15) 70%)}
+.tsport::after{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;z-index:2;background:var(--kc)}
+.k-s{--kc:#4b1a63}.k-r{--kc:#005BAA}.k-y{--kc:#b83c00}
+.ts-txt{position:absolute;left:20px;right:44px;top:0;bottom:0;z-index:2;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:4px}
+.ts-txt b{font:700 26px/1.05 var(--display)}
+.ts-txt small{font-size:12px;opacity:.92}
+.ts-today{margin-top:4px;background:#fff;color:#111;font:800 9px var(--num);letter-spacing:.14em;text-transform:uppercase;padding:3px 6px}
+.ts-go{position:absolute;right:16px;bottom:12px;z-index:2;font-size:24px}
+.tsport:focus-visible{outline:3px solid var(--run);outline-offset:2px}
+/* Gym page */
+.sphead{position:relative;width:100%;height:170px;overflow:hidden;background:#111;color:#fff}
+.sphead img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.sphead::before{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(to top,rgba(10,10,14,.88) 0%,rgba(10,10,14,.45) 45%,rgba(10,10,14,.2) 100%)}
+.sphead::after{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;z-index:2;background:var(--kc)}
+.spback{position:absolute;left:12px;top:max(10px, env(safe-area-inset-top));z-index:2;min-height:44px;padding:0 8px;border:0;background:none;color:#fff;font:700 14px var(--body);cursor:pointer}
+.sphead > div{position:absolute;left:20px;right:20px;bottom:14px;z-index:2;display:flex;justify-content:space-between;align-items:flex-end;gap:10px}
+.sphead small{font:800 11px var(--num);letter-spacing:.16em;text-transform:uppercase;opacity:.85}
+.sphead h1{margin:2px 0;font:700 30px var(--display);color:#fff}
+.sphead p{margin:0;font-size:12px;opacity:.9}
+.spbody{width:100%;box-sizing:border-box;padding:14px 20px 120px;max-width:640px;margin:0 auto}
+.spnext{display:flex;flex-direction:column;gap:6px;padding:14px;border:1.5px solid var(--kc,#4b1a63);--kc:#4b1a63}
+.spnext small{font:800 11px var(--num);letter-spacing:.16em;text-transform:uppercase;color:var(--kc)}
+.spnext b{font:700 22px var(--display)}
+.spnext p{margin:0;font-size:13px;color:var(--muted)}
+.spbody .trline{margin-top:14px}
+.spsec{display:flex;justify-content:space-between;align-items:baseline;margin:22px 0 6px;font:800 11px var(--num);letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.spsec span + span{font:400 12px var(--body);letter-spacing:0;text-transform:none}
+.sprow b.dim{color:var(--muted)}
+.sptag{font:800 9px var(--num);letter-spacing:.14em;text-transform:uppercase;background:var(--kc);color:#fff;padding:3px 6px}
+.spdone{display:flex;color:var(--muted)}
+.splog{display:flex;gap:8px}
+.splog button{flex:1;min-height:76px;padding:12px;border:1.5px solid #005BAA;background:var(--bg);color:var(--ink);text-align:left;display:flex;flex-direction:column;justify-content:space-between;font:15px var(--body);cursor:pointer}
+.splog button:first-child{background:#005BAA;color:#fff}
+.splog small{font-size:11px;opacity:.85}
+.spgoal{display:flex;flex-direction:column;gap:8px;width:100%;padding:12px 0;border:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:none;color:var(--ink);text-align:left;font:15px var(--body);cursor:pointer}
+.spgoal > span{display:flex;justify-content:space-between;align-items:baseline}
+.spgoal small{font-size:12px;color:var(--muted)}
+.spgoal > i{display:block;height:4px;background:var(--line)}.spgoal > i > i{display:block;height:4px;background:#005BAA}
+.spchips{display:flex;gap:8px;overflow-x:auto;margin-right:-20px;padding-right:20px;scrollbar-width:none}
+.spchips button{flex:none;width:130px;padding:10px 12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);text-align:left;display:flex;flex-direction:column;gap:2px;cursor:pointer}
+.spchips small{font-size:11px;font-weight:700;color:#b83c00}
+.spchips b{font:700 16px/1.2 var(--display)}
+.sppose{flex:none;width:52px;height:40px;background:#fbeee6;display:flex;align-items:center;justify-content:center;--pf:#fff;--pdot:#b83c00;color:#111}
+.sppose svg{width:48px;height:36px}
+.spmin{font-size:12px;font-weight:700;color:var(--muted)}
+.sph{margin:20px 0 6px;font:800 11px var(--num);letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.splist{border-top:1px solid var(--line)}
+.sprow{display:flex;align-items:center;gap:12px;width:100%;min-width:0;min-height:60px;padding:8px 0;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink);text-align:left;font:15px var(--body);cursor:pointer}
+.sprow2{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line)}
+.sprow2 .sprow{flex:1;min-width:0;border-bottom:0}
+.sprow2 .tetog{flex:none}
+.spday{flex:none;width:36px;font:800 11px var(--num);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.sptx{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}
+.sptx small{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sprow .chev{color:var(--muted);font-size:18px}
+.trlink{display:block;margin:14px auto 120px;min-height:44px;padding:0 12px;border:0;background:none;color:var(--ink);font:700 13px var(--body);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 .tedit{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:48px;margin-top:22px}
 .teblock{margin-top:18px}
 .tebhead{display:flex;align-items:center;gap:12px;padding-bottom:8px;border-bottom:1.5px solid var(--ink)}

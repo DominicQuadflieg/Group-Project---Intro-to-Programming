@@ -437,33 +437,21 @@
     return out;
   }
 
-  /* ---------- What the Train tab shows ---------- */
-  // base: the sessions from the plan (in order), edit: { hide: [...], add: [...] } from "Edit Train",
-  // valid: every workout key that exists. Hidden ones drop out, added ones come after the plan's,
-  // unknown keys and duplicates are ignored.
-  function trainList(base, edit, valid) {
-    const ok = k => typeof k === "string" && (!valid || valid.includes(k));
-    const e = edit && typeof edit === "object" ? edit : {};
-    const hide = new Set((Array.isArray(e.hide) ? e.hide : []).filter(ok));
-    const out = [];
-    (Array.isArray(base) ? base : []).concat(Array.isArray(e.add) ? e.add : []).forEach(k => {
-      if (ok(k) && !hide.has(k) && !out.includes(k)) out.push(k);
-    });
-    return out;
+  /* ---------- Which sports the Train tab shows ---------- */
+  // "s" gym, "r" run, "y" yoga, always in that order. chosen: what the person picked in "Edit Train";
+  // without a valid choice: the sports in the plan, and without a plan all three.
+  const SPORTS = ["s", "r", "y"];
+  function trainKinds(plan, chosen) {
+    const pick = Array.isArray(chosen) ? SPORTS.filter(k => chosen.includes(k)) : [];
+    if (pick.length) return pick;
+    const inPlan = plan && Array.isArray(plan.sessions) ? SPORTS.filter(k => plan.sessions.some(x => x && x.kind === k)) : [];
+    return inPlan.length ? inPlan : SPORTS.slice();
   }
-  // Toggle one key in an edit: a plan session is hidden/shown, an added one is removed.
-  function trainToggle(edit, key, base) {
-    const arr = v => Array.isArray(v) ? v.filter(k => typeof k === "string") : [];
-    const e = { hide: arr(edit && edit.hide), add: arr(edit && edit.add) };
-    if ((base || []).includes(key)) {
-      e.hide = e.hide.includes(key) ? e.hide.filter(k => k !== key) : e.hide.concat(key);
-    } else if (e.add.includes(key)) {
-      e.add = e.add.filter(k => k !== key);
-    } else {
-      e.add = e.add.concat(key);
-      e.hide = e.hide.filter(k => k !== key);
-    }
-    return e;
+  // Switch one sport on or off. At least one has to stay on.
+  function toggleKind(kinds, k) {
+    if (!SPORTS.includes(k)) return { ok: false, kinds: kinds.slice(), error: "Unknown sport" };
+    const next = kinds.includes(k) ? kinds.filter(x => x !== k) : SPORTS.filter(x => x === k || kinds.includes(x));
+    return next.length ? { ok: true, kinds: next } : { ok: false, kinds: kinds.slice(), error: "Keep at least one sport on Train" };
   }
 
   /* ---------- Build your own gym workout (from "Edit Train") ---------- */
@@ -496,7 +484,7 @@
     rebalanceMix, mixTotal, scheduleWeek, suggestPlans, weekdayIndex, sessionOn, nextSession,
     WORKOUTS, HEAVY_LEGS, ADDONS, ADDON_FOR, SPLITS, splitsFor, splitById, recommendSplit, splitFor, validateSplit,
     OWN_MAX_EX, OWN_NAME_MAX, STRENGTH_MODES, ownDaysFor, validateOwnDays, ownDayKeys, applyOwnDays,
-    trainList, trainToggle, validateBuild, placeInPlan
+    SPORTS, trainKinds, toggleKind, validateBuild, placeInPlan
   };
   if (typeof module === "object" && module.exports) module.exports = api;
   else root.NFPlan = api;
