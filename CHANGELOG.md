@@ -2,6 +2,11 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Edit Train sorted by kind
+
+- "Edit Train" is now sorted into Strength, Running and Yoga, each with a small photo and how many are on Train. Your own workouts carry a "Yours" label; templates you can add sit under their kind
+- Train with everything hidden says so and offers "Reset to my plan" next to Edit
+
 ## Unreleased – Train keeps your own workouts
 
 - Fix for #43: workouts you built yourself ("Build my own" when setting up the plan) disappeared from Train. They show again, and "Edit Train" can add your other own workouts too
