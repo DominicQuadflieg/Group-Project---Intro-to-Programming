@@ -404,7 +404,7 @@ function renderMe(){
     <div><h1>${esc(name)}</h1><p>Nova SBE${set.plan ? " · " + esc(set.plan.name) : ""}</p><button class="linkbtn" data-act="ob" data-do="edit">Edit profile and plan</button></div></section>`;
   h += countersHtml([[`${st.thisWeek}/${st.goal}`, "this week"], [st.streak, st.streak===1 ? "week in a row" : "weeks in a row"], [got, got===1 ? "badge" : "badges"]]);
   h += grp("You", row(sp("account"), "Account", pr.email || "") + row(sp("profile"), "Profile and body", [num(set.bodyKg)>0 ? fmt(num(set.bodyKg)) + " kg" : "", set.body && set.body.cm ? set.body.cm + " cm" : ""].filter(Boolean).join(" · ")) + row(sp("goal"), "Weekly goal", `${set.goal}×`) + row('data-act="ob" data-do="edit"', "My plan", set.plan ? set.plan.name : "Not set") + row('data-act="runplan"', "Running plan", set.runPlan ? "Active" : "Not set"));
-  h += grp("Training", row('data-act="library"', "Exercise library", `${NFEx.LIBRARY.filter(e => !e.hidden).length + customList().length}`) + row('data-act="workouts"', "All workouts", "") + row('data-act="calopen"', "Calendar & history", "") + row('data-act="badgesopen"', "Badges", `${got} / ${visibleBadges().length}`));
+  h += grp("Training", row('data-act="library"', "Exercise library", `${NFEx.LIBRARY.filter(e => !e.hidden).length + customList().length}`) + row('data-act="workouts"', "All workouts", "") + row('data-act="calopen"', "Calendar & history", "") + row('data-act="badgesopen"', "Badges", `${got} / ${visibleBadges().length}`) + row('data-act="tourstart"', "Guided tour", "5 min"));
   h += grp("Connected", (stravaSettings() ? row(sp("strava"), "Strava", stGet() ? "Connected" : "Not connected") : "") + row(sp("push"), "Notifications", push==="on" ? "On" : "Off") + row(sp("cal"), "Calendar reminders", ""));
   h += grp("App", row(sp("theme"), "Appearance", {auto:"Automatic", light:"Light", dark:"Dark"}[set.theme] || "Automatic") + row(sp("sound"), "Sound", set.restSound===false ? "Off" : "On") + row(sp("weather"), "Running weather", set.wxGeo===true ? "Where I am" : NFRun.WX_HOME.place) + row(sp("photos"), "Your photos", nPh ? `${nPh} ${nPh===1?"photo":"photos"}` : "Nova photos"));
   h += grp("Your data", row('data-act="impsheet"', "Import runs from other apps", "Garmin, Strava, files") + row(sp("data"), "Back up and restore", ""));
@@ -4297,7 +4297,12 @@ function startOnboarding(step, mode){
   closeSheet(); screen = "onboard"; render(); window.scrollTo(0,0);
 }
 function obGo(step){ OB.step = step; renderOnboard(); window.scrollTo(0,0); }
-function finishOnboarding(){ OB.a = null; OB.plans = null; screen = "home"; render(); window.scrollTo(0,0); }
+function finishOnboarding(){
+  const fresh = OB.mode==="new" && !S.settings.guideSeen;
+  OB.a = null; OB.plans = null; screen = "home"; render(); window.scrollTo(0,0);
+  // First time in the app: the guided tour (guide.js) starts by itself
+  if(fresh && typeof startGuide==="function") setTimeout(startGuide, 350);
+}
 
 function obHead(back){
   const right = OB.mode==="edit" ? `<button type="button" class="txtbtn" data-act="ob" data-do="cancel">Cancel</button>`
@@ -4785,6 +4790,7 @@ document.addEventListener("click", async ev => {
     case "calview": CAL.view = b.dataset.v==="list" ? "list" : "month"; renderCal(); break;
     case "calf": CAL.f = ["s","r","y"].includes(b.dataset.f) ? b.dataset.f : "all"; CAL.n = 8; renderCal(); break;
     case "calmore": CAL.n += 8; renderCal(); break;
+    case "tourstart": closeSheet(); if(typeof startGuide==="function") startGuide(); break;
     case "badgesopen": closeSheet(); screen = "badges"; render(); window.scrollTo(0,0); break;
     case "pcards": pcardsSheet(["s","r","y"].includes(b.dataset.k) ? b.dataset.k : "s"); break;
     case "pcardtog": { const k = b.dataset.k, r = NFProg.toggleCard(NFProg.cardsFor(S.settings.pcards, k), b.dataset.id, k);
