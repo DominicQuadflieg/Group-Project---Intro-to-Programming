@@ -821,6 +821,17 @@ button.ctr{cursor:pointer}
 .ttile .go{font:800 10px var(--num);letter-spacing:.14em;text-transform:uppercase}
 .ttiles{display:grid;grid-template-columns:1fr 1fr;gap:18px 14px}
 .tlinks{display:flex;flex-direction:column;gap:8px;margin-top:16px}
+.tedit{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:48px;margin-top:22px}
+.tehd{margin:18px 0 6px;font:800 11px var(--num);letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.telist{border-top:1px solid var(--line)}
+.terow{display:flex;align-items:center;gap:12px;min-height:58px;padding:6px 0;border-bottom:1px solid var(--line)}
+.terow > span{flex:1;display:flex;flex-direction:column;gap:1px;min-width:0}
+.terow b{font-size:15px}
+.terow small{font-size:12px;color:var(--muted)}
+.terow > span > small:first-child{font:800 10px var(--num);letter-spacing:.16em;text-transform:uppercase;color:var(--run)}
+.terow.off b{color:var(--muted)}
+.tetog{min-width:84px;min-height:44px;padding:0 12px;border:1.5px solid var(--ink);background:none;color:var(--ink);font:700 13px var(--body);cursor:pointer}
+.tetog[aria-pressed="false"],.tetog.add{background:var(--ink);color:var(--bg)}
 .note{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;margin-top:14px;padding:11px 12px;border:0;background:var(--accent-soft, var(--bg));color:var(--ink);text-align:left;font:13px/1.4 var(--body);cursor:pointer;min-height:44px}
 .lastrow{display:flex;justify-content:space-between;align-items:center;width:100%;padding:12px 0;border:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:none;color:var(--ink);text-align:left;font:inherit;cursor:pointer}
 .lastrow span{display:flex;flex-direction:column;gap:2px}
