@@ -4606,9 +4606,14 @@ document.addEventListener("input", ev => {
   if(k==="shot"){ if(t.id==="sh-time"){ const f = fmtTimeDigits(t.value); if(f!==t.value) t.value = f; } t.setAttribute("aria-invalid", "false"); const e = t.closest("div").parentNode.querySelector(".err"); if(e) e.textContent = ""; return; }
   if(!S.active) return;
   if(k==="set"){
-    const s = S.active.sets[t.dataset.ex][+t.dataset.i]; s[t.dataset.f] = t.value;
+    const arr = S.active.sets[t.dataset.ex], i = +t.dataset.i, s = arr[i]; s[t.dataset.f] = t.value;
     s.ok = filled(s);
     const row = t.closest(".setrow"); row.classList.toggle("done", s.ok); row.classList.remove("pre", "shake");
+    // Same reps or weight for the next sets: fill them in as a suggestion until they are ticked
+    NFEx.carryForward(arr, i, t.dataset.f, t.value).forEach(j => {
+      const inp = document.getElementById(`${t.dataset.f==="kg" ? "kg" : "r"}-${t.dataset.ex}-${j}`); if(inp) inp.value = t.value;
+      const r = document.querySelector(`[data-row="${CSS.escape(t.dataset.ex+"-"+j)}"]`); if(r){ r.classList.remove("done"); r.classList.toggle("pre", filled(arr[j])); }
+    });
   }else if(k==="run"){
     if(t.id==="run-min"){ const f = fmtTimeDigits(t.value); if(f!==t.value) t.value = f; }
     S.active.run[t.dataset.f] = t.value;

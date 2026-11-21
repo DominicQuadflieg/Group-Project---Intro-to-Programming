@@ -390,8 +390,23 @@
     return Object.entries(ex.m).filter(([, w]) => w >= .5).sort((a, b) => b[1] - a[1]).map(([k]) => MUSCLE_NAMES[k]).join(", ");
   }
 
+  // Typing reps or weight in one set fills the same value into the later sets of that exercise,
+  // unless the person already entered or ticked them (ok === true). Those carried values stay
+  // suggestions (ok: false) until ticked. Changes `sets` in place; returns the indexes it changed.
+  function carryForward(sets, i, field, value) {
+    const changed = [];
+    if (!Array.isArray(sets) || !(field === "r" || field === "kg")) return changed;
+    for (let j = i + 1; j < sets.length; j++) {
+      const s = sets[j];
+      if (!s || typeof s !== "object" || s.ok === true) continue;
+      if (String(s[field] == null ? "" : s[field]) === String(value)) continue;
+      s[field] = String(value); s.ok = false; changed.push(j);
+    }
+    return changed;
+  }
+
   const api = { safeText, safeCustom, RETIRED, TYPES, PARTS, EQUIP, PATTERNS, LIBRARY, BY_ID, DRAWINGS, TEMPLATES, TEMPLATE_ORDER, MUSCLE_NAMES,
-    unitOf, search, alternatives, validateCustom, makeCustom, templateExercises, focusOf };
+    unitOf, search, alternatives, validateCustom, makeCustom, templateExercises, focusOf, carryForward };
   if (typeof module === "object" && module.exports) module.exports = api;
   else root.NFEx = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);
