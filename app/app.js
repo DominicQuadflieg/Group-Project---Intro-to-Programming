@@ -555,11 +555,13 @@ function trainTabHtml(st){
 }
 /* ---- Edit Train: hide plan sessions, add any other workout ---- */
 const PEN_ICO = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4"/></svg>';
-function trainKeys(){ return NFPlan.trainList(startKeys(), S.settings.trainEdit, ALL_W); }
+// Workouts that can be on Train: the built-in ones plus your own from "Build my own"
+function trainPool(){ return ALL_W.concat(Object.keys(W).filter(k => W[k] && W[k].own && !ALL_W.includes(k))); }
+function trainKeys(){ return NFPlan.trainList(startKeys(), S.settings.trainEdit, trainPool()); }
 function trainEditSheet(){
   const base = startKeys(), ed = S.settings.trainEdit || {}, hide = Array.isArray(ed.hide) ? ed.hide : [], add = (Array.isArray(ed.add) ? ed.add : []).filter(k => W[k] && !base.includes(k));
   const row = (k, on, note, label) => `<div class="terow${on?"":" off"}"><span><small>${KIND_LBL[kindOfW(k)]}</small><b>${esc(W[k].name)}</b><small>${note}</small></span><button class="tetog" data-act="trtog" data-t="${k}" aria-pressed="${on}" aria-label="${label} ${esc(W[k].name)}">${label}</button></div>`;
-  const rest = ALL_W.filter(k => W[k] && !base.includes(k) && !add.includes(k));
+  const rest = trainPool().filter(k => W[k] && !base.includes(k) && !add.includes(k));
   sheet(`<h3>Edit Train</h3><p class="muted small">Starts from your plan. Hide what you don't do, add any other workout. Hidden sessions stay in your plan.</p>
     <p class="eyebrow tehd">On Train</p><div class="telist">${base.map(k => hide.includes(k) ? row(k, false, "hidden", "Show") : row(k, true, "in your plan", "Hide")).join("")}${add.map(k => row(k, true, "you added it", "Remove")).join("")}</div>
     ${rest.length ? `<p class="eyebrow tehd">Add a workout</p><div class="telist">${rest.map(k => `<div class="terow"><span><small>${KIND_LBL[kindOfW(k)]}</small><b>${esc(W[k].name)}</b>${W[k].desc?`<small>${esc(W[k].desc)}</small>`:""}</span><button class="tetog add" data-act="trtog" data-t="${k}" aria-label="Add ${esc(W[k].name)}">+ Add</button></div>`).join("")}</div>` : ""}
@@ -4425,7 +4427,7 @@ document.addEventListener("click", async ev => {
     case "mob": closeSheet(); startMobility(b.dataset.id); break;
     case "workouts": workoutsSheet(); break;
     case "trainedit": trainEditSheet(); break;
-    case "trtog": { const k = b.dataset.t; if(!ALL_W.includes(k) || !W[k]) break; S.settings.trainEdit = NFPlan.trainToggle(S.settings.trainEdit, k, startKeys()); save(); trainEditSheet(); break; }
+    case "trtog": { const k = b.dataset.t; if(!trainPool().includes(k) || !W[k]) break; S.settings.trainEdit = NFPlan.trainToggle(S.settings.trainEdit, k, startKeys()); save(); trainEditSheet(); break; }
     case "trreset": delete S.settings.trainEdit; save(); trainEditSheet(); break;
     case "library": openLibrary("browse"); break;
     case "addex": openLibrary("add"); break;

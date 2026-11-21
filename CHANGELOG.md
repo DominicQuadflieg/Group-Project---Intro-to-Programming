@@ -2,6 +2,10 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Train keeps your own workouts
+
+- Fix for #43: workouts you built yourself ("Build my own" when setting up the plan) disappeared from Train. They show again, and "Edit Train" can add your other own workouts too
+
 ## Unreleased – Nova SBE News on Today
 
 - New section at the bottom of Today: the three newest headlines from the Nova SBE news page, each opening the article on novasbe.unl.pt, plus "All news ›"
