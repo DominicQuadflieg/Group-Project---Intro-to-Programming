@@ -2,6 +2,10 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Service worker restored
+
+- Fix: `app/OneSignalSDKWorker.js` was accidentally emptied in #39, which turned off offline use and push messages. Restored the file (cache v22) and added `tests/service-worker.test.js`, which fails if the file is ever empty again
+
 ## Unreleased – Calmer last slide in the weekly review
 
 - The last slide of the weekly review no longer ends with emojis (the red heart in "New week, new chance" is gone). It now reads "Weekly goal reached", "Every session counts" or "A fresh week starts Monday"
