@@ -2,6 +2,10 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Calmer last slide in the weekly review
+
+- The last slide of the weekly review no longer ends with emojis (the red heart in "New week, new chance" is gone). It now reads "Weekly goal reached", "Every session counts" or "A fresh week starts Monday"
+
 ## Unreleased – Running menu without "Runs near you"
 
 - Removed the "Runs near you" link from the running menu again; the menu now matches the new design exactly (Up next, Outdoor run, Treadmill, My running goal)
