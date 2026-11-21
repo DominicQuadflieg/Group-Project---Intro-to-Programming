@@ -2,6 +2,13 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Nova SBE News on Today
+
+- New section at the bottom of Today: the three newest headlines from the Nova SBE news page, each opening the article on novasbe.unl.pt, plus "All news ›"
+- The school has no RSS feed, so a small Netlify Function (`netlify/functions/news.mjs`) reads its news page and keeps only headline and link. Netlify caches the answer for 3 hours; the app keeps the last list for offline use
+- If the page can't be read (offline, or the school changes its site), Today just shows a link to the news page
+- Parser in `netlify/lib/news.mjs`, tests in `tests/news.test.js` (only links to novasbe.unl.pt articles are taken, no markup in headlines)
+
 ## Unreleased – Train: Edit instead of the extra rows
 
 - The four dashed rows under "Start a session" on Train (More workouts, Exercise library, Running plan, Yoga) are gone. In their place, "Edit what's on Train" opens a sheet that starts from your plan: hide sessions you never do, show them again, add any other workout (full body, push, pull, legs, an empty session …) or reset to your plan. Hidden sessions stay in your plan

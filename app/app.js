@@ -512,7 +512,35 @@ function todayTabHtml(st){
     const w = W[last.type]; let m = last.yoga ? `${fmt(num(last.yoga.min),0)} min${yogaLabel(last.yoga) ? " " + yogaLabel(last.yoga) : ""}` : last.run ? `${fmt(num(last.run.km))} km · ${hms(num(last.run.min))}` : `${fmt(Math.round(volOf(last)),0)} kg moved`;
     h += `<section><div class="sechead"><h2 class="sec">Last time</h2><button class="more" data-act="tab" data-t="progress">Progress ›</button></div><button class="lastrow" data-act="hist" data-id="${last.id}"><span><small>${KIND_LBL[kindOfW(last.type)]} · ${dShort(last.start)}</small><b>${esc(w.name)} · ${m}</b></span><span aria-hidden="true">›</span></button></section>`;
   }
+  h += newsHtml();
   return h;
+}
+/* ---- Nova SBE News on Today: newest headlines via our function, link to the school's site ---- */
+const NEWS_URL = "https://www.novasbe.unl.pt/en/whats-happening/news", NEWS_PREFIX = NEWS_URL + "/news-detail/";
+const EXT_ICO = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
+let NEWS = (() => { try{ const c = JSON.parse(localStorage.getItem("nf-news")||"null"); return c && Array.isArray(c.items) ? c : null; }catch(e){ return null; } })(), newsBusy = false;
+function newsItems(){
+  return (NEWS && NEWS.items || []).filter(i => i && typeof i.title==="string" && i.title.length<=160 && typeof i.url==="string" && i.url.startsWith(NEWS_PREFIX) && !/["<>\s]/.test(i.url)).slice(0, 3);
+}
+function newsInner(){
+  const it = newsItems(), ext = `target="_blank" rel="noopener"`;
+  return `<p class="eyebrow">From campus</p><div class="sechead"><h2 class="sec">Nova SBE News</h2><a class="more" href="${NEWS_URL}" ${ext}>All news ›</a></div>
+    <div class="newslist">${it.length ? it.map(i => `<a class="newsrow" href="${esc(i.url)}" ${ext}><b>${esc(i.title)}</b>${EXT_ICO}</a>`).join("")
+      : `<a class="newsrow" href="${NEWS_URL}" ${ext}><b>Read the latest news from Nova SBE</b>${EXT_ICO}</a>`}</div>
+    ${it.length ? `<p class="small muted newsnote">Headlines from novasbe.unl.pt · opens the article there</p>` : ""}`;
+}
+function newsHtml(){ newsLoad(); return `<section id="newsec" class="newsec">${newsInner()}</section>`; }
+function newsLoad(){
+  if(newsBusy || navigator.onLine===false || !window.fetch) return;
+  if(NEWS && Date.now() - (NEWS.t||0) < 3*3600e3) return;
+  newsBusy = true;
+  fetch("/.netlify/functions/news").then(r => r.ok ? r.json() : null).then(d => {
+    if(d && Array.isArray(d.items) && d.items.length){
+      NEWS = {t:Date.now(), items:d.items.slice(0, 5)};
+      try{ localStorage.setItem("nf-news", JSON.stringify(NEWS)); }catch(e){}
+      const el = $("#newsec"); if(el) el.innerHTML = newsInner();
+    }
+  }).catch(() => {}).finally(() => { newsBusy = false; });
 }
 function trainTabHtml(st){
   let h = `<section class="tabhead"><p class="eyebrow">Choose your session</p><h1>Train</h1></section>`;
