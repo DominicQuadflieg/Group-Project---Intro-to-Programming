@@ -854,6 +854,14 @@ button.ctr{cursor:pointer}
 .hero .hph .hblur{display:none}
 .hero .hph .hov{background:linear-gradient(180deg,rgba(0,0,0,.25) 0%,rgba(0,0,0,.08) 25%,rgba(0,0,0,.78) 62%,rgba(0,0,0,.86))}
 .hero.photo h2,.hero.photo > small,.hero.photo p{text-shadow:none}
+/* Today photo: more of the picture, text smaller and low on the left, dark fade only at the bottom */
+.hero.photo{min-height:340px;padding:16px 64px 16px 18px;gap:5px}
+.hero .hph .hov{background:linear-gradient(180deg,rgba(0,0,0,.32) 0%,rgba(0,0,0,0) 18%,rgba(0,0,0,0) 40%,rgba(10,10,14,.55) 66%,rgba(10,10,14,.84) 100%)}
+.hero.photo > small{top:14px;left:18px;font-size:12px}
+.hero.photo h2{font-size:28px;line-height:1.08}
+.hero.photo p{font-size:13px}
+.hero.photo .herobtn{margin-top:6px;font-size:14px;padding:9px 16px}
+.hero.photo .heroalt{font-size:12px}
 .hero .hdots{display:none}
 .hero > .harr{position:absolute;right:0;bottom:0;z-index:2;display:flex;background:#000}
 .harr button{width:40px;height:36px;border:0;background:none;color:#fff;font:700 19px/1 var(--num);cursor:pointer}

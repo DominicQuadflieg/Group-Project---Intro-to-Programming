@@ -2,6 +2,10 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Today photo shows more of the campus
+
+- The photo card on Today is a little shorter, the text and Start button sit smaller in the lower left, and the dark fade only covers the bottom, so more of the picture shows
+
 ## Unreleased – Service worker restored
 
 - Fix: `app/OneSignalSDKWorker.js` was accidentally emptied in #39, which turned off offline use and push messages. Restored the file (cache v22) and added `tests/service-worker.test.js`, which fails if the file is ever empty again
