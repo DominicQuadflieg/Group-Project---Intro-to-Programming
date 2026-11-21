@@ -2,6 +2,10 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Runs near you stays in the running menu
+
+- "Runs near you" (hand-picked routes and a loop from where you are) is reachable again: a small link under "Outdoor run" in the running menu, since the new menu no longer has its own card
+
 ## Unreleased – Running chooser
 
 - Put the next planned run first and highlight it when a running goal has an upcoming run
