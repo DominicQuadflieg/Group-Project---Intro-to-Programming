@@ -1877,5 +1877,12 @@ NFI18N.load([
 ["Enter your password", "Introduz a tua palavra-passe", "Gib dein Passwort ein", "Inserisci la password"],
 ["Sign out and remove my data", "Terminar sessão e remover os meus dados", "Abmelden und meine Daten entfernen", "Esci e rimuovi i miei dati"],
 ["Only lock the app (keep my data)", "Só bloquear a app (manter os meus dados)", "Nur die App sperren (Daten behalten)", "Blocca solo l'app (mantieni i miei dati)"],
-["Signed out. Your data was removed from this phone.", "Sessão terminada. Os teus dados foram removidos deste telemóvel.", "Abgemeldet. Deine Daten wurden von diesem Handy entfernt.", "Uscita completata. I tuoi dati sono stati rimossi da questo telefono."]
+["Signed out. Your data was removed from this phone.", "Sessão terminada. Os teus dados foram removidos deste telemóvel.", "Abgemeldet. Deine Daten wurden von diesem Handy entfernt.", "Uscita completata. I tuoi dati sono stati rimossi da questo telefono."],
+["Close by", "Por perto", "In der Nähe", "Qui vicino"],
+["Routes near you", "Percursos perto de ti", "Strecken in deiner Nähe", "Percorsi vicino a te"],
+["Hand-picked routes, the closest first. Tap one for the way there.", "Percursos escolhidos, os mais próximos primeiro. Toca num para ver o caminho.", "Ausgewählte Strecken, die nächste zuerst. Tipp eine an für den Weg dorthin.", "Percorsi scelti, i più vicini per primi. Toccane uno per vedere come arrivarci."],
+["From where you are", "A partir de onde estás", "Ab deinem Standort", "Da dove ti trovi"],
+["Pick a length and NOVAFit finds a round trip on foot paths.", "Escolhe uma distância e o NOVAFit encontra uma volta por caminhos pedonais.", "Wähle eine Länge, und NOVAFit findet eine Runde auf Fußwegen.", "Scegli una lunghezza e NOVAFit trova un giro su sentieri pedonali."],
+["Make me a loop", "Criar uma volta", "Runde erstellen", "Crea un giro"],
+["Make a new loop", "Criar outra volta", "Neue Runde erstellen", "Crea un altro giro"]
 ]);

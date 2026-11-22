@@ -29,9 +29,15 @@ test("the running menu opens Runs near you: nearby routes first, then a loop fro
   await runningMenu(page);
   await page.click('[data-act="near"]');
   await page.waitForSelector(".sheet .loopc");
-  const routes = await page.$$eval(".sheet .nearc:not(.loopc) b", b => b.map(x => x.textContent));
+  const routes = await page.$$eval(".sheet .nearrow b", b => b.map(x => x.textContent));
   assert.ok(routes.length >= 1 && routes.length <= 4, "1 to 4 routes");
   assert.equal(routes[0], "Carcavelos seafront", "closest first");
+  // a route opens to show the way there and a start button; tapping again closes it
+  await page.click('.nearrow[data-id="carcavelos"]');
+  assert.equal(await page.getAttribute('.nearrow[data-id="carcavelos"]', "aria-expanded"), "true");
+  assert.match(await page.$eval(".nearpanel a", a => a.href), /^https:\/\/www\.google\.com\/maps\/dir\//);
+  await page.click('.nearrow[data-id="carcavelos"]');
+  assert.equal(await page.$(".nearpanel"), null);
   await page.click('.loopc [data-act="nearkm"][data-k="5"]');
   await page.click('.loopc [data-act="nearloop"]:not([data-seed])');
   await page.waitForSelector(".nearmap path");
@@ -49,7 +55,7 @@ test("without the route key the routes still work and the loop says it needs set
   await runningMenu(page);
   await page.click('[data-act="near"]');
   await page.waitForFunction(() => /one-time setup/.test((document.querySelector(".loopc") || {}).textContent || ""));
-  assert.ok(await page.$$eval(".sheet .nearc:not(.loopc)", x => x.length) >= 1);
+  assert.ok(await page.$$eval(".sheet .nearrow", x => x.length) >= 1);
   assert.equal(await page.$('.loopc [data-act="nearloop"]'), null, "no loop button without the key");
   assert.deepEqual(await page.done(), []);
 });
@@ -61,6 +67,7 @@ test("in German nothing in the sheet stays English (names marked translate=no as
   const texts = async () => {
     await runningMenu(page);
     await page.click('[data-act="near"]');
+    await page.click('.nearrow[data-id="carcavelos"]');
     await page.click('.loopc [data-act="nearloop"]:not([data-seed])');
     await page.waitForSelector(".nearmap path");
     return page.evaluate(() => { const out = [], w = document.createTreeWalker(document.querySelector("#layer"), NodeFilter.SHOW_TEXT); let n;
