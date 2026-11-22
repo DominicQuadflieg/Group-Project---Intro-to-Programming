@@ -2,6 +2,10 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Demo data to try the app
+
+Optional demo file (app/demo/novafit-demo.json, made by demo/make_demo.py): 16 weeks of gym, runs and yoga, loaded via Load backup and moved to recent weeks. Remove demo data takes it out again. README explains it. Tonnage badges raised to 100 t and 500 t.
+
 ## Unreleased – Runs and race targets are checked
 
 - A run typed in by hand gets the same check as a screenshot or a watch file: distance 0 to 300 km, time 3 minutes to 24 hours, and no pace faster than a world record. Until now −5 km, 900 km in 30 minutes or 10 km in 5 seconds were saved. The message shows right below the field
