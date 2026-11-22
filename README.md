@@ -3,7 +3,7 @@
 **One training app for gym, running and yoga, made for Nova SBE students.**
 Group project for *Introduction to Programming* at Nova SBE, 2026/27.
 
-**Live app:** https://inquisitive-pegasus-dbcd63.netlify.app · open it on a phone and choose “Add to Home Screen”.
+**Live app:** https://novafit-nova.netlify.app · open it on a phone and choose “Add to Home Screen”.
 
 | Today | Train | Workout | Progress |
 |---|---|---|---|
@@ -88,7 +88,7 @@ Then open http://localhost:8000 and create an account. Everything works locally 
 
 A new account starts empty, so most statistics only fill up after a few weeks of training. To see the app as it looks after a semester, load the demo file:
 
-1. Download [novafit-demo.json](https://inquisitive-pegasus-dbcd63.netlify.app/demo/novafit-demo.json) (also in the repository at [`app/demo/novafit-demo.json`](app/demo/novafit-demo.json)).
+1. Download [novafit-demo.json](https://novafit-nova.netlify.app/demo/novafit-demo.json) (also in the repository at [`app/demo/novafit-demo.json`](app/demo/novafit-demo.json)).
 2. In the app: *Menu › Settings › Your data › Load backup*, and choose the file.
 
 It adds 16 weeks of made-up sessions (gym, runs and yoga), moved so the last one was a few days ago. Your name, plan and settings stay as they are. *Remove demo data* in the same place takes them out again. The file is made by [`demo/make_demo.py`](demo/make_demo.py) (`python3 demo/make_demo.py`).
