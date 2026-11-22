@@ -1054,7 +1054,7 @@ function progressTabHtml(st){
 }
 function pcardsSheet(k){
   const sel = NFProg.cardsFor(S.settings.pcards, k);
-  sheet(`<h3>${PK_NAME[k]} cards</h3><p class="muted small">Pick what you want to see. Up to ${NFProg.MAX_CARDS} cards.</p><div class="pcopts">${NFProg.CARDS[k].map(c => { const on = sel.includes(c.id); return `<button class="pcopt" data-act="pcardtog" data-k="${k}" data-id="${c.id}" aria-pressed="${on}"><span class="ck">${on ? "✓" : ""}</span><span class="tx"><b>${esc(c.t)}${c.nw ? ` <span class="nw">NEW</span>` : ""}</b><small>${esc(c.d)}</small></span></button>`; }).join("")}</div><button class="primary" data-act="pcardsdone">Done</button>`);
+  sheet(`<h3>${PK_NAME[k]} cards</h3><p class="muted small">Pick what you want to see. Up to ${NFProg.MAX_CARDS} cards.</p><div class="pcopts">${NFProg.CARDS[k].map(c => { const on = sel.includes(c.id); return `<button class="pcopt" data-act="pcardtog" data-k="${k}" data-id="${c.id}" aria-pressed="${on}"><span class="ck">${on ? "✓" : ""}</span><span class="tx"><b>${esc(c.t)}</b><small>${esc(c.d)}</small></span></button>`; }).join("")}</div><button class="primary" data-act="pcardsdone">Done</button>`);
 }
 
 /* ---- Calendar & history: month grid or the full list ---- */
@@ -2639,8 +2639,12 @@ const HIP_IDS = ["hip","smithhip","dbhip","glutebridge"];
 function facts(){
   const H = S.history, goal = S.settings.goal, weeks = {};
   let km = 0, vol = 0, early = false, hipMax = 0, prs = 0; const maxSoFar = {};
-  let bestAlster = Infinity;
+  let bestAlster = Infinity, longRun = 0, best5 = Infinity, yogaMin = 0, benchMax = 0, wpullMax = 0;
   H.forEach(e => {
+    const rk = e.run ? kmOf(e) : 0, rm = e.run ? num(e.run.min) : 0;
+    if(rk > longRun) longRun = rk;
+    if(rk >= 5 && rm > 0) best5 = Math.min(best5, rm/rk*5);          // a 5 km at this run's pace
+    if(e.yoga) yogaMin += num(e.yoga.min) || Math.round(((e.end||e.start) - e.start)/60000);
     const wk = mondayOf(e.start); (weeks[wk] = weeks[wk] || {n:0, types:new Set()}).n++; weeks[wk].types.add(e.type);
     km += kmOf(e); vol += volOf(e);
     if(new Date(e.start).getHours()<8) early = true;
@@ -2650,19 +2654,23 @@ function facts(){
       if(maxSoFar[id]!=null && mk>maxSoFar[id]) prs++;
       maxSoFar[id] = Math.max(maxSoFar[id]||0, mk);
       if(HIP_IDS.includes(id)) hipMax = Math.max(hipMax, mk);
+      if(id==="bench") benchMax = Math.max(benchMax, mk);
+      if(id==="wpullup") wpullMax = Math.max(wpullMax, mk);
     });
     if(e.run && e.run.mode==="alster" && num(e.run.min)>0) bestAlster = Math.min(bestAlster, num(e.run.min));
   });
   const keys = Object.keys(weeks).map(Number).sort((a,b) => a-b);
   let streakMax = 0, cur = 0, prev = null;
   keys.forEach(k => { if(weeks[k].n>=goal){ cur = (prev!==null && k-prev<WEEK*1.5 && weeks[prev].n>=goal) ? cur+1 : 1; streakMax = Math.max(streakMax, cur); } prev = k; });
+  const span = H.length ? (H[H.length-1].start - Math.min(...H.map(e => e.start)))/864e5 : 0;
   return {total:H.length, km, vol, early, hipMax, prs, bestAlster, streakMax, yoga:H.filter(e => e.yoga).length,
+    longRun, best5, yogaMin, benchMax, wpullMax, span, bodyKg:num(S.settings.bodyKg),
     flexBest:Math.max(0, ...NFYoga.flexList(S.settings.flex).map(c => c.v)),
     goalWeeks:keys.filter(k => weeks[k].n>=goal).length, ...NFProg.specials(H.map(e => ({t:e.start, k:kindOfW(e.type)})), (S.settings.mob||[]).length)};
 }
 const BADGES = [
   // Special · Nova (need: only shown if that sport is on Train; all3: only with gym, run and yoga)
-  {id:"triple", g:"special", all3:true, l:"3×", u:"NOVA", t:"Triple week", d:"Gym, a run and yoga in one week.", ok:f => f.triple},
+  {id:"triple", g:"special", all3:true, l:"3×", u:"SPORTS", t:"Triple week", d:"Gym, a run and yoga in one week.", ok:f => f.triple},
   {id:"sunrise", g:"special", need:"r", l:"☀", u:"SUNRISE", t:"Carcavelos sunrise", d:"A run before 8 am on a Saturday or Sunday.", ok:f => f.sunrise},
   {id:"comeback", g:"special", l:"↩", u:"COMEBACK", t:"Comeback", d:"Back to training after two weeks or more off.", ok:f => f.comeback},
   {id:"breaks", g:"special", need:"y", l:"10", u:"BREAKS", t:"Study break hero", d:"10 short routines between classes.", ok:f => f.breaks>=10},
@@ -2676,6 +2684,11 @@ const BADGES = [
   {id:"goal1", g:"general", l:"✓", u:"GOAL", t:"Weekly goal", d:"You reached your weekly goal for the first time.", ok:f => f.goalWeeks>=1},
   {id:"streak4", g:"general", l:"4W", u:"STREAK", t:"4 weeks straight", d:"You reached your weekly goal 4 weeks in a row.", ok:f => f.streakMax>=4},
   {id:"streak8", g:"general", l:"8W", u:"STREAK", t:"8 weeks straight", d:"You reached your weekly goal 8 weeks in a row.", ok:f => f.streakMax>=8},
+  {id:"t100", g:"general", tier:2, l:"100", u:"SESSIONS", t:"100 sessions", d:"Completed 100 sessions.", ok:f => f.total>=100},
+  {id:"t250", g:"general", tier:3, l:"250", u:"SESSIONS", t:"250 sessions", d:"Completed 250 sessions.", ok:f => f.total>=250},
+  {id:"streak12", g:"general", tier:2, l:"12W", u:"STREAK", t:"A whole semester", d:"You reached your weekly goal 12 weeks in a row.", ok:f => f.streakMax>=12},
+  {id:"streak26", g:"general", tier:3, l:"26W", u:"STREAK", t:"Half a year straight", d:"You reached your weekly goal 26 weeks in a row.", ok:f => f.streakMax>=26},
+  {id:"year1", g:"general", tier:3, l:"1Y", u:"YEAR", t:"One year in", d:"Still training one year after your first session.", ok:f => f.span>=365},
   {id:"early", g:"general", l:"AM", u:"EARLY", t:"Early bird", d:"A session before 8 am.", ok:f => f.early},
   // Gym
   {id:"pr5", g:"gym", l:"5", u:"RECORDS", t:"5 records", d:"Set a new best weight 5 times.", ok:f => f.prs>=5},
@@ -2683,15 +2696,31 @@ const BADGES = [
   {id:"vol10t", g:"gym", l:"10t", u:"MOVED", t:"10 tonnes", d:"Moved 10,000 kg in total.", ok:f => f.vol>=10000},
   {id:"ht50", g:"gym", l:"50", u:"HIP THRUST", t:"Hip thrust 50 kg", d:"Hip thrust with 50 kg.", ok:f => f.hipMax>=50},
   {id:"ht80", g:"gym", l:"80", u:"HIP THRUST", t:"Hip thrust 80 kg", d:"Hip thrust with 80 kg.", ok:f => f.hipMax>=80},
+  {id:"pr50", g:"gym", tier:2, l:"50", u:"RECORDS", t:"50 records", d:"Set a new best weight 50 times.", ok:f => f.prs>=50},
+  {id:"vol50t", g:"gym", tier:2, l:"50t", u:"MOVED", t:"50 tonnes", d:"Moved 50,000 kg in total.", ok:f => f.vol>=50000},
+  {id:"vol250t", g:"gym", tier:3, l:"250t", u:"MOVED", t:"250 tonnes", d:"Moved 250,000 kg in total. That's a blue whale and a half.", ok:f => f.vol>=250000},
+  {id:"ht100", g:"gym", tier:2, l:"100", u:"HIP THRUST", t:"Hip thrust 100 kg", d:"Hip thrust with 100 kg.", ok:f => f.hipMax>=100},
+  {id:"benchbw", g:"gym", tier:3, l:"1×", u:"BODYWEIGHT", t:"Bench your bodyweight", d:"Bench press your own bodyweight (set it under Profile and body).", ok:f => f.bodyKg>0 && f.benchMax>=f.bodyKg},
+  {id:"wpull10", g:"gym", tier:2, l:"+10", u:"PULL-UP", t:"Weighted pull-up +10 kg", d:"A pull-up with 10 kg extra.", ok:f => f.wpullMax>=10},
   // Running
   {id:"km10", g:"run", l:"10", u:"KM", t:"10 km", d:"Ran 10 km in total.", ok:f => f.km>=10, run:true},
   {id:"km50", g:"run", l:"50", u:"KM", t:"50 km", d:"Ran 50 km in total.", ok:f => f.km>=50, run:true},
   {id:"km100", g:"run", l:"100", u:"KM", t:"100 km", d:"Ran 100 km in total.", ok:f => f.km>=100, run:true},
+  {id:"km250", g:"run", tier:2, l:"250", u:"KM", t:"250 km", d:"Ran 250 km in total. That's Lisbon to Coimbra and a bit.", ok:f => f.km>=250, run:true},
+  {id:"km500", g:"run", tier:3, l:"500", u:"KM", t:"500 km", d:"Ran 500 km in total.", ok:f => f.km>=500, run:true},
+  {id:"km1000", g:"run", tier:3, l:"1000", u:"KM", t:"1,000 km", d:"Ran 1,000 km in total. Lisbon to Madrid and back is not far off.", ok:f => f.km>=1000, run:true},
+  {id:"long10", g:"run", l:"10", u:"IN ONE GO", t:"First 10 km", d:"A single run of 10 km or more.", ok:f => f.longRun>=10, run:true},
+  {id:"long21", g:"run", tier:2, l:"21.1", u:"IN ONE GO", t:"Half marathon distance", d:"A single run of 21.1 km or more.", ok:f => f.longRun>=21.1, run:true},
+  {id:"long42", g:"run", tier:3, l:"42.2", u:"IN ONE GO", t:"Marathon distance", d:"A single run of 42.2 km or more.", ok:f => f.longRun>=42.2, run:true},
+  {id:"sub25", g:"run", tier:2, l:"<25", u:"5 KM", t:"5 km under 25", d:"A run of 5 km or more at under 5:00 per km.", ok:f => f.best5<25, run:true},
   {id:"al45", g:"run", l:"<45", u:"LOOP", t:"Loop under 45", d:"Your loop in under 45 minutes.", ok:f => f.bestAlster<45, run:true},
   {id:"al40", g:"run", l:"<40", u:"LOOP", t:"Loop under 40", d:"Your loop in under 40 minutes.", ok:f => f.bestAlster<40, run:true},
   // Yoga
   {id:"yoga1", g:"yoga", l:"1", u:"YOGA", t:"First yoga", d:"Your first yoga session.", ok:f => f.yoga>=1, yoga:true},
   {id:"yoga10", g:"yoga", l:"10", u:"YOGA", t:"Yogi", d:"Completed 10 yoga sessions.", ok:f => f.yoga>=10, yoga:true},
+  {id:"yoga25", g:"yoga", tier:2, l:"25", u:"YOGA", t:"25 yoga sessions", d:"Completed 25 yoga sessions.", ok:f => f.yoga>=25, yoga:true},
+  {id:"yoga100", g:"yoga", tier:3, l:"100", u:"YOGA", t:"Yoga master", d:"Completed 100 yoga sessions.", ok:f => f.yoga>=100, yoga:true},
+  {id:"mat10h", g:"yoga", tier:2, l:"10h", u:"ON THE MAT", t:"10 hours on the mat", d:"10 hours of yoga in total.", ok:f => f.yogaMin>=600, yoga:true},
   {id:"toes", g:"yoga", l:"✓", u:"TOES", t:"Toes touched", d:"You reached your toes in the flexibility check.", ok:f => f.flexBest>=4, yoga:true}
 ];
 const BGROUPS = [["special", "Special · Nova"], ["general", "General"], ["gym", "Gym"], ["run", "Running"], ["yoga", "Yoga"]];
@@ -2710,11 +2739,16 @@ function badgeProg(b){
   const f = factsC(), id = b.id;
   const T = {first:[f.total,1],t10:[f.total,10],t25:[f.total,25],t50:[f.total,50],goal1:[f.goalWeeks,1],streak4:[f.streakMax,4," weeks"],streak8:[f.streakMax,8," weeks"],
     km10:[f.km,10," km"],km50:[f.km,50," km"],km100:[f.km,100," km"],ht50:[f.hipMax,50," kg"],ht80:[f.hipMax,80," kg"],pr5:[f.prs,5],pr20:[f.prs,20],vol10t:[f.vol/1000,10," t"],yoga1:[f.yoga,1],yoga10:[f.yoga,10],
-    breaks:[f.breaks,10]};
+    breaks:[f.breaks,10], t100:[f.total,100], t250:[f.total,250], streak12:[f.streakMax,12," weeks"], streak26:[f.streakMax,26," weeks"], year1:[f.span,365," days"],
+    pr50:[f.prs,50], vol50t:[f.vol/1000,50," t"], vol250t:[f.vol/1000,250," t"], ht100:[f.hipMax,100," kg"], wpull10:[f.wpullMax,10," kg"],
+    km250:[f.km,250," km"], km500:[f.km,500," km"], km1000:[f.km,1000," km"], long10:[f.longRun,10," km"], long21:[f.longRun,21.1," km"], long42:[f.longRun,42.2," km"],
+    yoga25:[f.yoga,25], yoga100:[f.yoga,100], mat10h:[f.yogaMin/60,10," h"]};
   if(id==="al45" || id==="al40"){
     const goal = id==="al45" ? 45 : 40, best = isFinite(f.bestAlster) ? f.bestAlster : 0;
     return best ? {pct:Math.min(1, goal/best), txt:`Best time ${hms(best)}${best>goal?` · ${hms(best-goal)} faster to go`:""}`} : {pct:0, txt:"No loop with a time yet"};
   }
+  if(id==="benchbw") return f.bodyKg>0 ? {pct:Math.min(1, f.benchMax/f.bodyKg), txt:`${fmt(f.benchMax,1)} / ${fmt(f.bodyKg,1)} kg`} : {pct:0, txt:"Add your weight under Profile and body"};
+  if(id==="sub25") return isFinite(f.best5) ? {pct:Math.min(1, 25/f.best5), txt:`Best 5 km pace: ${hms(f.best5)}`} : {pct:0, txt:"No run of 5 km with a time yet"};
   if(!T[id]) return {pct:0, txt:""};
   const [c, t, u] = T[id];
   return {pct:Math.min(1, Math.max(0, c/t)), txt:t>1 ? `${fmt(Math.min(c,t), u===" t"?1:0)} / ${t}${u||""}` : ""};
@@ -2731,9 +2765,9 @@ function nextBadgeHtml(){
 function badgeEl(b, small, plain){
   const got = S.badges && S.badges[b.id], sec = b.secret && !got, pr = got ? null : badgeProg(b);
   const name = sec ? "Secret badge" : b.t;
-  const inner = `<span class="sq"><b>${sec ? "?" : esc(b.l)}</b><u>${sec ? "SECRET" : esc(b.u)}</u>${!got && pr && pr.pct>0 && !plain ? `<s><i style="width:${Math.round(pr.pct*100)}%"></i></s>` : ""}</span>`;
+  const inner = `<span class="sq">${b.tier && !sec ? `<em class="tier" aria-hidden="true">${"★".repeat(b.tier)}</em>` : ""}<b>${sec ? "?" : esc(b.l)}</b><u>${sec ? "SECRET" : esc(b.u)}</u>${!got && pr && pr.pct>0 && !plain ? `<s><i style="width:${Math.round(pr.pct*100)}%"></i></s>` : ""}</span>`;
   if(plain) return `<span class="nbq sm ${got?"got":""} g-${b.g}" aria-hidden="true">${inner}</span>`;
-  return `<button class="nbq ${got?"got":""} g-${b.g} ${sec?"secret":""} ${small?"sm":""}" data-act="badge" data-id="${b.id}" aria-label="${esc(name)}${got?"":" (not yet)"}">${inner}${small?"":`<small>${esc(name)}</small>`}</button>`;
+  return `<button class="nbq ${got?"got":""} g-${b.g} ${sec?"secret":""} ${small?"sm":""}" data-act="badge" data-id="${b.id}" aria-label="${esc(name)}${b.tier && !sec ? ` (${b.tier===2?"takes months":"takes a year or more"})` : ""}${got?"":" (not yet)"}">${inner}${small?"":`<small>${esc(name)}</small>`}</button>`;
 }
 function badgeSheet(id){
   const b = BADGES.find(x => x.id===id); if(!b) return;
@@ -2743,10 +2777,10 @@ function badgeSheet(id){
 }
 function renderBadges(){
   const vis = visibleBadges(), got = vis.filter(b => S.badges && S.badges[b.id]).length;
-  let h = `<section class="pghead"><button class="spback dark" data-act="tab" data-t="progress">‹ Progress</button><p class="eyebrow">${got} of ${vis.length} earned</p><h1>Badges</h1></section><div class="pgbody">`;
+  let h = `<section class="pghead"><button class="spback dark" data-act="tab" data-t="progress">‹ Progress</button><p class="eyebrow">${got} of ${vis.length} earned</p><h1>Badges</h1></section><div class="pgbody"><p class="small muted" style="margin:0 0 12px">Some come in your first weeks. The ones with ★★ take months, ★★★ a year or more.</p>`;
   h += nextBadgeHtml();
   BGROUPS.forEach(([g, name]) => {
-    const L = vis.filter(b => b.g===g); if(!L.length) return;
+    const L = vis.filter(b => b.g===g).sort((x, y) => (x.tier||1) - (y.tier||1)); if(!L.length) return;   // quick ones first, ★★★ last
     const n = L.filter(b => S.badges && S.badges[b.id]).length;
     h += `<div class="bgroup g-${g}"><h3><span>${name}</span><span class="tnum">${n} / ${L.length}</span></h3><div class="bgrid">${L.map(b => badgeEl(b)).join("")}</div></div>`;
   });
