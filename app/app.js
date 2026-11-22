@@ -4791,10 +4791,63 @@ function obAct(b){
       break;
   }
 }
-document.addEventListener("submit", ev => { const f = ev.target; if(f && f.id==="ob-form"){ ev.preventDefault(); obSubmit(f); } if(f && f.id==="cx-form"){ ev.preventDefault(); libCreate(f); } });
+document.addEventListener("submit", ev => { const f = ev.target; if(f && f.id==="so-form"){ ev.preventDefault(); signOutSubmit(f); return; } if(f && f.id==="ob-form"){ ev.preventDefault(); obSubmit(f); } if(f && f.id==="cx-form"){ ev.preventDefault(); libCreate(f); } });
 document.addEventListener("input", ev => { const t = ev.target; if(t && t.closest && t.closest("#ob-form") && t.getAttribute("aria-invalid")==="true") obError(t.id + "-err", ""); });
 
 /* Plan card on the home screen */
+
+/* ================= Sign out =================
+   NOVAFit has no server account: the account and all training live on this phone.
+   Signing out therefore means removing them from this phone, after offering a backup
+   and asking for the password (so nobody else can wipe an unlocked phone).
+   "Only lock the app" keeps everything, like "Lock app". */
+let SO = {fails:0, until:0};
+function signOutSheet(){
+  const p = S.settings.profile || {}, needPw = !!p.hash;
+  sheet(`<h3>Sign out of NOVAFit?</h3>
+    <p class="muted" style="margin:0">NOVAFit keeps your account and training on this phone, not on a server. Signing out removes them from this phone.</p>
+    <div class="card" style="background:var(--bg);border:0"><b>Back up first</b>
+      <p class="small muted" style="margin:0">With a backup file you can sign in again on any phone: “I already have an account” → Load backup file.</p>
+      <button class="secondary" data-act="export">Back up</button></div>
+    ${needPw ? `<form id="so-form" novalidate>
+      <label class="f" for="so-pw">Enter your password to confirm</label>
+      <input type="email" name="username" autocomplete="username" value="${esc(p.email||"")}" hidden>
+      <input class="inp" id="so-pw" name="password" type="password" autocomplete="current-password" maxlength="128" aria-describedby="so-pw-err">
+      <p class="err" id="so-pw-err" role="alert" aria-live="polite"></p>
+      <button class="primary sodel" type="submit">Sign out and remove my data</button></form>`
+    : `<button class="primary sodel" data-act="signoutok">Sign out and remove my data</button>`}
+    <button class="secondary" data-act="ob" data-do="lock">Only lock the app (keep my data)</button>
+    <button class="secondary" data-act="closesheet">Cancel</button>`);
+}
+async function signOutSubmit(form){
+  const inp = form.querySelector("#so-pw"), er = form.querySelector("#so-pw-err"), btn = form.querySelector("[type=submit]");
+  const show = t => { er.textContent = t; inp.setAttribute("aria-invalid", t ? "true" : "false"); if(t) inp.focus(); };
+  if(Date.now() < SO.until) return show(`Too many attempts. Try again in ${Math.ceil((SO.until-Date.now())/1000)} seconds.`);
+  if(!inp.value) return show("Enter your password");
+  btn.disabled = true;
+  const ok = await checkPassword(inp.value);
+  btn.disabled = false;
+  if(!ok){
+    if(++SO.fails >= OB_FAILS){ SO.fails = 0; SO.until = Date.now() + OB_WAIT; return show(`Too many attempts. Try again in ${OB_WAIT/1000} seconds.`); }
+    return show("That password isn't right. Try again.");
+  }
+  signOutNow();
+}
+async function signOutNow(){
+  const wait = (p, ms) => Promise.race([p, new Promise(r => setTimeout(r, ms))]);
+  // outside services first, while we still know who this is: Strava access and push reminders
+  const t = stGet(); if(t) await wait(stFn({action:"deauth", access_token:t.access}).catch(() => {}), 1500);
+  try{ if(OS && OS.User && OS.User.PushSubscription) await wait(OS.User.PushSubscription.optOut(), 1500); }catch(e){}
+  try{ if(navigator.clearAppBadge) navigator.clearAppBadge(); }catch(e){}
+  if(ref){ try{ await wait(ref.set(normalize(null)), 3000); }catch(e){} ref = null; }
+  // then this phone: training data, Strava login, weather, news, tour, tabs and the photos
+  S = normalize(null); clearTimeout(saveTimer); saveTimer = null;
+  try{ NFPlan.appKeys(Object.keys(localStorage)).forEach(k => localStorage.removeItem(k)); }catch(e){}
+  try{ sessionStorage.clear(); }catch(e){}
+  try{ await wait(new Promise(res => { const r = indexedDB.deleteDatabase(PDB); r.onsuccess = r.onerror = r.onblocked = () => res(); }), 2000); }catch(e){}
+  try{ sessionStorage.setItem("nf-signedout", "1"); }catch(e){}
+  location.replace(location.pathname);
+}
 
 /* Account section in settings */
 function accountHtml(){
@@ -4804,7 +4857,8 @@ function accountHtml(){
     ${S.settings.body ? `<p class="small muted" style="margin:0">${esc(SEX_TXT[S.settings.body.sex]||"")} · ${esc(S.settings.body.age)} years${num(S.settings.bodyKg)>0 ? " · " + fmt(num(S.settings.bodyKg)) + " kg" : ""}${S.settings.body.cm ? " · " + esc(S.settings.body.cm) + " cm" : ""}</p>` : ""}
     <p class="small muted" style="margin:0">Plan: ${esc((S.settings.plan||{}).name || "none yet")}</p>
     <div class="row2"><button class="secondary" data-act="ob" data-do="edit">Edit profile and plan</button><button class="secondary" data-act="ob" data-do="pwsheet">Change password</button></div>
-    <button class="secondary" data-act="ob" data-do="lock">Lock app</button></div>`;
+    <button class="secondary" data-act="ob" data-do="lock">Lock app</button>
+    <button class="secondary danger" data-act="signout">Sign out</button></div>`;
 }
 
 function render(){
@@ -5107,6 +5161,8 @@ document.addEventListener("click", async ev => {
       else if(r==="ok") toast("Open the file and tap “Add”.");
       break;
     }
+    case "signout": signOutSheet(); break;
+    case "signoutok": signOutNow(); break;
     case "export": {
       const name = `novafit-backup-${new Date().toISOString().slice(0,10)}.json`, text = JSON.stringify(S);
       let r = await shareFile(name, text, "application/json");
@@ -5311,6 +5367,8 @@ function handleHash(){
 }
 window.addEventListener("hashchange", handleHash);
 setTimeout(handleHash, 0);
+// After signing out the page reloads on the welcome screen; say once what happened
+setTimeout(() => { try{ if(sessionStorage.getItem("nf-signedout")){ sessionStorage.removeItem("nf-signedout"); toast("Signed out. Your data was removed from this phone."); } }catch(e){} }, 400);
 // Strava: Rückkehr von der Anmeldung, sonst neue Läufe holen; beim Zurückkehren in die App erneut
 stConfig().then(async c => { if(await stReturn()) return; if(c) stravaSync(false); });
 document.addEventListener("visibilitychange", () => { if(document.visibilityState==="visible" && STRAVA_CFG) stravaSync(false); });

@@ -332,3 +332,12 @@ test("own days go into the plan's strength sessions in week order", () => {
   assert.equal(out.sessions.filter(x => x.kind !== "s").length, plan.sessions.filter(x => x.kind !== "s").length);
   assert.notEqual(plan.sessions.find(x => x.kind === "s").workout, "own1");
 });
+
+/* ---------- signing out ---------- */
+test("sign out removes only NOVAFit's own storage keys", () => {
+  const keys = ["po-plan-app-v2", "po-wx", "nf-news", "nf-guide-snap", "novafit-strava", "novafit-strava-state", "novafit-hist-strava",
+    "onesignal-notification-prompt", "other-site", "nfx", "po", "POOL"];
+  assert.deepEqual(P.appKeys(keys), ["po-plan-app-v2", "po-wx", "nf-news", "nf-guide-snap", "novafit-strava", "novafit-strava-state", "novafit-hist-strava"]);
+  assert.deepEqual(P.appKeys("nope"), []);
+  assert.deepEqual(P.appKeys([null, 3, "po-x"]), ["po-x"]);
+});

@@ -2,6 +2,13 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Sign out
+
+- New **Sign out** in Settings › Account. NOVAFit has no server account, so signing out removes the account and all training from this phone: it offers a backup first (to sign in again on any phone with “I already have an account”), asks for the password and then removes the training data, photos, Strava login, weather and news caches and turns off push reminders. Other sites' data stays
+- “Only lock the app (keep my data)” in the same sheet, like Lock app
+- Wrong or empty password: an error next to the field; after 5 wrong tries a 30-second pause, like unlocking
+- In all four languages; one unit test and three browser tests (wrong password, only lock, full sign out)
+
 ## Unreleased – README and docs for the submission
 
 - README and `docs/setup.md` say clearly that the direct Strava connection is built and tested but not switched on in the live version: the Strava API needs a Strava subscription, which none of us has. Runs still come in by screenshot, watch file and the free Strava archive

@@ -58,7 +58,7 @@ Group project for *Introduction to Programming* at Nova SBE, 2026/27.
 
 **Four languages:** English, Portuguese, German and Italian. The app starts in the language of the phone; switch with *EN ▾* on the welcome screen or under *Menu › Look and feel › Language*. Exercise names stay in English, like in the gym. Screenshots from running apps are read in English, German, Portuguese, Spanish, French and Italian.
 
-**Your data stays yours:** everything is stored on the phone, not on a server. You create an account once and are never asked to log in again on that phone, unless you lock the app. A backup file saves everything (iCloud Drive, Google Drive, email via the share sheet), the app reminds you every 2 weeks, and *Welcome back › Load backup file* restores it on a new phone.
+**Your data stays yours:** everything is stored on the phone, not on a server. You create an account once and are never asked to log in again on that phone, unless you lock the app. *Settings › Account › Sign out* removes everything from the phone (after a backup, if you like, and your password). A backup file saves everything (iCloud Drive, Google Drive, email via the share sheet), the app reminds you every 2 weeks, and *Welcome back › Load backup file* restores it on a new phone.
 
 ## Run the application
 
