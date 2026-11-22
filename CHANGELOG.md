@@ -7,6 +7,12 @@ Alle Versionen der App, die neueste oben.
 - The README no longer names fixed numbers of tests and pull requests (they went out of date with every change); it links to the list of pull requests instead
 - The old ready-made `releases/NOVAFit 2.8.2.zip` is no longer part of the current files; `docs/setup.md` links to it in the Git history, so it can still be downloaded
 
+## Unreleased – Four languages
+
+- The app is available in English, Portuguese, German and Italian. It starts in the language of the phone; switch on the welcome screen or under Menu › Look and feel › Language.
+- Exercise names stay in English. Dates, voice cues in yoga, toasts and story images follow the language.
+- Fixed a German label ("Wunschzeit") in the running goal form.
+
 ## Unreleased – Edge cases
 
 - Screenshots in Portuguese, Spanish, French and Italian are read correctly (dates, labels, "Tempo" as time).
