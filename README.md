@@ -45,7 +45,7 @@ Group project for *Introduction to Programming* at Nova SBE, 2026/27.
 **Train**
 - A week line in the colour of each sport and today's session on top
 - *Gym:* plan days, own templates, ready-made workouts, 124 exercises with drawings; sets filled in from last time, a suggestion when to add weight, rest timer, guided warm-up, swap or add exercises, records
-- *Running:* outdoor or treadmill; read a run from a watch screenshot, import GPX, FIT and TCX files or the whole history from Garmin and Strava; optionally connect Strava directly (needs a Strava API app, see [docs/setup.md](docs/setup.md)); interval timer; goal plans for 10 km, a half marathon or your own loop
+- *Running:* outdoor or treadmill; read a run from a watch screenshot, import GPX, FIT and TCX files or the whole history from Garmin and Strava; a direct Strava connection is built and tested, but not switched on in our live version, because the Strava API needs a Strava subscription that none of us has (see [docs/setup.md](docs/setup.md#strava-connection)); interval timer; goal plans for 10 km, a half marathon or your own loop
 - *Yoga:* 7 guided sessions read aloud, 5-minute study breaks, a tension check before and after, a flexibility check every two weeks
 - *Edit what's on Train:* switch sports on or off; everything else follows
 
