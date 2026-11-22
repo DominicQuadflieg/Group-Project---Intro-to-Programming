@@ -110,6 +110,7 @@ NFI18N.load([
 ["Back to downward dog for a few calm breaths.", "De volta ao cão a olhar para baixo para umas respirações calmas.", "Zurück in den herabschauenden Hund für ein paar ruhige Atemzüge.", "Torna al cane a testa in giù per qualche respiro tranquillo."],
 ["Back to home", "Voltar ao início", "Zurück zum Start", "Torna all'inizio"],
 ["Back to rest for a few breaths.", "Volta a descansar durante umas respirações.", "Zurück in die Ruhe für ein paar Atemzüge.", "Torna a riposare per qualche respiro."],
+["Back to the exercise list", "Voltar à lista de exercícios", "Zurück zur Übungsliste", "Torna all'elenco degli esercizi"],
 ["Back to training", "De volta ao treino", "Zurück zum Training", "Torna ad allenarti"],
 ["Back to training after two weeks or more off.", "De volta ao treino após duas semanas ou mais de pausa.", "Zurück im Training nach zwei Wochen Pause oder mehr.", "Di nuovo ad allenarti dopo due settimane o più di pausa."],
 ["Back up", "Fazer cópia", "Backup machen", "Fai il backup"],

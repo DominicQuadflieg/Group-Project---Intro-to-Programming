@@ -366,6 +366,8 @@ textarea{width:100%;min-height:64px;border:1px solid var(--line);border-radius:c
 .mv button{width:34px;height:34px;border-radius:calc(var(--rs) * 10px);border:1px solid var(--line);background:var(--bg);color:var(--muted);font-size:16px;cursor:pointer}
 /* Sheet */
 .scrim{position:fixed;inset:0;z-index:20;background:rgba(10,8,12,.45);display:flex;align-items:flex-end;justify-content:center}
+.sheetx{position:sticky;top:-6px;align-self:flex-end;margin:-6px -4px -50px 0;z-index:3;width:40px;height:40px;flex:none;display:grid;place-items:center;border:1.5px solid var(--ink);background:var(--surface);color:var(--ink);border-radius:50%;cursor:pointer}
+.sheetx:focus-visible{outline:3px solid var(--run);outline-offset:2px}
 .sheet{background:var(--surface);width:100%;max-width:560px;max-height:88vh;overflow:auto;border-radius:20px 20px 0 0;padding:18px 16px calc(env(safe-area-inset-bottom) + 18px);display:flex;flex-direction:column;gap:12px}
 .sheet h3{margin:0;font:700 24px/1.1 var(--display);text-transform:uppercase}
 .sheet p{margin:0}
