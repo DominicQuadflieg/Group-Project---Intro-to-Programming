@@ -2492,6 +2492,7 @@ function settingsSheet(part){
       <label class="small" style="display:flex;gap:10px;align-items:center;margin:0 0 10px"><input type="checkbox" data-act="backupremind" ${S.settings.backupRemind===false ? "" : "checked"} style="width:20px;height:20px;accent-color:var(--ink)"> Remind me to back up every 2 weeks</label>
       <div class="row2"><button class="secondary" data-act="export">Back up</button><button class="secondary" data-act="import">Load backup</button></div>
       <button class="secondary" style="margin-top:8px;width:100%" data-act="impsheet">Import runs from other apps</button>
+      ${hasDemo() ? `<button class="secondary rm" style="margin-top:8px;width:100%" data-act="demorm">Remove demo data</button>` : ""}
       <input type="file" id="importf" accept=".json,application/json" hidden>
       <p class="small" style="margin:8px 0 0" data-sync>${syncHtml()}</p></div>
 `],
@@ -2721,8 +2722,8 @@ const BADGES = [
   {id:"ht50", g:"gym", l:"50", u:"HIP THRUST", t:"Hip thrust 50 kg", d:"Hip thrust with 50 kg.", ok:f => f.hipMax>=50},
   {id:"ht80", g:"gym", l:"80", u:"HIP THRUST", t:"Hip thrust 80 kg", d:"Hip thrust with 80 kg.", ok:f => f.hipMax>=80},
   {id:"pr50", g:"gym", tier:2, l:"50", u:"RECORDS", t:"50 records", d:"Set a new best weight 50 times.", ok:f => f.prs>=50},
-  {id:"vol50t", g:"gym", tier:2, l:"50t", u:"MOVED", t:"50 tonnes", d:"Moved 50,000 kg in total.", ok:f => f.vol>=50000},
-  {id:"vol250t", g:"gym", tier:3, l:"250t", u:"MOVED", t:"250 tonnes", d:"Moved 250,000 kg in total. That's a blue whale and a half.", ok:f => f.vol>=250000},
+  {id:"vol100t", g:"gym", tier:2, l:"100t", u:"MOVED", t:"100 tonnes", d:"Moved 100,000 kg in total.", ok:f => f.vol>=100000},
+  {id:"vol500t", g:"gym", tier:3, l:"500t", u:"MOVED", t:"500 tonnes", d:"Moved 500,000 kg in total. That's about three blue whales.", ok:f => f.vol>=500000},
   {id:"ht100", g:"gym", tier:2, l:"100", u:"HIP THRUST", t:"Hip thrust 100 kg", d:"Hip thrust with 100 kg.", ok:f => f.hipMax>=100},
   {id:"benchbw", g:"gym", tier:3, l:"1×", u:"BODYWEIGHT", t:"Bench your bodyweight", d:"Bench press your own bodyweight (set it under Profile and body).", ok:f => f.bodyKg>0 && f.benchMax>=f.bodyKg},
   {id:"wpull10", g:"gym", tier:2, l:"+10", u:"PULL-UP", t:"Weighted pull-up +10 kg", d:"A pull-up with 10 kg extra.", ok:f => f.wpullMax>=10},
@@ -2764,7 +2765,7 @@ function badgeProg(b){
   const T = {first:[f.total,1],t10:[f.total,10],t25:[f.total,25],t50:[f.total,50],goal1:[f.goalWeeks,1],streak4:[f.streakMax,4," weeks"],streak8:[f.streakMax,8," weeks"],
     km10:[f.km,10," km"],km50:[f.km,50," km"],km100:[f.km,100," km"],ht50:[f.hipMax,50," kg"],ht80:[f.hipMax,80," kg"],pr5:[f.prs,5],pr20:[f.prs,20],vol10t:[f.vol/1000,10," t"],yoga1:[f.yoga,1],yoga10:[f.yoga,10],
     breaks:[f.breaks,10], t100:[f.total,100], t250:[f.total,250], streak12:[f.streakMax,12," weeks"], streak26:[f.streakMax,26," weeks"], year1:[f.span,365," days"],
-    pr50:[f.prs,50], vol50t:[f.vol/1000,50," t"], vol250t:[f.vol/1000,250," t"], ht100:[f.hipMax,100," kg"], wpull10:[f.wpullMax,10," kg"],
+    pr50:[f.prs,50], vol100t:[f.vol/1000,100," t"], vol500t:[f.vol/1000,500," t"], ht100:[f.hipMax,100," kg"], wpull10:[f.wpullMax,10," kg"],
     km250:[f.km,250," km"], km500:[f.km,500," km"], km1000:[f.km,1000," km"], long10:[f.longRun,10," km"], long21:[f.longRun,21.1," km"], long42:[f.longRun,42.2," km"],
     yoga25:[f.yoga,25], yoga100:[f.yoga,100], mat10h:[f.yogaMin/60,10," h"]};
   if(id==="al45" || id==="al40"){
@@ -5336,6 +5337,7 @@ document.addEventListener("click", async ev => {
     case "backuplater": S.settings.backupSnooze = Date.now() + 3*864e5; save(); render(); toast("We'll remind you in 3 days."); break;
     case "backupremind": S.settings.backupRemind = !!b.checked; if(b.checked) S.settings.backupSnooze = 0; save(); break;
     case "import": $("#importf").click(); break;
+    case "demorm": removeDemo(); break;
     case "installfirst": installSheet(); break;
     case "installskip": closeSheet(); obGo("signup"); break;
     case "copydata": {
@@ -5363,9 +5365,26 @@ function loadBackupText(text){
   try{
     const d = JSON.parse(text);
     if(!d || typeof d!=="object" || !Array.isArray(d.history)) throw 0;
-    S = merge(S, d); addCustomToEXN(); registerOwn(); checkBadges(true); save(); applyTheme(); closeSheet(); screen = "home"; render(); toast(`${d.history.length} sessions loaded.`);
+    if(d.demo===true) demoShift(d);
+    S = merge(S, d); addCustomToEXN(); registerOwn(); checkBadges(true); save(); applyTheme(); closeSheet(); screen = "home"; render();
+    toast(d.demo===true ? T(`Demo data loaded: ${d.history.length} sessions. Settings › Your data removes it again.`) : `${d.history.length} sessions loaded.`);
     return true;
   }catch(e){ toast("That's not a valid backup."); return false; }
+}
+/* Demo file (app/demo/novafit-demo.json): move every date forward by whole weeks, so the last demo
+   session lies in the past week and weekdays stay the same. Only entries with a "demo-" id are kept. */
+const WEEK_MS = 7*864e5;
+function demoShift(d){
+  d.history = d.history.filter(e => e && typeof e.id==="string" && e.id.startsWith("demo-") && isFinite(e.start));
+  delete d.settings; delete d.active; delete d.badges;
+  const last = Math.max(...d.history.map(e => e.end || e.start)), shift = Math.max(0, Math.floor((Date.now() - last)/WEEK_MS))*WEEK_MS;
+  d.history.forEach(e => { e.start += shift; if(isFinite(e.end)) e.end += shift; });
+}
+function hasDemo(){ return S.history.some(e => typeof e.id==="string" && e.id.startsWith("demo-")); }
+function removeDemo(){
+  const n = S.history.length; S.history = S.history.filter(e => !(typeof e.id==="string" && e.id.startsWith("demo-")));
+  const f = facts(); BADGES.forEach(b => { if(S.badges && S.badges[b.id] && !b.ok(f)) delete S.badges[b.id]; });   // badges only the demo earned go again
+  FCACHE = {k:"", v:null}; save(); closeSheet(); render(); toast(T(`${n - S.history.length} demo sessions removed.`));
 }
 /* Texterkennung schon beim Antippen laden, während die Fotoauswahl offen ist */
 document.addEventListener("pointerdown", ev => { if(ev.target.closest && ev.target.closest(".shotcta") && navigator.onLine!==false) ocrWorker().catch(() => {}); });
