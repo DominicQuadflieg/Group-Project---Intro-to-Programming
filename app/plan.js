@@ -79,6 +79,16 @@
   }
 
   // Height is optional: empty is fine, anything else must be a plausible height in cm
+  /* A backup file brings training data and settings, never the account of this phone:
+     name, email, password hash and the lock stay as they are. Only a phone without an
+     account (Welcome back › Load backup file) takes the account from the file. */
+  const ACCOUNT_KEYS = ["profile", "locked"];
+  function backupSettings(settings, hasAccount) {
+    const out = Object.assign({}, settings && typeof settings === "object" ? settings : {});
+    if (hasAccount) ACCOUNT_KEYS.forEach(k => { delete out[k]; });
+    return out;
+  }
+
   function validateBody(input) {
     const sex = (input && input.sex) || "", age = toNumber(input && input.age), kg = toNumber(input && input.kg);
     const cmRaw = String((input && input.cm) == null ? "" : input.cm).trim(), cm = cmRaw === "" ? null : toNumber(cmRaw);
@@ -512,7 +522,7 @@
   const api = {
     appKeys,
     KINDS, KIND_LABEL, DAY_NAMES, GOALS, LEVELS, MINUTES, MIN_DAYS, MAX_DAYS, MAX_GOALS, MAX_PER_KIND,
-    SEXES, MIN_AGE, MAX_AGE, MIN_KG, MAX_KG, MIN_CM, MAX_CM,
+    SEXES, MIN_AGE, MAX_AGE, MIN_KG, MAX_KG, MIN_CM, MAX_CM, backupSettings,
     goalById, validateSignup, validateBody, toNumber, restingKcalPerDay, kcalFactor, validateDays, validateMix, validateGoals, validateAnswers,
     rebalanceMix, mixTotal, scheduleWeek, suggestPlans, weekdayIndex, sessionOn, nextSession,
     WORKOUTS, HEAVY_LEGS, ADDONS, ADDON_FOR, SPLITS, splitsFor, splitById, recommendSplit, splitFor, validateSplit,

@@ -2,6 +2,12 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – A backup never replaces your account
+
+- Loading a backup brings training data and settings, but name, email, password and the lock of this phone stay as they are. Until now a backup file from someone else (or a changed one) replaced them, so after loading it your own password no longer worked
+- On a phone without an account (*Welcome back › Load backup file*), the account still comes from the file, so moving to a new phone works as before
+- `backupSettings` in `plan.js` with a unit test; two new browser tests and a sample file
+
 ## Unreleased – Set numbers are checked
 
 - Reps and weights in a gym session are checked while you type: reps a whole number from 1 to 200, weight 0 to 500 kg (assistance 0 to 200 kg), timed exercises 1 to 3600 seconds or 0.5 to 300 minutes. Until now −5 reps, letters or 99 999 kg were saved and spoiled records and totals

@@ -5348,6 +5348,7 @@ function loadBackupText(text){
   try{
     const d = JSON.parse(text);
     if(!d || typeof d!=="object" || !Array.isArray(d.history)) throw 0;
+    d.settings = NFPlan.backupSettings(d.settings, !!S.settings.profile);   // the account on this phone stays
     S = merge(S, d); addCustomToEXN(); registerOwn(); checkBadges(true); save(); applyTheme(); closeSheet(); screen = "home"; render(); toast(`${d.history.length} sessions loaded.`);
     return true;
   }catch(e){ toast("That's not a valid backup."); return false; }

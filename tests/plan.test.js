@@ -365,3 +365,15 @@ test("own days at sign-up: every chosen exercise needs at least one set", () => 
   assert.equal(bad.day, 0);
   assert.equal(P.validateOwnDays([{ name: "Push", mode: "own", ex: ["bench"] }], 1).ok, true);   // older answers without sets
 });
+
+/* ---------- backups never replace the account of this phone ---------- */
+test("backupSettings drops the account only when this phone has one", () => {
+  const file = { profile: { name: "Other", email: "o@x.pt", hash: "00", salt: "00" }, locked: false, goal: 4, lang: "de" };
+  const kept = P.backupSettings(file, true);
+  assert.equal(kept.profile, undefined);
+  assert.equal(kept.locked, undefined);
+  assert.equal(kept.goal, 4);
+  assert.equal(file.profile.name, "Other");                         // the file's object isn't changed
+  assert.deepEqual(P.backupSettings(file, false), file);            // new phone: the account comes from the file
+  assert.deepEqual(P.backupSettings(null, true), {});
+});
