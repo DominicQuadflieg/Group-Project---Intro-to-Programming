@@ -8,6 +8,17 @@ Alle Versionen der App, die neueste oben.
 - Recognised by the content, so `.CSV` in capitals works too; other Polar sports (e.g. cycling) are skipped, treadmill runs count as treadmill
 - Clear error messages in all four languages; 5 new unit tests and a browser check with a real Polar export
 
+## Unreleased – External services in the README
+
+- New section *External services and APIs* in the README: every outside service NOVAFit uses (openrouteservice, Open-Meteo, BigDataCloud, the Nova SBE news page, OneSignal, Strava, Tesseract.js via jsDelivr, Google Fonts, Google Maps links), what for, where in the code, which key it needs and what is sent
+- Credits name Open-Meteo (CC BY 4.0), openrouteservice with OpenStreetMap data (ODbL) and BigDataCloud
+
+## Unreleased – Runs near you is back in the running menu
+
+- *Train › Running* has a row **Runs near you** again (it was taken out in #39, so the routes and the loop from here could not be opened anymore, even though the route service is set up on the live site)
+- The sheet is now in all four languages: titles, buttons, route names and descriptions, distances (“about 5 km · 3 km away”), loop texts and errors; place names stay as they are
+- Three browser tests: the menu opens the sheet with the nearest routes and a loop that starts a run; without the route key the routes still work; in German nothing stays in English
+
 ## Unreleased – Sign out
 
 - New **Sign out** in Settings › Account. NOVAFit has no server account, so signing out removes the account and all training from this phone: it offers a backup first (to sign in again on any phone with “I already have an account”), asks for the password and then removes the training data, photos, Strava login, weather and news caches and turns off push reminders. Other sites' data stays

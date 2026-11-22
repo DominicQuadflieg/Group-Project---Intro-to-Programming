@@ -45,7 +45,7 @@ Group project for *Introduction to Programming* at Nova SBE, 2026/27.
 **Train**
 - A week line in the colour of each sport and today's session on top
 - *Gym:* plan days, own templates, ready-made workouts, 124 exercises with drawings; sets filled in from last time, a suggestion when to add weight, rest timer, guided warm-up, swap or add exercises, records
-- *Running:* outdoor or treadmill; read a run from a watch screenshot, import GPX, FIT and TCX files or the whole history from Garmin and Strava; a direct Strava connection is built and tested, but not switched on in our live version, because the Strava API needs a Strava subscription that none of us has (see [docs/setup.md](docs/setup.md#strava-connection)); interval timer; goal plans for 10 km, a half marathon or your own loop
+- *Running:* outdoor or treadmill; read a run from a watch screenshot, import GPX, FIT and TCX files or the whole history from Garmin and Strava; a direct Strava connection is built and tested, but not switched on in our live version, because the Strava API needs a Strava subscription that none of us has (see [docs/setup.md](docs/setup.md#strava-connection)); runs near you (hand-picked routes and a loop from where you are, from the running menu); interval timer; goal plans for 10 km, a half marathon or your own loop
 - *Yoga:* 7 guided sessions read aloud, 5-minute study breaks, a tension check before and after, a flexibility check every two weeks
 - *Edit what's on Train:* switch sports on or off; everything else follows
 
@@ -104,6 +104,24 @@ Plain HTML, CSS and JavaScript, no build step. The app is a Progressive Web App:
 | `tests/`, `e2e/` | Unit tests and browser tests |
 | `docs/` | Setup, architecture and security notes |
 
+### External services and APIs
+
+NOVAFit keeps your training on the phone, but a few features ask outside services. Secret keys never reach the phone: where a service needs one, a Netlify Function in `netlify/functions/` holds it and talks to the service for the app. Every function only answers calls from our own site and limits how often each address may ask (`netlify/lib/guard.mjs`).
+
+| Service | What NOVAFit uses it for | Where in the code | Key | What is sent |
+|---|---|---|---|---|
+| [openrouteservice](https://openrouteservice.org) by HeiGIT (directions API, OpenStreetMap data) | *Runs near you › A loop from here*: a round trip on foot paths of the chosen length | `netlify/functions/route.mjs` | `ORS_API_KEY` in Netlify | Your position (only when you tap the button), length and a number for “another loop”. Not stored |
+| [Open-Meteo](https://open-meteo.com) (weather API) | Running weather on the running screens | `wxUrl` in `app/run.js` | none | Position rounded to about 1 km, or Nova SBE |
+| [BigDataCloud](https://www.bigdatacloud.com) (reverse geocoding) | The town name next to the weather (“Near Carcavelos”) | `wxPlaceLoad` in `app/app.js` | none | The same rounded position |
+| [Nova SBE news page](https://www.novasbe.unl.pt/en/whats-happening/news) | The newest headlines on *Today* | `netlify/functions/news.mjs`, `netlify/lib/news.mjs` | none | Nothing about you: the function reads the public page, Netlify keeps the result for 3 hours |
+| [OneSignal](https://onesignal.com) (web push) | Training reminders and the weekly review as push messages | `app/app.js` (`ONESIGNAL_APP_ID`), `app/OneSignalSDKWorker.js` | public app ID | Only after you allow notifications: a push subscription, the app language, the time of your last session and the name of the next one |
+| [Strava API](https://developers.strava.com) | Bring in runs from Strava directly (built and tested, **not switched on**: the API needs a Strava subscription, see [docs/setup.md](docs/setup.md#strava-connection)) | `netlify/functions/strava.mjs` | `STRAVA_CLIENT_ID`, `STRAVA_CLIENT_SECRET` in Netlify | Read access to your activities, only if you connect |
+| [Tesseract.js](https://github.com/naptha/tesseract.js) 5.1.1 via [jsDelivr](https://www.jsdelivr.com) | Reading a run from a screenshot | `ocrWorker` in `app/app.js` | none | Nothing: the program is downloaded once (checked with Subresource Integrity) and the screenshot is read on the phone |
+| [Google Fonts](https://fonts.google.com) | The fonts Playfair Display and Open Sans | `app/index.html` | none | A normal font download |
+| Google Maps (links only, no API) | “Directions” and “Open in Maps” in *Runs near you* | `mapsTo` in `app/app.js`, `loopMapsUrl` in `app/run.js` | none | Only if you tap the link: the start or the loop opens in Google Maps |
+
+Everything else works without these services: imports of GPX, FIT, TCX and CSV files are read on the phone, and without a key the app hides the feature instead of failing. Which hosts the browser may reach at all is fixed in the Content-Security-Policy in `netlify.toml` (see [docs/security.md](docs/security.md)).
+
 More detail: [docs/architecture.md](docs/architecture.md) · [docs/security.md](docs/security.md) · notes for new team members and coding agents in [AGENTS.md](AGENTS.md).
 
 ## How we worked
@@ -138,3 +156,6 @@ Every change in detail: [CHANGELOG.md](CHANGELOG.md).
 - Exercise drawings in `app/img/ex/` from [Everkinetic](https://github.com/everkinetic/data) and [Workout Guide](https://github.com/bryllim/workout-guide) by Bryl Lim, licensed [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) (list in `app/img/ex/SOURCES.md`).
 - Photos in `app/img/pack/` © Nova SBE, used only for this course project.
 - Text recognition for run screenshots: [Tesseract.js](https://github.com/naptha/tesseract.js) 5.1.1. Push reminders: OneSignal.
+- Weather data by [Open-Meteo.com](https://open-meteo.com), licensed [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+- Running loops: © [openrouteservice.org](https://openrouteservice.org) by HeiGIT · map data © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright), licensed [ODbL](https://opendatacommons.org/licenses/odbl/).
+- Town names: [BigDataCloud](https://www.bigdatacloud.com) reverse geocoding.
