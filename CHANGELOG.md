@@ -2,6 +2,12 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Runs near you is back in the running menu
+
+- *Train › Running* has a row **Runs near you** again (it was taken out in #39, so the routes and the loop from here could not be opened anymore, even though the route service is set up on the live site)
+- The sheet is now in all four languages: titles, buttons, route names and descriptions, distances (“about 5 km · 3 km away”), loop texts and errors; place names stay as they are
+- Three browser tests: the menu opens the sheet with the nearest routes and a loop that starts a run; without the route key the routes still work; in German nothing stays in English
+
 ## Unreleased – Sign out
 
 - New **Sign out** in Settings › Account. NOVAFit has no server account, so signing out removes the account and all training from this phone: it offers a backup first (to sign in again on any phone with “I already have an account”), asks for the password and then removes the training data, photos, Strava login, weather and news caches and turns off push reminders. Other sites' data stays
