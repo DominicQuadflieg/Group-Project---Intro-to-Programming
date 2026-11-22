@@ -4,10 +4,14 @@ Alle Versionen der App, die neueste oben.
 
 ## Unreleased – README and docs for the submission
 
-- The README links to the live app on Netlify: https://inquisitive-pegasus-dbcd63.netlify.app
 - README and `docs/setup.md` say clearly that the direct Strava connection is built and tested but not switched on in the live version: the Strava API needs a Strava subscription, which none of us has. Runs still come in by screenshot, watch file and the free Strava archive
 - The README no longer names fixed numbers of tests and pull requests (they went out of date with every change); it links to the list of pull requests instead
 - The old ready-made `releases/NOVAFit 2.8.2.zip` is no longer part of the current files; `docs/setup.md` links to it in the Git history, so it can still be downloaded
+
+## Unreleased – Allow notifications on iPhone
+
+- Tapping Allow notifications in the installed iPhone app now shows the question right away (it was asked too late, so iOS ignored the tap).
+- The app always says what happened: on, blocked (with where to allow it) or not possible right now.
 
 ## Unreleased – Push messages in four languages
 
@@ -26,6 +30,12 @@ Alle Versionen der App, die neueste oben.
 - A full phone storage is no longer silent: the app says so once and points to the backup.
 - A new account sees one short card per sport on Progress instead of many empty cards.
 - Earned badges are visible in dark mode.
+
+## Unreleased – The cursor stays where you tapped
+
+- **Fixed:** on a slow phone, the sign-up form (and the form for your own exercise) could move the cursor back to the first field just after you tapped the next one, so your email landed in the name field. The app now only places the cursor when you haven't chosen a field yet
+- Found through a browser test that failed now and then on GitHub; a new test stops the page's clock to reproduce it every time
+- When the sign-up in a browser test doesn't reach the next step, the test now says what the screen showed (step, error messages, which fields were filled, whether the account was saved) instead of only “timeout”
 
 ## Unreleased – Menu, profile photo, install first on iPhone
 

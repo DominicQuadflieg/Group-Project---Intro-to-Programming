@@ -68,4 +68,20 @@ async function signedIn(page, extra) {
 const text = (page, sel) => page.$eval(sel, e => e.innerText.replace(/\s+/g, " ").trim());
 const fixture = name => path.join(__dirname, "fixtures", name);
 
-module.exports = { setup, signedIn, text, fixture };
+/* Waits until the onboarding reaches `step`. If it doesn't, the test fails with what the screen showed
+   (step, error texts, field values), so a failure on GitHub can be understood from the log alone. */
+async function waitForStep(page, step, timeout = 30000) {
+  try { await page.waitForFunction(s => typeof OB !== "undefined" && OB.step === s, step, { timeout }); }
+  catch (e) {
+    const seen = await page.evaluate(() => ({
+      step: typeof OB !== "undefined" ? OB.step : null,
+      errors: [...document.querySelectorAll(".err")].map(x => x.id + ": " + x.textContent).filter(t => !/: $/.test(t)),
+      fields: [...document.querySelectorAll("#ob-form input")].map(i => i.id + "=" + (i.type === "password" ? (i.value ? "(set)" : "(empty)") : i.value)),
+      submitDisabled: !!(document.querySelector('#ob-form [type="submit"]') || {}).disabled,
+      profileSaved: typeof S !== "undefined" && !!S.settings.profile
+    })).catch(err => ({ couldNotRead: err.message }));
+    throw new Error(`Onboarding did not reach "${step}" within ${timeout} ms. Screen: ${JSON.stringify(seen)}. Page problems: ${JSON.stringify(page.problems || [])}`);
+  }
+}
+
+module.exports = { setup, signedIn, text, fixture, waitForStep };

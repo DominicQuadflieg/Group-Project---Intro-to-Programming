@@ -1,7 +1,7 @@
 // End-to-end: first start, account and questionnaire · run with: npm run e2e
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { setup, text } = require("./helpers");
+const { setup, text, waitForStep } = require("./helpers");
 
 let app;
 test.before(async () => { app = await setup(); });
@@ -31,6 +31,20 @@ test("sign-up refuses empty and invalid input with an error next to each field",
   assert.deepEqual(await page.done(), []);
 });
 
+test("the cursor stays in the field the user tapped, even on a slow phone", async () => {
+  // Stop the page's clock, so the app's delayed "focus the first field" fires only after the user
+  // already tapped the email field – like on a slow phone.
+  const page = await app.open({ clock: new Date(2026, 10, 22, 12, 0) });
+  await page.clock.pauseAt(new Date(2026, 10, 22, 12, 0, 1));
+  await page.click('[data-to="signup"]');
+  await page.click("#ob-email");
+  await page.clock.runFor(200);                      // the app's focus timer fires now
+  await page.keyboard.type("julius@novasbe.pt");
+  assert.equal(await page.inputValue("#ob-email"), "julius@novasbe.pt");
+  assert.equal(await page.inputValue("#ob-name"), "");
+  assert.deepEqual(await page.done(), []);
+});
+
 test("a valid sign-up stores only a password hash and leads to the questionnaire", async () => {
   const page = await app.open();
   await page.click('[data-to="signup"]');
@@ -38,7 +52,7 @@ test("a valid sign-up stores only a password hash and leads to the questionnaire
   await page.fill("#ob-email", "Julius@NovaSBE.pt");
   await page.fill("#ob-pw", "secret123");
   await page.click('#ob-form button[type="submit"]');
-  await page.waitForSelector("#ob-age");
+  await waitForStep(page, "body");
   const stored = await page.evaluate(() => localStorage.getItem("po-plan-app-v2"));
   assert.ok(stored.includes("julius@novasbe.pt"), "email saved in lower case");
   assert.ok(!stored.includes("secret123"), "password is never stored as text");
@@ -65,7 +79,7 @@ test("the locked app asks for the password and refuses a wrong one", async () =>
   await page.fill("#ob-email", "dominic@novasbe.pt");
   await page.fill("#ob-pw", "secret123");
   await page.click('#ob-form button[type="submit"]');
-  await page.waitForSelector("#ob-age");
+  await waitForStep(page, "body");
   await page.evaluate(() => { S.settings.locked = true; save(); location.reload(); });
   await page.waitForSelector('#ob-form[data-form="login"]');
   await page.fill("#ob-pw", "wrongpass1");
