@@ -11,7 +11,7 @@ self.addEventListener("push", e => {
   }catch(_){}
 });
 
-const CACHE = "novafit-v45";
+const CACHE = "novafit-v46";
 // Text recognition for run screenshots (a few MB, fixed version): own cache, so app updates don't download it again
 const OCR_CACHE = "novafit-ocr-v1";
 const FILES = ["./", "./index.html", "./exercises.js", "./plan.js", "./app.js", "./run.js", "./muscles.js", "./yoga.js", "./progress.js", "./tour.js", "./i18n.js", "./i18n-data.js", "./guide.js", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png", "./OneSignalSDKWorker.js", "./img/campus-1.svg", "./img/campus-2.svg", "./img/gym.svg", "./img/run.svg", "./img/yoga.svg"];

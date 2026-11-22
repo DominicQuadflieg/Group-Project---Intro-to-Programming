@@ -2,6 +2,11 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Clearer settings
+
+- Chosen options in the settings (sex, show calories, appearance, sound …) are filled black with a ✓, white in dark mode.
+- Weekly goal and My plan are one row: the plan sets how many sessions a week. The duplicate Edit profile and plan link under your name is gone.
+
 ## Unreleased – Running plan looks right again
 
 - **Fixed:** the weeks of the running plan (“This week”, “Next week”) were squeezed into narrow columns side by side. The plan used the class `.pweek`, which the new Progress page also uses for its 7-day strip; the plan's week cards are now `.rweek`, so each run is a full-width row again

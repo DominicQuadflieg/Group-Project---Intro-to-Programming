@@ -60,7 +60,7 @@ h2.sec{font:700 15px var(--display);letter-spacing:.08em;text-transform:uppercas
 .iconbtn svg{width:20px;height:20px}
 .topbtns{display:flex;gap:8px;flex-shrink:0}
 .top h1{font-size:30px}
-.seg.theme button[aria-pressed="true"]{color:var(--accent)}
+.seg.theme button[aria-pressed="true"]{color:var(--bg)}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:calc(var(--rs) * 16px);padding:14px;display:flex;flex-direction:column;gap:10px}
 .muted{color:var(--muted)}
 .small{font-size:13px}
@@ -182,9 +182,11 @@ h2.sec{font:700 15px var(--display);letter-spacing:.08em;text-transform:uppercas
 .optrow b{font-weight:500}
 .card.opt{background:transparent;border-style:dashed}
 .card.opt .target b{color:var(--muted)}
-.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--bg);border-radius:calc(var(--rs) * 12px);padding:4px;gap:4px}
-.seg button{border:0;background:transparent;border-radius:calc(var(--rs) * 9px);padding:10px;font-weight:600;cursor:pointer;color:var(--muted)}
-.seg button[aria-pressed="true"]{background:var(--surface);color:var(--run);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+/* Choices in the settings (On/Off, Light/Dark, sex …): a black frame, the chosen one filled black (white in dark mode) */
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--ink);border:1.5px solid var(--ink);border-radius:0;padding:0;gap:1.5px}
+.seg button{border:0;background:var(--surface);border-radius:0;padding:11px 8px;font-weight:600;cursor:pointer;color:var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg);box-shadow:none}
+.seg button[aria-pressed="true"]::before{content:"✓ "}
 .rungrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;display:block}
 .pace{display:flex;justify-content:space-between;align-items:center;background:var(--run-soft);border-radius:calc(var(--rs) * 12px);padding:10px 14px}
