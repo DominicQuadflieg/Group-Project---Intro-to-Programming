@@ -101,9 +101,31 @@ function normalize(s){
   if(st.pcards && typeof st.pcards==="object") ["s","r","y"].forEach(k => { const l = st.pcards[k]; st.pcards[k] = Array.isArray(l) ? l.filter(x => typeof x==="string" && /^[a-z]{1,12}$/.test(x)).slice(0, 5) : undefined; }); else delete st.pcards;
   if(st.ownW && typeof st.ownW==="object") Object.keys(st.ownW).forEach(k => { const w = st.ownW[k]; if(!w || typeof w!=="object" || !/^[A-Za-z0-9_-]{1,40}$/.test(k)) delete st.ownW[k]; else w.name = NFEx.safeText(w.name, 40, "Own workout"); });
   if(st.loopName != null) st.loopName = NFEx.safeText(st.loopName, 24);
+  if(st.lang != null && !NFI18N.LANGS.some(l => l.id===st.lang)) delete st.lang;   // language: only one we have
   return {v:2, active:s.active||null, history:Array.isArray(s.history)?s.history:[], settings:st, badges:(s.badges && typeof s.badges==="object") ? s.badges : null};
 }
 let S = (() => { try{ return normalize(JSON.parse(localStorage.getItem(LS)||"null")); }catch(e){ return clone(DEF); } })();
+
+/* ================= Language (i18n.js) ================= */
+const LOC = () => NFI18N.locale();          // pt-PT, de-DE … for the voice (dates stay English in the code and are translated like any text)
+const T = s => NFI18N.t(s);                 // for text that does not go through the page (voice, story images, toasts)
+const LANG_NAME = id => (NFI18N.LANGS.find(l => l.id===id) || NFI18N.LANGS[0]).name;
+function initLang(){
+  NFI18N.setLang(S.settings.lang || NFI18N.detect(navigator.languages || [navigator.language]));
+  // exercise and workout names stay in English, like in the gym
+  // (one-word workout names like "Push" are left out: they are also ordinary words in the tips)
+  const fixed = [...NFEx.LIBRARY.map(e => e.n), ...Object.values(NFPlan.WORKOUTS).map(w => w.title).filter(t => / /.test(t))];
+  NFI18N.keepFrom(() => { const p = S.settings.profile || {}, nm = String(p.name || S.settings.name || "").trim();
+    return [...fixed, ...(S.settings.custom||[]).map(c => c && c.n).filter(Boolean), ...(nm.length > 1 ? [nm] : [])]; });
+  NFI18N.watch(document);
+}
+function langPicker(){
+  const cur = NFI18N.getLang();
+  return `<div class="langlist" data-i18n-skip>${NFI18N.LANGS.map(l => `<button class="${l.id===cur?"primary":"secondary"}" data-act="setlang" data-v="${l.id}" aria-pressed="${l.id===cur}"><span><b>${l.name}</b>${l.id!=="en" ? `<small>${l.en}</small>` : ""}</span>${l.id===cur ? "✓" : ""}</button>`).join("")}</div>`;
+}
+function langSheet(){
+  sheet(`<h3>Language</h3><p class="small muted">We picked the language of your phone. You can change it any time in the menu.</p>${langPicker()}<p class="small muted" style="margin-top:14px">Exercise names stay in English, like in the gym.</p><button class="secondary" data-act="closesheet">Close</button>`);
+}
 addCustomToEXN();
 registerOwn();
 let screen = "home", summary = null, rest = null;
@@ -246,7 +268,7 @@ function kmOf(e){ return (e.run? num(e.run.km) : 0) + (e.tread? num(e.tread.km) 
 function lastSets(id){ for(let i=S.history.length-1;i>=0;i--){ const a = (S.history[i].sets||{})[id]; if(a && a.length) return a; } return null; }
 function lastRun(mode){ for(let i=S.history.length-1;i>=0;i--){ const e = S.history[i]; if(e.run && (!mode || e.run.mode===mode)) return e.run; } return null; }
 function lastTread(){ for(let i=S.history.length-1;i>=0;i--){ if(S.history[i].tread) return S.history[i].tread; } return null; }
-function toast(t){ const el = document.createElement("div"); el.className = "toast"; el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 2600); }
+function toast(t){ const el = document.createElement("div"); el.className = "toast"; el.textContent = T(t); document.body.appendChild(el); setTimeout(() => el.remove(), 2600); }
 
 /* ================= Statistik ================= */
 function stats(){
@@ -425,6 +447,7 @@ function renderMe(){
     (stravaSettings() ? row2(sp("strava"), "Strava", "New runs come in by themselves", stGet() ? "Connected" : "Not connected") : ""));
   h += grp2("me-look", "Look and feel", "",
     row2(sp("photos"), "Your photos", "On Today and in your stories", nPh ? `${nPh} ${nPh===1?"photo":"photos"}` : "Nova default pack") +
+    row2(sp("lang"), "Language", "English, Português, Deutsch, Italiano", LANG_NAME(NFI18N.getLang())) +
     row2(sp("theme"), "Appearance", "Light, dark or like your phone", {auto:"Automatic", light:"Light", dark:"Dark"}[set.theme] || "Automatic") +
     row2(sp("sound"), "Sound", "Rest timer bell, yoga voice", set.restSound===false ? "Off" : "On"));
   h += grp2("me-train", "Training", "",
@@ -1347,7 +1370,7 @@ function planWizard(){
   const order = [1,2,3,4,5,6,0];
   return `<div class="plw">${steps}<h1 class="plh">${g[1]}</h1>
     ${w.goal!=="fit" ? `<div class="plg2">
-      <label class="plf"><small>${w.goal==="hm" ? "Wunschzeit (optional)" : "Wunschzeit"}</small><input inputmode="numeric" data-in="plw" data-f="target" value="${esc(w.target)}" placeholder="${w.goal==="hm"?"2:05:00":"55:00"}"></label>
+      <label class="plf"><small>${w.goal==="hm" ? "Target time (optional)" : "Target time"}</small><input inputmode="numeric" data-in="plw" data-f="target" value="${esc(w.target)}" placeholder="${w.goal==="hm"?"2:05:00":"55:00"}"></label>
       <label class="plf"><small>${w.goal==="alster" ? "By when (optional)" : "Race day"}</small><input type="date" data-in="plw" data-f="date" value="${esc(w.date)}"></label></div>` : ""}
     ${w.goal!=="fit" ? `<p class="plinfo">${info}${verdict}</p>` : ""}
     <p class="plq">How often do you want to run?</p>
@@ -1863,9 +1886,9 @@ function say(text){
   try{
     if(!text || !canSpeak()) return;
     speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text), vs = speechSynthesis.getVoices();
-    u.lang = "en-GB"; u.rate = .95;
-    const v = vs.find(x => /^en[-_]GB/i.test(x.lang)) || vs.find(x => /^en/i.test(x.lang)); if(v) u.voice = v;
+    const u = new SpeechSynthesisUtterance(T(text)), vs = speechSynthesis.getVoices(), lc = LOC(), l2 = lc.slice(0,2);
+    u.lang = lc; u.rate = .95;
+    const v = vs.find(x => x.lang.replace("_","-")===lc) || vs.find(x => x.lang.slice(0,2)===l2); if(v) u.voice = v;
     duck(true); u.onend = u.onerror = () => duck(false);
     speechSynthesis.speak(u);
   }catch(e){}
@@ -2335,6 +2358,10 @@ function settingsSheet(part){
       <button class="secondary" data-act="phadd">+ Choose photos</button>
       <input type="file" id="phfile" accept="image/*" multiple hidden>
     </div>
+`],
+    lang: ["Language", () => `
+    <div><span class="lbl">Language</span>${langPicker()}
+      <p class="small muted" style="margin-top:10px">Exercise names stay in English, like in the gym.</p></div>
 `],
     theme: ["Appearance", () => `
     <div><span class="lbl">Appearance</span><div class="seg theme" style="grid-template-columns:repeat(3,1fr)" id="themeseg">
@@ -3510,7 +3537,7 @@ function libSheet(){
     ${chips(NFEx.PARTS, "part", "Body part")}${chips(NFEx.EQUIP, "eq", "Equipment")}
     <div class="liblist" id="liblist">${libListHtml()}</div>
     <button class="secondary" data-act="libnew">+ Create your own exercise</button>
-    <button class="secondary" data-act="${pick && LIB.build ? "libpickdone" : "closesheet"}">${pick && LIB.build ? "Back" : "Close"}</button>`);
+    <button class="secondary" data-act="${pick && LIB.build ? "libpickdone" : "closesheet"}">${pick && LIB.build ? "‹ Back" : "Close"}</button>`);
 }
 function openLibrary(mode){ LIB = {q:"", part:"", eq:"", mode}; libSheet(); }
 // Picks exercises for an own day during onboarding: several at once, then back to the day list
@@ -3525,7 +3552,7 @@ function libNewSheet(err, val){
       <label class="f" for="cx-part">Body part</label>${sel("part", NFEx.PARTS.map(x => [x,x]), "Body part")}
       <label class="f" for="cx-eq">Equipment</label>${sel("eq", NFEx.EQUIP.map(x => [x,x]), "Equipment")}
       <label class="f" for="cx-type">How you log it</label>${sel("type", Object.entries(NFEx.TYPES), "Log type")}
-      <div class="row2"><button type="button" class="secondary" data-act="libback">Back</button><button class="primary" type="submit">Create</button></div>
+      <div class="row2"><button type="button" class="secondary" data-act="libback">‹ Back</button><button class="primary" type="submit">Create</button></div>
     </form>`);
   const first = document.querySelector('#cx-form [aria-invalid="true"]') || (!val.name ? document.getElementById("cx-name") : null);
   if(first) setTimeout(() => { try{ first.focus({preventScroll:true}); }catch(e){} }, 50);
@@ -3799,23 +3826,23 @@ function drawShare(sp){
   const D = '"Playfair Display",Georgia,serif', B = '"Open Sans",system-ui,-apple-system,sans-serif';
   x.fillStyle = "#fff"; x.globalAlpha = .8;
   x.font = `600 34px ${B}`; x.font = `800 34px ${B}`; x.fillText("NOVA", 80, 120); const nw = x.measureText("NOVA").width; x.font = `italic 700 38px ${D}`; x.fillText("Fit", 84 + nw, 120); x.font = `600 34px ${B}`;
-  x.font = `400 40px ${B}`; x.fillText(sp.eyebrow, 80, 178); x.globalAlpha = 1;
+  x.font = `400 40px ${B}`; x.fillText(T(sp.eyebrow), 80, 178); x.globalAlpha = 1;
   x.font = `700 124px ${D}`; let y = 345;
-  wrapText(x, sp.title, 920).slice(0,3).forEach(l => { x.fillText(l, 76, y); y += 132; });
+  wrapText(x, T(sp.title), 920).slice(0,3).forEach(l => { x.fillText(l, 76, y); y += 132; });
   x.fillStyle = "#ED1B34"; x.fillRect(80, y - 92, 96, 16); x.fillStyle = "#fff";
-  x.font = `500 48px ${B}`; x.fillText(sp.sub, 80, y - 4); y += 86;
+  x.font = `500 48px ${B}`; x.fillText(T(sp.sub), 80, y - 4); y += 86;
   const n = Math.max(1, sp.stats.length), gap = 24, bw = (920 - gap*(n-1))/n, bh = 190;
   sp.stats.forEach((st, i) => {
     const bx = 80 + i*(bw+gap);
     x.fillStyle = "rgba(255,255,255,.16)"; rrect(x, bx, y, bw, bh, 0); x.fill();
-    x.fillStyle = "#fff"; x.globalAlpha = .75; x.font = `600 30px ${B}`; x.fillText(st[0].toUpperCase(), bx+28, y+56); x.globalAlpha = 1;
+    x.fillStyle = "#fff"; x.globalAlpha = .75; x.font = `600 30px ${B}`; x.fillText(T(st[0]).toUpperCase(), bx+28, y+56); x.globalAlpha = 1;
     let fs = 80; x.font = `800 ${fs}px ${B}`; while(x.measureText(st[1]).width > bw-56 && fs>36){ fs -= 4; x.font = `800 ${fs}px ${B}`; }
-    x.fillText(st[1], bx+28, y+152);
+    x.fillText(T(st[1]), bx+28, y+152);
   });
   y += bh + 90;
-  if(sp.kcal){ x.font = `600 52px ${B}`; x.fillText(`🔥 about ${fmt(sp.kcal,0)} kcal burned`, 80, y); y += 86; }
-  (sp.items||[]).forEach(t => { if(y > H0-190) return; let fs = 44; x.font = `500 ${fs}px ${B}`; while(x.measureText(t).width > 920 && fs>34){ fs -= 2; x.font = `500 ${fs}px ${B}`; } wrapText(x, t, 920).slice(0,2).forEach(l => { x.fillText(l, 80, y); y += 58; }); y += 16; });
-  x.globalAlpha = .85; x.font = `500 38px ${B}`; x.fillText(sp.foot, 80, H0-90); x.globalAlpha = 1;
+  if(sp.kcal){ x.font = `600 52px ${B}`; x.fillText(T(`🔥 about ${fmt(sp.kcal,0)} kcal burned`), 80, y); y += 86; }
+  (sp.items||[]).map(T).forEach(t => { if(y > H0-190) return; let fs = 44; x.font = `500 ${fs}px ${B}`; while(x.measureText(t).width > 920 && fs>34){ fs -= 2; x.font = `500 ${fs}px ${B}`; } wrapText(x, t, 920).slice(0,2).forEach(l => { x.fillText(l, 80, y); y += 58; }); y += 16; });
+  x.globalAlpha = .85; x.font = `500 38px ${B}`; x.fillText(T(sp.foot), 80, H0-90); x.globalAlpha = 1;
   return c;
 }
 function prepShare(sp){
@@ -4448,7 +4475,7 @@ function renderOnboard(){
   let h = "";
   switch(OB.step){
     case "welcome":
-      h = `<section class="ob-hero">${NF_MINI}<h1>Train like<br>you study.</h1></section>
+      h = `<section class="ob-hero"><button type="button" class="langpill" data-act="langsheet" aria-label="Language: ${LANG_NAME(NFI18N.getLang())}" data-i18n-skip>${NFI18N.getLang().toUpperCase()} ▾</button>${NF_MINI}<h1>Train like<br>you study.</h1></section>
         <p class="lead">Strength, running and yoga in one plan. Built around your goals and your week at Nova.</p>
         ${standalone && !S.settings.profile ? `<p class="obok">✓ NOVAFit is on your Home Screen. Now create your account.</p>` : ""}
         <div class="foot"><button class="primary" ${iosSafari() ? 'data-act="installfirst"' : 'data-act="ob" data-do="go" data-to="signup"'}>Create account</button>
@@ -4969,6 +4996,8 @@ document.addEventListener("click", async ev => {
     case "hidepush": S.settings.hidePush = true; save(); renderHome(); break;
     case "hideinstall": S.settings.hideInstall = true; save(); renderHome(); break;
     case "themetoggle": S.settings.theme = isDark() ? "light" : "dark"; applyTheme(); save(); renderHome(); break;
+    case "langsheet": langSheet(); break;
+    case "setlang": S.settings.lang = b.dataset.v; save(); location.reload(); break;   // a fresh start draws everything in the new language
     case "theme": S.settings.theme = b.dataset.v; applyTheme(); save();
       document.querySelectorAll("#themeseg button").forEach(x => x.setAttribute("aria-pressed", x.dataset.v===S.settings.theme)); break;
     case "yogaflow": closeSheet(); startSession("yoga"); break;
@@ -5268,6 +5297,7 @@ document.addEventListener("visibilitychange", () => { if(document.visibilityStat
 })();
 if(!S.badges) checkBadges(true);
 applyTheme();
+initLang();
 render();
 initCloud();
 initPush();

@@ -1026,6 +1026,8 @@ section[id]{scroll-margin-top:calc(var(--nf-hmin) + 14px)}
 .ob-top .pf-mark{width:120px;height:auto;color:var(--ink)}
 .ob-top .txtbtn{background:none;border:0;padding:8px 0;color:var(--muted);font-weight:600;cursor:pointer}
 .ob-hero{margin:0 calc(-1 * (env(safe-area-inset-right) + 20px)) 0 calc(-1 * (env(safe-area-inset-left) + 20px));padding:calc(env(safe-area-inset-top) + 24px) 24px 28px;background:#000;color:#fff;position:relative;overflow:hidden;min-height:46vh;display:flex;flex-direction:column;justify-content:space-between;gap:24px}
+.langpill{position:absolute;right:20px;top:calc(env(safe-area-inset-top) + 20px);z-index:2;background:none;border:1.5px solid rgba(255,255,255,.85);color:#fff;padding:7px 12px;font:700 13px var(--sans,Inter,sans-serif);letter-spacing:.06em;cursor:pointer}
+.langlist{display:grid;gap:8px;margin-top:6px}.langlist button{display:flex;justify-content:space-between;align-items:center;text-align:left;text-transform:none;letter-spacing:0}.langlist small{display:block;font-weight:400;opacity:.7}
 .ob-hero::after{content:"";position:absolute;right:-80px;top:-70px;width:240px;height:240px;border:30px solid rgba(255,255,255,.1);border-radius:50%}
 .ob-hero .pf-mark{width:150px;height:auto;color:#fff;position:relative;z-index:1}
 .ob-hero h1{color:#fff;font:700 42px/1.04 var(--display);text-transform:none;letter-spacing:0;margin:0;position:relative;z-index:1}
@@ -1333,7 +1335,7 @@ button.cday{cursor:pointer;border-color:transparent;color:#fff}
 .tg-full .tg-eb{color:#fff}
 .tg-full h2{margin:10px 0 12px;font:700 38px/1.08 var(--display)}
 .tg-full>p{margin:0 0 8px;font-size:15px;opacity:.95}
-.tg-full ul{margin:8px 0 14px;padding:0;list-style:none;font-size:14px}.tg-full li{padding:7px 0;border-top:1px solid rgba(255,255,255,.25)}.tg-full li b{display:inline-block;width:80px}
+.tg-full ul{margin:8px 0 14px;padding:0;list-style:none;font-size:14px}.tg-full li{padding:7px 0;border-top:1px solid rgba(255,255,255,.25)}.tg-full li{display:flex;gap:12px}.tg-full li b{flex:0 0 auto;min-width:80px}
 .tg-ex{display:flex;gap:10px;align-items:center;margin:0 0 16px;font-size:13px;opacity:.95}.tg-ex input{width:20px;height:20px;accent-color:#ED1B34}
 .tg-big{display:block;width:100%;border:0;background:#fff;color:#000;font:700 15px var(--body);padding:15px;margin-bottom:10px;cursor:pointer;min-height:48px}
 .tg-ghost{display:block;width:100%;border:0;background:none;color:#fff;font:600 14px var(--body);text-decoration:underline;padding:10px;cursor:pointer;min-height:44px}
@@ -1374,6 +1376,8 @@ button.meav{border:0;padding:0;background:none;cursor:pointer}
 <script src="yoga.js"></script>
 <script src="progress.js"></script>
 <script src="tour.js"></script>
+<script src="i18n.js"></script>
+<script src="i18n-data.js"></script>
 <script src="app.js"></script>
 <script src="guide.js"></script>
 </body>

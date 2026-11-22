@@ -94,7 +94,7 @@ function guideSteps(kinds){
     {ch:"Progress", t:"Every session", b:"Tap Open calendar & history.", el:() => $q("#sec-cal .pmore"), tap:true},
     {pause:"Calendar & history"},
     {ch:"Progress", t:"Calendar & history", b:"Each day in the colour of its sport. Tap a day for details, or switch to the list for your whole history.", el:() => $q(".cgrid"), noscroll:true},
-    {ch:"Progress", t:"Back", b:"Tap ‹ Progress.", el:() => $q(".pghead .spback"), tap:true, noscroll:true},
+    {ch:"Progress", t:"‹ Back", b:"Tap ‹ Progress.", el:() => $q(".pghead .spback"), tap:true, noscroll:true},
     {ch:"Progress", t:"Badges", b:"Tap All badges.", el:() => $q("[data-act=badgesopen]"), tap:true},
     {pause:"Badges"},
     {ch:"Progress", t:"Collect them all", b:"From your first session to 100 km. The red ones are special to Nova, and two stay secret until you get them.", el:() => $q(".bgroup.g-special") || $q(".bgroup"), last:"Finish tour"}
