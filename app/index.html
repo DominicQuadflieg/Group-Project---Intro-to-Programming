@@ -1136,6 +1136,16 @@ section[id]{scroll-margin-top:calc(var(--nf-hmin) + 14px)}
 .cxf label.f{display:block;font:700 11px var(--num,var(--body));letter-spacing:.1em;text-transform:uppercase;margin:8px 0 6px}
 .cxf .err{color:var(--hl,#ED1B34);font-size:13px;min-height:16px;margin:4px 0 0}
 .sheet .err{color:var(--hl,#ED1B34);font-size:13px;margin:4px 0 0}
+/* checks on typed-in numbers outside sheets (run, yoga, profile) and in the edit sheet */
+.runwrap .err,.card .err,#app .err{color:var(--hl,#ED1B34);font-size:13px;margin:4px 0 0}
+.runwrap .err:empty,.edform .err:empty{display:none}
+[aria-invalid="true"]{border-color:var(--hl,#ED1B34)!important}
+.edform{display:flex;flex-direction:column;gap:6px;margin:4px 0 12px}
+.edform .exn{margin:10px 0 0}
+.edrow{display:grid;grid-template-columns:24px 1fr 1fr;gap:8px;align-items:center}
+.edrow .sn{font:700 15px var(--display);color:var(--muted);text-align:center}
+.toast.undo{display:flex;align-items:center;gap:14px;padding:8px 8px 8px 16px}
+.toast.undo button{background:transparent;color:var(--bg);border:1px solid currentColor;border-radius:calc(var(--rs) * 999px);padding:6px 12px;font:600 13px var(--body);min-height:32px;cursor:pointer}
 .cxf .inp[aria-invalid="true"]{border-color:var(--hl,#ED1B34)}
 .cxf .row2{margin-top:10px}
 .ob .splits{display:grid;gap:10px}

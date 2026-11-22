@@ -48,6 +48,7 @@ test("backup: markup in a changed file is shown as text, never run", async () =>
   await signedIn(page);
   await page.evaluate(() => settingsSheet());
   await page.setInputFiles("#importf", fixture("changed-backup.json"));
+  await page.click("[data-act=backupok]");   // with a profile on the phone, the app asks first
   await page.waitForFunction(() => S.history.length === 1);
   for (const tab of ["today", "train", "progress"]) {
     await page.evaluate(t => { TAB = t; screen = "home"; render(); }, tab);

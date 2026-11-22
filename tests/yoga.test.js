@@ -225,3 +225,13 @@ test("flexibility: progress since the start and toes reached", () => {
   assert.equal(tr.toes, true);
   assert.equal(Y.flexTrend([{ t: t0, v: 7 }, { t: t0, v: 2 }]).n, 1, "invalid entries are ignored");
 });
+
+test("typed-in yoga minutes: empty or 1 to 300", () => {
+  assert.equal(Y.checkMinutes(""), "");
+  assert.equal(Y.checkMinutes("45"), "");
+  assert.equal(Y.checkMinutes("12,5"), "");
+  assert.ok(Y.checkMinutes("0"));
+  assert.ok(Y.checkMinutes("600"));
+  assert.ok(Y.checkMinutes("-20"));
+  assert.ok(Y.checkMinutes("abc"));
+});

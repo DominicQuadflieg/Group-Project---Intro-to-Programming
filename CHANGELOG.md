@@ -2,6 +2,22 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Usability check: no impossible numbers, and Undo
+
+A walk through the whole app with nonsense inputs (−3 km, 100 km in 30 minutes, 80 % incline, 600 min of yoga, 3 kg body weight, a 1-second 10 km target) and every action that deletes or replaces something.
+
+- **Runs and treadmill**: distance and time typed in by hand are checked before saving, with a message under the fields: more than 0 and up to 300 km, 3 minutes to 24 hours, seconds up to 59, a pace between world record and walking (2:30 to 30:00 /km), incline 0 to 30 %. Until now such typos were saved, became records and unlocked badges
+- **Yoga**: 1 to 300 minutes. **Body weight**: 30 to 250 kg, **height** 120 to 230 cm, with a message instead of saving any text (old invalid weights are cleared)
+- **Running goals and plan**: the loop target and the plan's target time must be a pace someone can run, kilometres per month 1 to 1000. This also found a bug: a one-hour target was shown as “1:0000–” and read as 1 minute
+- **Edit a saved session** (history › Edit): fix reps, weights, distance, time or yoga minutes, with the same checks. Empty reps remove a set
+- **Undo** after deleting a session, saving an edit, loading a backup, removing a progress photo or the profile photo, and deleting an own exercise
+- **Badges** that only the deleted or edited session had earned are taken back (and come back with Undo)
+- **Backups** ask first, say how many sessions are new and warn when the backup belongs to another account. Name, email and password on the phone are never replaced
+- **Own exercises** can be edited (name, body part, equipment; the log type only while it was never logged) and deleted. Past workouts keep the name; an exercise still in an own workout or the running session can't be deleted
+- **Skip this exercise** (optional exercises) asks first when sets are already ticked off, like *Remove from today*
+- Removed the *Send a test notification* button
+- Checks are pure functions with unit tests (`run.js`: `checkIncline`, `checkTarget`, `checkKmMonth`, `validateRun`; `yoga.js`: `checkMinutes`); 8 new browser tests in `e2e/usability.e2e.js`; all new texts in four languages
+
 ## Unreleased – Set numbers are checked
 
 - Reps and weights in a gym session are checked while you type: reps a whole number from 1 to 200, weight 0 to 500 kg (assistance 0 to 200 kg), timed exercises 1 to 3600 seconds or 0.5 to 300 minutes. Until now −5 reps, letters or 99 999 kg were saved and spoiled records and totals
