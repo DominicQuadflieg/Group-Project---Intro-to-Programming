@@ -43,3 +43,35 @@ test("a refused question explains where to allow notifications", async () => {
   assert.match(await text(page, ".toast"), /blocked/);
   assert.deepEqual(await page.done(), []);
 });
+
+test("with notifications on, a test notification is shown straight from the device", async () => {
+  const page = await app.open();
+  await signedIn(page);
+  await fakePush(page, "granted");
+  await page.evaluate(async () => {
+    await enablePush();
+    navigator.serviceWorker.getRegistration = async () => ({ showNotification: async (t, o) => { window.__log.push("shown:" + t + ":" + o.tag); } });
+    document.querySelectorAll(".toast").forEach(t => t.remove());
+    screen = "me"; render();
+  });
+  await page.click("[data-act=setp][data-p=push]");
+  await page.click("[data-act=pushtest]");
+  await page.waitForSelector(".toast");
+  assert.match(await text(page, ".toast"), /Test sent/);
+  assert.ok((await page.evaluate(() => window.__log)).includes("shown:NOVAFit:nf-test"));
+  assert.deepEqual(await page.done(), []);
+});
+
+test("Check notifications shows the state and the last problem", async () => {
+  const page = await app.open();
+  await signedIn(page);
+  await page.evaluate(() => { OS = null; push = "unsupported"; PUSH_ERR = "OneSignal start: Can only be used on: https://old.example"; screen = "me"; render(); });
+  await page.click("[data-act=setp][data-p=push]");
+  await page.click(".pushdiag summary");
+  const t = await text(page, ".pushdiag");
+  assert.match(t, /Permission/);
+  assert.match(t, /Last problem/);
+  assert.match(t, /Can only be used on: https:\/\/old\.example/);
+  assert.match(t, /No OneSignal subscription/);
+  assert.deepEqual(await page.done(), []);
+});

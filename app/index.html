@@ -369,6 +369,10 @@ textarea{width:100%;min-height:64px;border:1px solid var(--line);border-radius:c
 .mv button{width:34px;height:34px;border-radius:calc(var(--rs) * 10px);border:1px solid var(--line);background:var(--bg);color:var(--muted);font-size:16px;cursor:pointer}
 /* Sheet */
 .scrim{position:fixed;inset:0;z-index:20;background:rgba(10,8,12,.45);display:flex;align-items:flex-end;justify-content:center}
+.pdiag{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:4px;font-size:13px}
+.pdiag li{display:flex;justify-content:space-between;gap:10px}
+.pdiag li span{color:var(--muted)}
+.pdiag code,.pid{font-size:12px;word-break:break-all;text-align:right}
 .sheetx{position:sticky;top:-6px;align-self:flex-end;margin:-6px -4px -50px 0;z-index:3;width:40px;height:40px;flex:none;display:grid;place-items:center;border:1.5px solid var(--ink);background:var(--surface);color:var(--ink);border-radius:50%;cursor:pointer}
 .sheetx:focus-visible{outline:3px solid var(--run);outline-offset:2px}
 .sheet{background:var(--surface);width:100%;max-width:560px;max-height:88vh;overflow:auto;border-radius:20px 20px 0 0;padding:18px 16px calc(env(safe-area-inset-bottom) + 18px);display:flex;flex-direction:column;gap:12px}

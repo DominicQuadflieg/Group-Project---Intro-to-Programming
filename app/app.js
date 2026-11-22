@@ -5106,6 +5106,8 @@ document.addEventListener("click", async ev => {
     case "tmskip": if(TM){ TM.end = Date.now(); if(TM.paused){ TM.paused = false; } tickTimer(); } break;
     case "tmstop": finishTimer(false); break;
     case "pushon": enablePush(); break;
+    case "pushtest": pushTest(); break;
+    case "pushcopy": { const id = b.dataset.id; try{ await navigator.clipboard.writeText(id); toast("Device ID copied."); }catch(e){ toast("Copy didn't work. Select the ID and copy it by hand."); } break; }
     case "hidepush": S.settings.hidePush = true; save(); renderHome(); break;
     case "hideinstall": S.settings.hideInstall = true; save(); renderHome(); break;
     case "themetoggle": S.settings.theme = isDark() ? "light" : "dark"; applyTheme(); save(); renderHome(); break;
@@ -5338,6 +5340,8 @@ const inClaude = !!window.claude;
 const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform==="MacIntel" && navigator.maxTouchPoints>1);
 const standalone = (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone===true;
 let OS = null, push = inClaude ? "claude" : "loading";   // claude | loading | install | unsupported | off | on | denied
+// Last reason why notifications failed (shown under Settings › Notifications › Check notifications)
+let PUSH_ERR = "";
 function pushState(){
   if(inClaude) return "claude";
   if(isIOS && !standalone) return "install";
@@ -5351,14 +5355,57 @@ function pushState(){
 function refreshPush(){ push = pushState(); document.querySelectorAll("[data-push]").forEach(el => el.innerHTML = pushHtml()); if(screen==="home" && !isTyping() && !$("#layer").innerHTML) renderHome(); }
 function pushHtml(){
   switch(push){
-    case "on": return `<p class="small" style="margin:0;color:var(--good)">✓ Notifications are on.</p>`;
-    case "off": return `<button class="primary" data-act="pushon">Allow notifications</button>`;
-    case "denied": return `<p class="small muted" style="margin:0">Notifications are blocked. You can allow them in your iPhone settings under Notifications → NOVAFit.</p>`;
-    case "install": return `<p class="small muted" style="margin:0">First add the app to your home screen (Share → Add to Home Screen) and open it from there. Then you can allow notifications.</p>`;
-    case "unsupported": return `<p class="small muted" style="margin:0">This device or browser doesn't support notifications.</p>`;
+    case "on": return `<p class="small" style="margin:0;color:var(--good)">✓ Notifications are on.</p>
+      <button class="secondary" data-act="pushtest" style="margin-top:10px">Send a test notification</button>${pushDiagHtml()}`;
+    case "off": return `<button class="primary" data-act="pushon">Allow notifications</button>${pushDiagHtml()}`;
+    case "denied": return `<p class="small muted" style="margin:0">Notifications are blocked. You can allow them in your iPhone settings under Notifications → NOVAFit.</p>${pushDiagHtml()}`;
+    case "install": return `<p class="small muted" style="margin:0">First add the app to your home screen (Share → Add to Home Screen) and open it from there. Then you can allow notifications.</p>${pushDiagHtml()}`;
+    case "unsupported": return `<p class="small muted" style="margin:0">This device or browser doesn't support notifications.</p>${pushDiagHtml()}`;
     case "claude": return `<p class="small muted" style="margin:0">Push notifications are available in the installed app.</p>`;
     default: return `<p class="small muted" style="margin:0">Loading…</p>`;
   }
+}
+/* "Check notifications": what the app knows about this device, so a problem can be found quickly.
+   Labels are translated, the values (ids, states, error texts) stay as they are. */
+function pushInfo(){
+  const ua = navigator.userAgent, ios = (ua.match(/OS (\d+)_(\d+)/) || []);
+  let perm = "none", sub = "", opted = "";
+  try{ if("Notification" in window) perm = Notification.permission; }catch(e){}
+  try{ if(OS){ sub = OS.User.PushSubscription.id || ""; opted = String(OS.User.PushSubscription.optedIn); } }catch(e){}
+  return {
+    device: isIOS ? (standalone ? "iPhone app from the home screen" : "iPhone browser (not the installed app)") + (ios[1] ? ` · iOS ${ios[1]}.${ios[2]}` : "") : (standalone ? "installed app" : "browser"),
+    perm, onesignal: OS ? "loaded" : push==="loading" ? "loading" : "not loaded", sub, opted,
+    sw: navigator.serviceWorker && navigator.serviceWorker.controller ? "active" : "not active",
+    site: location.host, err: PUSH_ERR
+  };
+}
+function pushDiagHtml(){
+  if(inClaude) return "";
+  const i = pushInfo(), row = (l, v) => `<li><span>${l}</span> <code>${esc(v || "–")}</code></li>`;
+  return `<details class="runnote pushdiag"><summary>Check notifications</summary><ul class="pdiag">
+    ${row("Device", i.device)}${row("Permission", i.perm)}${row("OneSignal", i.onesignal)}${row("Service worker", i.sw)}
+    ${row("Subscribed", i.opted)}${row("Address", i.site)}${i.err ? row("Last problem", i.err) : ""}</ul>
+    ${i.sub ? `<p class="small" style="margin:6px 0 0">Device ID for OneSignal:</p><p style="margin:2px 0 0"><code class="pid">${esc(i.sub)}</code></p>
+      <button class="secondary" data-act="pushcopy" data-id="${esc(i.sub)}" style="margin-top:6px">Copy device ID</button>
+      <p class="small muted" style="margin:6px 0 0">To test sending: OneSignal → Audience → Subscriptions, search this ID and send a test message.</p>` : `<p class="small muted" style="margin:6px 0 0">No OneSignal subscription on this device yet.</p>`}
+  </details>`;
+}
+/* Shows a notification straight from this device, without OneSignal. If it appears, the phone or laptop is fine. */
+async function pushTest(){
+  try{
+    if(!("Notification" in window)) throw new Error("this browser has no notifications");
+    if(Notification.permission!=="granted") throw new Error("permission is " + Notification.permission);
+    const opts = {body:T("Test notification: notifications work on this device."), icon:"icon-192.png", badge:"icon-192.png", tag:"nf-test"};
+    const reg = navigator.serviceWorker && await navigator.serviceWorker.getRegistration();
+    if(reg && reg.showNotification) await reg.showNotification("NOVAFit", opts);
+    else new Notification("NOVAFit", opts);
+    PUSH_ERR = "";
+    toast("Test sent. It should appear in a moment.");
+  }catch(e){
+    PUSH_ERR = "Test: " + (e && e.message || String(e));
+    toast("The test couldn't be shown. Open “Check notifications” to see why.");
+  }
+  refreshPush();
 }
 function syncTags(){
   if(!OS || push!=="on") return;
@@ -5380,27 +5427,29 @@ function initPush(){
       OS = OneSignal;
       OneSignal.Notifications.addEventListener("permissionChange", () => { refreshPush(); syncTags(); });
       OneSignal.User.PushSubscription.addEventListener("change", () => { refreshPush(); syncTags(); });
-    }catch(e){ OS = null; push = "unsupported"; }
+    }catch(e){ OS = null; push = "unsupported"; PUSH_ERR = "OneSignal start: " + (e && e.message || String(e)); }
     refreshPush(); syncTags();
   });
   const sc = document.createElement("script"); sc.src = "https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js"; sc.defer = true;
-  sc.onerror = () => { push = "unsupported"; refreshPush(); };
+  sc.onerror = () => { push = "unsupported"; PUSH_ERR = "OneSignal couldn't be loaded (blocked by a content blocker or no connection)"; refreshPush(); };
   document.head.appendChild(sc);
 }
 async function enablePush(){
-  if(!OS){ toast("Notifications are still loading. Try again in a moment."); return; }
+  if(!OS){ PUSH_ERR = PUSH_ERR || "OneSignal not loaded yet"; toast("Notifications are still loading. Try again in a moment."); return; }
   // On an iPhone the question "Allow notifications?" only appears if it is asked right in the tap,
   // before anything else waits. OneSignal's own request waits for its setup first, so iOS ignored the tap.
   let ask = null;
-  try{ if("Notification" in window && Notification.permission==="default") ask = Notification.requestPermission(); }catch(e){}
+  try{ if("Notification" in window && Notification.permission==="default") ask = Notification.requestPermission(); }catch(e){ PUSH_ERR = "Permission question: " + (e && e.message || String(e)); }
   try{
     if(ask) await ask; else await OS.Notifications.requestPermission();
-    if(("Notification" in window ? Notification.permission==="granted" : OS.Notifications.permission)) await OS.User.PushSubscription.optIn();
-  }catch(e){}
+    const granted = "Notification" in window ? Notification.permission==="granted" : OS.Notifications.permission;
+    if(granted){ await OS.User.PushSubscription.optIn(); PUSH_ERR = ""; }
+    else if("Notification" in window && Notification.permission==="default") PUSH_ERR = "The permission question didn't appear or was closed";
+  }catch(e){ PUSH_ERR = "Subscribing: " + (e && e.message || String(e)); }
   refreshPush(); syncTags();
   if(push==="on") toast("Notifications are on.");
   else if(push==="denied") toast("Notifications are blocked. Allow them in your phone's settings under Notifications → NOVAFit.");
-  else toast("Notifications couldn't be turned on. Close NOVAFit completely, open it again and try once more.");
+  else toast("Notifications couldn't be turned on. Open “Check notifications” below to see why.");
 }
 
 /* Direktlinks aus Push-Nachrichten: #woche öffnet den Wochenrückblick, #yoga startet Yoga, #studybreak die Lernpause */
