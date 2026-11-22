@@ -2,6 +2,10 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Today takes turns, backups, README
+
+The big card on Today now takes turns every 5 seconds between the day's message, the week or month review and a reminder to back up (after 5 sessions, then every 2 weeks). Backups open the phone's share sheet, Settings shows the last backup, and the browser is asked to keep NOVAFit's data. New README with objectives, features, how to run and test, team and AI use; setup, architecture and security notes in docs/.
+
 ## Unreleased – Guided tour
 
 After sign-up a guided tour walks through Today, Train (Gym, Run, Yoga) and Progress on the real screens: you tap the highlighted buttons, pauses show each new screen, the library can be browsed and a yoga session tried. Optional example data, removed again at the end. Restart it any time under Menu › Guided tour.

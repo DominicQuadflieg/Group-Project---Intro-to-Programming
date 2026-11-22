@@ -17,7 +17,8 @@ function guideSteps(kinds){
   const has = k => kinds.includes(k);
   const L = [
     // Today
-    {ch:"Today", t:"Your next session", b:"Every day starts here. Your plan knows what's next, and one tap starts it with everything filled in.", el:() => $q(".hero"), block:"start"},
+    {ch:"Today", t:"Your day at a glance", b:"Your next session from your plan, your recap every Sunday, and a reminder to back up so your progress is always safe.", el:() => $q("#app .heroset") || $q("#app section.hero"), block:"start",
+      before:() => { if(typeof HERO_FIRST==="function") HERO_FIRST(); }},
     {ch:"Today", t:"Your week ahead", b:"The coming days of your plan, plus a heads-up when exams are close: 5-minute study breaks are ready then.", el:() => $q(".nextsec")},
     {ch:"Today", t:"News from campus", b:"The latest from Nova SBE, right where you train.", el:() => $q("#newsec")},
     {ch:"Today", t:"Your settings", b:"Tap the menu to see what you can set up.", el:() => $q("[data-act=menu]"), tap:true, noscroll:true},

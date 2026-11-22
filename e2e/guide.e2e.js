@@ -38,7 +38,7 @@ test("the tour starts after sign-up, walks every page and leaves no trace", asyn
   await page.evaluate(() => { OB.mode = "new"; finishOnboarding(); });
   await page.waitForSelector("#guide [data-tg=go]");
   const seen = await walk(page);
-  for (const t of ["Your next session", "Lift a bit more", "New record!", "Just upload a screenshot", "Guided, pose by pose", "Your week as a story", "Collect them all"])
+  for (const t of ["Your day at a glance", "Lift a bit more", "New record!", "Just upload a screenshot", "Guided, pose by pose", "Your week as a story", "Collect them all"])
     assert.ok(seen.includes(t), `missing step: ${t}`);
   const after = await page.evaluate(() => ({ n: S.history.length, active: !!S.active, seen: S.settings.guideSeen, snap: localStorage.getItem("nf-guide-snap"), tab: TAB }));
   assert.deepEqual(after, { n: 0, active: false, seen: true, snap: null, tab: "today" });
