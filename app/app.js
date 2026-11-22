@@ -66,7 +66,7 @@ const customList = () => (S && S.settings && Array.isArray(S.settings.custom)) ?
 function registerOwn(){
   const m = (S && S.settings && S.settings.ownW) || {};
   Object.keys(m).forEach(k => {
-    const d = m[k] || {}, ex = (d.ex||[]).map(id => EXN[id] ? Object.assign(exFromLib(EXN[id]), {opt:false}) : null).filter(Boolean);
+    const d = m[k] || {}, ex = (d.ex||[]).map(id => EXN[id] ? Object.assign(exFromLib(EXN[id]), {opt:false}, d.sets && d.sets[id] ? {s:d.sets[id]} : {}) : null).filter(Boolean);
     W[k] = {name:d.name || "Own workout", kind:"gym", group:"free", own:true, intro:"Your own workout. You can still swap, add or remove exercises.", ex,
       desc:ex.slice(0, 4).map(e => e.n.replace(/ \(.*\)$/, "")).join(" · ") || "Your own workout"};
     if(!ALL_W.includes(k)) ALL_W.splice(ALL_W.indexOf("lauf"), 0, k);
@@ -99,7 +99,8 @@ function normalize(s){
   st.custom = NFEx.safeCustom(st.custom);
   if(st.avatar!=null && !(typeof st.avatar==="string" && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(st.avatar) && st.avatar.length < 150000)) delete st.avatar;   // profile photo: only a small image, nothing else
   if(st.pcards && typeof st.pcards==="object") ["s","r","y"].forEach(k => { const l = st.pcards[k]; st.pcards[k] = Array.isArray(l) ? l.filter(x => typeof x==="string" && /^[a-z]{1,12}$/.test(x)).slice(0, 5) : undefined; }); else delete st.pcards;
-  if(st.ownW && typeof st.ownW==="object") Object.keys(st.ownW).forEach(k => { const w = st.ownW[k]; if(!w || typeof w!=="object" || !/^[A-Za-z0-9_-]{1,40}$/.test(k)) delete st.ownW[k]; else w.name = NFEx.safeText(w.name, 40, "Own workout"); });
+  if(st.ownW && typeof st.ownW==="object") Object.keys(st.ownW).forEach(k => { const w = st.ownW[k]; if(!w || typeof w!=="object" || !/^[A-Za-z0-9_-]{1,40}$/.test(k)) delete st.ownW[k]; else { w.name = NFEx.safeText(w.name, 40, "Own workout");
+    if(w.sets && typeof w.sets==="object"){ const c = {}; Object.keys(w.sets).forEach(id => { const n = Math.floor(+w.sets[id]); if(/^[A-Za-z0-9_-]{1,40}$/.test(id) && n>=1 && n<=NFPlan.OWN_MAX_SETS) c[id] = n; }); w.sets = c; } else delete w.sets; } });
   if(st.loopName != null) st.loopName = NFEx.safeText(st.loopName, 24);
   if(st.lang != null && !NFI18N.LANGS.some(l => l.id===st.lang)) delete st.lang;   // language: only one we have
   return {v:2, active:s.active||null, history:Array.isArray(s.history)?s.history:[], settings:st, badges:(s.badges && typeof s.badges==="object") ? s.badges : null};
@@ -758,11 +759,20 @@ function renderSport(){
 const PLUS_ICO = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
 /* ---- Build your own gym workout: name, exercises, optional plan day ---- */
 let BUILD = null;
-function buildNew(){ BUILD = {key:null, name:"", ex:[], day:"", err:{}}; buildSheet(); }
+function buildNew(){ BUILD = {key:null, name:"", ex:[], sets:{}, day:"", err:{}}; buildSheet(); }
 function buildEdit(k){
   const d = S.settings.ownW && S.settings.ownW[k]; if(!d) return;
   const p = S.settings.plan, s = p && Array.isArray(p.sessions) ? p.sessions.find(x => x.kind==="s" && x.workout===k) : null;
-  BUILD = {key:k, name:d.name || "", ex:(d.ex||[]).filter(id => EXN[id]), day:s ? String(s.day) : "", err:{}}; buildSheet();
+  const ex = (d.ex||[]).filter(id => EXN[id]), sets = {};
+  ex.forEach(id => sets[id] = (d.sets && d.sets[id]) || EXN[id].s || 3);   // older templates: the sets they used so far
+  BUILD = {key:k, name:d.name || "", ex, sets, day:s ? String(s.day) : "", err:{}}; buildSheet();
+}
+// One exercise in the template builder: name, sets stepper (starts at 0), remove
+function bRow(id){
+  const n = BUILD.sets[id] || 0, miss = n < 1 && BUILD.err && BUILD.err.noSets && BUILD.err.noSets.includes(id), nm = esc(EXN[id].n);
+  return `<div class="terow brow${miss ? " miss" : ""}" id="br-${esc(id)}"><span><b>${nm}</b><small>${esc([EXN[id].part, EXN[id].eq].filter(Boolean).join(" · "))}</small>
+    <span class="bstep"><button type="button" data-act="bset" data-ex="${esc(id)}" data-d="-1" aria-label="One set less for ${nm}"${n<1?" disabled":""}>−</button><b id="bn-${esc(id)}">${n} ${n===1?"set":"sets"}</b><button type="button" data-act="bset" data-ex="${esc(id)}" data-d="1" aria-label="One set more for ${nm}"${n>=NFPlan.OWN_MAX_SETS?" disabled":""}>+</button></span></span>
+    <button class="tetog" data-act="brm" data-ex="${esc(id)}" aria-label="Remove ${nm}">Remove</button></div>`;
 }
 function buildCapture(){ if(!BUILD) return; const n = $("#b-name"), d = $("#b-day"); if(n) BUILD.name = n.value; if(d) BUILD.day = d.value; }
 function buildSheet(){
@@ -773,7 +783,7 @@ function buildSheet(){
     <label class="lbl" for="b-name">Name</label><input class="inp" id="b-name" maxlength="${NFPlan.OWN_NAME_MAX}" autocomplete="off" placeholder="e.g. My Push Day" value="${esc(b.name)}"${e.name ? ` aria-invalid="true" aria-describedby="b-name-err"` : ""}>
     ${e.name ? `<p class="err" id="b-name-err" role="alert">${esc(e.name)}</p>` : ""}
     <p class="eyebrow tehd">Exercises · ${b.ex.length}</p>
-    ${b.ex.length ? `<div class="telist">${b.ex.map(id => `<div class="terow"><span><b>${esc(EXN[id].n)}</b><small>${esc([EXN[id].part, EXN[id].eq].filter(Boolean).join(" · "))}</small></span><button class="tetog" data-act="brm" data-ex="${esc(id)}" aria-label="Remove ${esc(EXN[id].n)}">Remove</button></div>`).join("")}</div>` : ""}
+    ${b.ex.length ? `<p class="small muted" style="margin:0 0 8px">Set how many sets you want for each exercise with + and −.</p><div class="telist">${b.ex.map(id => bRow(id)).join("")}</div>${e.sets ? `<p class="err" role="alert">${esc(e.sets)}</p>` : ""}` : ""}
     <button class="tecreate" data-act="bpick"${e.ex ? ` aria-describedby="b-ex-err"` : ""}>${PLUS_ICO}<span><b>${b.ex.length ? "Add or change exercises" : "Add exercises"}</b><small>From the library, or create your own exercise</small></span></button>
     ${e.ex ? `<p class="err" id="b-ex-err" role="alert">${esc(e.ex)}</p>` : ""}
     ${days.length ? `<label class="lbl" for="b-day" style="margin-top:18px">In your plan</label><select class="inp" id="b-day"><option value="">${b.key && days.some(x => x.workout===b.key) ? "Leave my plan as it is" : "No, just on Train"}</option>${days.map(x => `<option value="${x.day}"${String(x.day)===String(b.day)?" selected":""}>${DN[x.day]} · instead of ${esc(x.title || (W[x.workout]||{}).name || "")}</option>`).join("")}</select>` : ""}
@@ -782,12 +792,12 @@ function buildSheet(){
 }
 function buildSave(){
   buildCapture();
-  const v = NFPlan.validateBuild({name:BUILD.name, ex:BUILD.ex}, id => !!EXN[id]);
-  if(!v.ok){ BUILD.err = v.errors; buildSheet(); const f = $(v.errors.name ? "#b-name" : "[data-act=bpick]"); if(f) f.focus(); return; }
+  const v = NFPlan.validateBuild({name:BUILD.name, ex:BUILD.ex, sets:BUILD.sets}, id => !!EXN[id]);
+  if(!v.ok){ BUILD.err = v.errors; buildSheet(); const f = $(v.errors.name ? "#b-name" : v.errors.noSets ? `#br-${v.errors.noSets[0]} [data-d="1"]` : "[data-act=bpick]"); if(f){ f.focus(); f.scrollIntoView({block:"center"}); } return; }
   S.settings.ownW = S.settings.ownW || {};
   let key = BUILD.key;
   if(!key){ let i = 1; while(W["my"+i] || S.settings.ownW["my"+i]) i++; key = "my"+i; }
-  S.settings.ownW[key] = {name:v.name, ex:v.ex};
+  S.settings.ownW[key] = {name:v.name, ex:v.ex, sets:v.sets};
   registerOwn();
   const p = S.settings.plan, day = BUILD.day==="" ? null : Number(BUILD.day);
   if(p && Array.isArray(p.sessions)){
@@ -1146,6 +1156,7 @@ function exMenu(d){
     <div class="exmenu" style="display:flex;flex-direction:column;gap:8px">
     ${it("guide", "How to do it", exa, "pictures and tips")}
     ${it("addset", "Add a set", exa)}
+    ${S.active && (S.active.sets[d.ex]||[]).length > 1 ? it("rmlastset", "Remove a set", exa, "takes away the last one") : ""}
     ${!d.added && altsOf(d.base).length ? it("swap", "Swap exercise", base, "e.g. machine instead") : ""}
     ${d.first ? "" : it("move", "Move up", `${base} data-d="-1"`)}
     ${d.last ? "" : it("move", "Move down", `${base} data-d="1"`)}
@@ -4899,6 +4910,7 @@ document.addEventListener("click", async ev => {
       if(allDone(id) && !(a.unfold||{})[id]) setTimeout(() => { if(screen==="session" && S.active===a && allDone(id)) renderSession(); }, 700);
       break;
     }
+    case "rmlastset": { const arr = S.active && S.active.sets[b.dataset.ex]; if(arr && arr.length > 1){ arr.pop(); rest = null; save(); renderSession(); } break; }
     case "rmset": { const arr = S.active.sets[b.dataset.ex]; if(arr && +b.dataset.i < arr.length){ arr.splice(+b.dataset.i, 1); rest = null; save(); renderSession(); } break; }
     case "addset": { const ex = EXN[b.dataset.ex], arr = (S.active.sets[ex.id] = S.active.sets[ex.id]||[]); arr.push(prefill(ex.id, arr.length, arr[arr.length-1])); save(); renderSession(); break; }
     case "openopt": { const base = exIn(S.active.type, b.dataset.ex), x = eff(base); S.active.open[base.id] = true; if(!S.active.sets[x.id]) S.active.sets[x.id] = prefilledSets(x); save(); renderSession(); break; }
@@ -5080,6 +5092,13 @@ document.addEventListener("click", async ev => {
     case "trainedit": BUILD = null; trainEditSheet(); break;
     case "bnew": buildNew(); break;
     case "bedit": buildEdit(b.dataset.t); break;
+    case "bset": {   // change sets in place, so the sheet doesn't jump to the top
+      const id = b.dataset.ex, n = Math.min(NFPlan.OWN_MAX_SETS, Math.max(0, (BUILD.sets[id]||0) + (+b.dataset.d)));
+      BUILD.sets[id] = n;
+      if(n > 0 && BUILD.err && BUILD.err.noSets){ BUILD.err.noSets = BUILD.err.noSets.filter(x => x!==id); if(!BUILD.err.noSets.length){ delete BUILD.err.noSets; delete BUILD.err.sets; const er = $(".sheet .telist + .err"); if(er) er.remove(); } }
+      const row = document.getElementById("br-"+id); if(row){ const f = b.dataset.d; row.outerHTML = bRow(id); const nb = document.querySelector(`#br-${id} [data-d="${f}"]`); if(nb && !nb.disabled) nb.focus(); }
+      break;
+    }
     case "brm": buildCapture(); BUILD.ex = BUILD.ex.filter(id => id!==b.dataset.ex); buildSheet(); break;
     case "bpick": buildCapture(); BUILD.err = {}; LIB = {q:"", part:"", eq:"", mode:"pick", build:true, sel:BUILD.ex.slice()}; libSheet(); break;
     case "bsave": buildSave(); break;
@@ -5107,7 +5126,7 @@ document.addEventListener("click", async ev => {
       break;
     }
     case "libpickdone": {
-      if(LIB.build && BUILD){ BUILD.ex = (LIB.sel||[]).slice(); buildSheet(); break; }
+      if(LIB.build && BUILD){ BUILD.ex = (LIB.sel||[]).slice(); BUILD.ex.forEach(id => { if(BUILD.sets[id]==null) BUILD.sets[id] = 0; }); buildSheet(); break; }
       const day = OB.a && OB.a.own && OB.a.own.days[LIB.day];
       if(day) day.ex = (LIB.sel||[]).slice();
       closeSheet(); if(screen==="onboard") renderOnboard(); break;

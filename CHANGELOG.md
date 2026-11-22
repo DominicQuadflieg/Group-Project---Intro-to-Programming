@@ -2,6 +2,11 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Sets in your own templates
+
+- In Save a new template every exercise starts at 0 sets; set 1 to 10 sets per exercise with + and −. The template keeps them.
+- During a workout, ⋯ › Remove a set takes away a set, also one of the planned ones.
+
 ## Unreleased – Sign out
 
 - New **Sign out** in Settings › Account. NOVAFit has no server account, so signing out removes the account and all training from this phone: it offers a backup first (to sign in again on any phone with “I already have an account”), asks for the password and then removes the training data, photos, Strava login, weather and news caches and turns off push reminders. Other sites' data stays
