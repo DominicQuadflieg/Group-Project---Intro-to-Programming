@@ -9,7 +9,7 @@ NOVAFit is a Progressive Web App in plain HTML, CSS and JavaScript, with no fram
 - **`guide.js`** is the guided tour on top of the real screens.
 - **Languages:** the code is written in English. `i18n.js` translates what is drawn on the page (a `MutationObserver` on the body), using the table in `i18n-data.js` (one row per text: English, Portuguese, German, Italian). Numbers become `{0}`, `{1}`; exercise names, workout names and the user's name become `{a}`, `{b}` and stay as they are; months and weekdays become `{a}`, `{b}` and are translated. A text without a row stays English. Voice cues, toasts and story images go through `T()` directly.
 - **Storage:** everything lives in the browser's `localStorage` under `po-plan-app-v2`: profile, settings, plan, history and badges. Own photos are in IndexedDB. Data from storage or a backup is cleaned in `normalize()` before it is used.
-- **Offline:** the service worker `OneSignalSDKWorker.js` caches the app files (bump `CACHE` when they change) and receives push reminders.
+- **Offline:** the service worker `OneSignalSDKWorker.js` caches the app files (bump `CACHE` when they change). It keeps its old name so installed apps keep it.
 - **Server side:** two Netlify Functions do what the phone can't do safely: Strava (keeps the client secret) and the news feed. Each one checks the caller and the request size and limits requests per IP (`netlify/lib/guard.mjs`).
 
 ## Files
@@ -27,7 +27,7 @@ NOVAFit is a Progressive Web App in plain HTML, CSS and JavaScript, with no fram
 | `app/tour.js` | Example data for the guided tour |
 | `app/guide.js` | The guided tour |
 | `app/i18n.js`, `app/i18n-data.js` | Languages: the translation layer and the table of texts |
-| `app/OneSignalSDKWorker.js` | Service worker: offline use and push reminders |
+| `app/OneSignalSDKWorker.js` | Service worker: offline use |
 | `app/manifest.webmanifest`, icons | Name, colours and icon for the home screen |
 | `app/img/ex/` | Exercise drawings (CC BY-SA 4.0, see `SOURCES.md`) |
 | `app/img/pack/` | Nova photo pack for Today, Train and the reviews |

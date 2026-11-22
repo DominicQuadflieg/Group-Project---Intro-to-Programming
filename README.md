@@ -60,7 +60,7 @@ Group project for *Introduction to Programming* at Nova SBE, 2026/27.
 - Weekly, monthly and yearly reviews as stories with your own photos, shareable as an image
 - Calendar and full history, 27 badges including special Nova badges
 
-**Make it yours:** own photos, dark mode, app lock, training days in your phone calendar, and push notifications (allowed with one tap, also in the installed iPhone app; messages come in the phone's language).
+**Make it yours:** own photos, dark mode, app lock, training days in your phone calendar.
 
 **Four languages:** English, Portuguese, German and Italian. The app starts in the language of the phone; switch with *EN ▾* on the welcome screen or under *Menu › Look and feel › Language*. Exercise names stay in English, like in the gym. Screenshots from running apps are read in English, German, Portuguese, Spanish, French and Italian.
 
@@ -82,7 +82,7 @@ Then open http://localhost:8000 and create an account. Everything works locally 
 
 **On your own phone without Git:** drag the `app` folder onto https://app.netlify.com/drop, open the address it gives you on the phone and add it to the home screen (details in `app/INSTALL.txt`).
 
-**Full setup with Netlify, Strava and push reminders:** see [docs/setup.md](docs/setup.md).
+**Full setup with Netlify and Strava:** see [docs/setup.md](docs/setup.md).
 
 ### Try it with demo data (optional)
 
@@ -129,7 +129,6 @@ NOVAFit keeps your training on the phone, but a few features ask outside service
 | [Open-Meteo](https://open-meteo.com) (weather API) | Running weather on the running screens | `wxUrl` in `app/run.js` | none | Position rounded to about 1 km, or Nova SBE |
 | [BigDataCloud](https://www.bigdatacloud.com) (reverse geocoding) | The town name next to the weather (“Near Carcavelos”) | `wxPlaceLoad` in `app/app.js` | none | The same rounded position |
 | [Nova SBE news page](https://www.novasbe.unl.pt/en/whats-happening/news) | The newest headlines on *Today* | `netlify/functions/news.mjs`, `netlify/lib/news.mjs` | none | Nothing about you: the function reads the public page, Netlify keeps the result for 3 hours |
-| [OneSignal](https://onesignal.com) (web push) | Training reminders and the weekly review as push messages | `app/app.js` (`ONESIGNAL_APP_ID`), `app/OneSignalSDKWorker.js` | public app ID | Only after you allow notifications: a push subscription, the app language, the time of your last session and the name of the next one |
 | [Strava API](https://developers.strava.com) | Bring in runs from Strava directly (built and tested, **not switched on**: the API needs a Strava subscription, see [docs/setup.md](docs/setup.md#strava-connection)) | `netlify/functions/strava.mjs` | `STRAVA_CLIENT_ID`, `STRAVA_CLIENT_SECRET` in Netlify | Read access to your activities, only if you connect |
 | [Tesseract.js](https://github.com/naptha/tesseract.js) 5.1.1 via [jsDelivr](https://www.jsdelivr.com) | Reading a run from a screenshot | `ocrWorker` in `app/app.js` | none | Nothing: the program is downloaded once (checked with Subresource Integrity) and the screenshot is read on the phone |
 | [Google Fonts](https://fonts.google.com) | The fonts Playfair Display and Open Sans | `app/index.html` | none | A normal font download |
@@ -147,7 +146,7 @@ Every change went through its own branch and pull request into `main`, with a sh
 
 - **Julius Veith:** the first version of the app and the Nova redesign (v1.0, v2.0), the English app with sign-up, questionnaire and personal plans, goals and body data, the exercise library with 124 drawings, strength splits and mobility add-ons
 - **Tassilo Mylius:** running: screenshots, GPX/FIT/TCX files, the Strava connection, importing a training history from Garmin and Strava, runs near you; yoga goals and the flexibility check; security headers and protected functions; the browser tests
-- **Dominic Quadflieg:** the Nova design system, header, photo pack and icon; calories; build-your-own plans; the workout page; weather; yoga sessions with voice and the tension check; the Today · Train · Progress layout, Nova news, sport pages, reviews by sport, Progress cards, badges and the guided tour; the rotating Today messages and backups; the compact menu and profile photo; installing first on an iPhone; edge cases (full storage, empty Progress, dark mode, screenshots in more languages); the four languages; push notifications; sets in own templates, the workout overview and Profile and body
+- **Dominic Quadflieg:** the Nova design system, header, photo pack and icon; calories; build-your-own plans; the workout page; weather; yoga sessions with voice and the tension check; the Today · Train · Progress layout, Nova news, sport pages, reviews by sport, Progress cards, badges and the guided tour; the rotating Today messages and backups; the compact menu and profile photo; installing first on an iPhone; edge cases (full storage, empty Progress, dark mode, screenshots in more languages); the four languages; sets in own templates, the workout overview and Profile and body
 
 **Use of AI.** We used AI coding assistants throughout, mainly Claude (Anthropic) through Claude Code, as encouraged in the course. We decided what to build, described features and designs, reviewed the results on real phones, asked for changes and merged each pull request ourselves. Commits written by the assistant are marked with the author “Claude” or a `Co-Authored-By: Claude` line, so the history shows which code was generated. The tests were part of every change, so generated code had to pass the same checks as our own.
 
@@ -164,9 +163,9 @@ Every change went through its own branch and pull request into `main`, with a sh
 | v2.11–v2.14 | 19 Nov | Runs near you, yoga goals, security, browser tests ([#32](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/32)–[#36](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/36)) |
 | | 21 Nov | Nova news, new Train with sport pages, reviews by sport, Progress per sport, badges, guided tour ([#37](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/37)–[#52](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/52)) |
 | | 22 Nov | README and docs, rotating Today messages, backups, compact menu, iPhone install, edge cases ([#53](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/53)–[#57](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/57)) |
-| | 22 Nov | Four languages, push notifications in the app language, sign out, library and running fixes ([#58](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/58)–[#65](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/65)) |
+| | 22 Nov | Four languages, sign out, library and running fixes ([#58](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/58)–[#65](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/65)) |
 | | 22 Nov | Polar Flow import, external services in the README, Runs near you and running plan in the new design, sets in own templates, workout overview, Profile and body ([#66](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/66)–[#70](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/70)) |
-| v2.15 | 22 Nov | Push notifications on iPhone, checks on every typed-in number, editing saved sessions and Undo, backups that keep your account, demo data, translation gaps closed ([#71](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/71)–[#86](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/86)) |
+| v2.15 | 22 Nov | Checks on every typed-in number, editing saved sessions and Undo, backups that keep your account, demo data, translation gaps closed ([#71](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/71)–[#86](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/86)) |
 
 Every change in detail: [CHANGELOG.md](CHANGELOG.md).
 
@@ -174,6 +173,6 @@ Every change in detail: [CHANGELOG.md](CHANGELOG.md).
 
 - Exercise drawings in `app/img/ex/` from [Everkinetic](https://github.com/everkinetic/data) and [Workout Guide](https://github.com/bryllim/workout-guide) by Bryl Lim, licensed [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) (list in `app/img/ex/SOURCES.md`).
 - Photos in `app/img/pack/` © Nova SBE, used only for this course project.
-- Text recognition for run screenshots: [Tesseract.js](https://github.com/naptha/tesseract.js) 5.1.1. Push reminders: OneSignal.
+- Text recognition for run screenshots: [Tesseract.js](https://github.com/naptha/tesseract.js) 5.1.1.
 - Weather data by [Open-Meteo.com](https://open-meteo.com), licensed [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
 - Town names: [BigDataCloud](https://www.bigdatacloud.com) reverse geocoding.

@@ -2,6 +2,10 @@
 
 Alle Versionen der App, die neueste oben. Alle Abschnitte mit *v2.15* gehören zur Version 2.15.0 (21.–22. Nov 2026).
 
+## Unreleased – Push notifications removed
+
+NOVAFit no longer offers push notifications: the setting, the card on Today, OneSignal and its tests are gone. Calendar reminders stay. The service worker keeps its file name and only does the offline cache.
+
 ## Unreleased – Push messages are shown
 
 The Content-Security-Policy now applies to the page only, not to the service worker that shows push messages.

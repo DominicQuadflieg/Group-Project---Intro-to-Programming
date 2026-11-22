@@ -23,7 +23,7 @@ function guideSteps(kinds){
     {ch:"Today", t:"News from campus", b:"The latest from Nova SBE, right where you train.", el:() => $q("#newsec")},
     {ch:"Today", t:"Your settings", b:"Tap the menu to see what you can set up.", el:() => $q("[data-act=menu]"), tap:true, noscroll:true},
     {pause:"Menu"},
-    {ch:"Today", t:"Your plan and reminders", b:"Your profile, your plan with how many sessions a week, and your running goal. Below: notifications and the weather for your runs.", el:() => $q("#me-plan"), block:"start", spanTo:"#me-remind"},
+    {ch:"Today", t:"Your plan and reminders", b:"Your profile, your plan with how many sessions a week, and your running goal. Below: your calendar and the weather for your runs.", el:() => $q("#me-plan"), block:"start", spanTo:"#me-remind"},
     {ch:"Today", t:"Make it yours", b:"Your own photos, dark mode, your history and badges, and a backup of everything. Every line says what it is for; this tour lives here too.", el:() => $q("#me-look"), block:"start", spanTo:"#me-data"},
     {ch:"Train", t:"On to training", b:"Tap Train.", el:() => $q(".tabbar [data-t=train]"), tap:true, noscroll:true},
     {pause:"Train"},

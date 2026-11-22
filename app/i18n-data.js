@@ -1027,6 +1027,7 @@ NFI18N.load([
 ["Name, email, password", "Nome, email, palavra-passe", "Name, E-Mail, Passwort", "Nome, email, password"],
 ["name@novasbe.pt", "nome@novasbe.pt", "name@novasbe.pt", "nome@novasbe.pt"],
 ["Near", "Perto de", "In der Nähe von", "Vicino a"],
+["Nearby routes", "Percursos por perto", "Strecken in der Nähe", "Percorsi vicini"],
 ["Neck stretch left", "Alongamento do pescoço esquerda", "Nackendehnung links", "Allungamento del collo sinistra"],
 ["Neck stretch right", "Alongamento do pescoço direita", "Nackendehnung rechts", "Allungamento del collo destra"],
 ["Neck, shoulders, breathing. Right at your desk.", "Pescoço, ombros, respiração. Mesmo à tua secretária.", "Nacken, Schultern, Atmung. Direkt am Schreibtisch.", "Collo, spalle, respirazione. Direttamente alla scrivania."],
@@ -1350,6 +1351,7 @@ NFI18N.load([
 ["Rope at eye height, pull toward your face, elbows high, rotate your hands out.", "Corda à altura dos olhos, puxa para a cara, cotovelos altos, roda as mãos para fora.", "Seil auf Augenhöhe, zum Gesicht ziehen, Ellbogen hoch, Hände nach außen drehen.", "Corda all'altezza degli occhi, tira verso il viso, gomiti alti, ruota le mani in fuori."],
 ["Rotate and press", "Roda e empurra", "Drehen und drücken", "Ruota e spingi"],
 ["Round your upper back slightly, move from your hips, squeeze your glutes. Added weight optional.", "Arredonda ligeiramente a parte de cima das costas, move-te a partir das ancas, aperta os glúteos. Peso extra opcional.", "Oberen Rücken leicht runden, aus der Hüfte bewegen, Po anspannen. Zusatzgewicht optional.", "Arrotonda leggermente la parte alta della schiena, muoviti dai fianchi, stringi i glutei. Peso extra facoltativo."],
+["Routes close by, with the way there", "Percursos por perto, com o caminho até lá", "Strecken in der Nähe, mit dem Weg dorthin", "Percorsi vicini, con la strada per arrivarci"],
 ["Routes near you", "Percursos perto de ti", "Strecken in deiner Nähe", "Percorsi vicino a te"],
 ["Run", "Corrida", "Laufen", "Corsa"],
 ["Run on Train", "Corrida em Treino", "Laufen unter Training", "Corsa in Allenamento"],
@@ -1752,6 +1754,7 @@ NFI18N.load([
 ["Time: {0} to {1} minutes", "Tempo: {0} a {1} minutos", "Zeit: {0} bis {1} Minuten", "Tempo: da {0} a {1} minuti"],
 ["Time: {0} to {1} seconds", "Tempo: {0} a {1} segundos", "Zeit: {0} bis {1} Sekunden", "Tempo: da {0} a {1} secondi"],
 ["Tip: install NOVAFit on your home screen and turn on reminders, so it can nudge you on training days.", "Dica: instala o NOVAFit no ecrã inicial e ativa os lembretes, para te avisar nos dias de treino.", "Tipp: Leg NOVAFit auf deinen Home-Bildschirm und schalte Erinnerungen ein, damit es dich an Trainingstagen anstupst.", "Consiglio: installa NOVAFit nella schermata Home e attiva i promemoria, così ti avvisa nei giorni di allenamento."],
+["Tip: install NOVAFit on your home screen, so it opens full screen and works offline.", "Dica: instala o NOVAFit no ecrã principal, assim abre em ecrã inteiro e funciona offline.", "Tipp: Leg NOVAFit auf deinen Home-Bildschirm, dann öffnet es im Vollbild und funktioniert offline.", "Suggerimento: aggiungi NOVAFit alla schermata Home, così si apre a schermo intero e funziona offline."],
 ["To test sending: OneSignal → Audience → Subscriptions, search this ID and send a test message.", "Para testar o envio: OneSignal → Audience → Subscriptions, procura este ID e envia uma mensagem de teste.", "Zum Testen des Versands: OneSignal → Audience → Subscriptions, diese ID suchen und eine Testnachricht senden.", "Per provare l'invio: OneSignal → Audience → Subscriptions, cerca questo ID e invia un messaggio di prova."],
 ["Today", "Hoje", "Heute", "Oggi"],
 ["today (+{0} kg).", "hoje (+{0} kg).", "heute (+{0} kg).", "oggi (+{0} kg)."],
@@ -1974,6 +1977,7 @@ NFI18N.load([
 ["Your plan, weekly goal and running goal. Below: a nudge on your training days and the weather for your runs.", "O teu plano, meta semanal e meta de corrida. Em baixo: um lembrete nos teus dias de treino e o tempo para as tuas corridas.", "Dein Plan, Wochenziel und Laufziel. Darunter: ein Stupser an deinen Trainingstagen und das Wetter für deine Läufe.", "Il tuo piano, l'obiettivo settimanale e di corsa. Sotto: un promemoria nei giorni di allenamento e il meteo per le tue corse."],
 ["Your plan:", "O teu plano:", "Dein Plan:", "Il tuo piano:"],
 ["Your profile, your plan with how many sessions a week, and your running goal. Below: notifications and the weather for your runs.", "O teu perfil, o teu plano com quantos treinos por semana e a tua meta de corrida. Em baixo: notificações e o tempo para as tuas corridas.", "Dein Profil, dein Plan mit den Einheiten pro Woche und dein Laufziel. Darunter: Mitteilungen und das Wetter für deine Läufe.", "Il tuo profilo, il tuo piano con quanti allenamenti a settimana e il tuo obiettivo di corsa. Sotto: notifiche e meteo per le tue corse."],
+["Your profile, your plan with how many sessions a week, and your running goal. Below: your calendar and the weather for your runs.", "O teu perfil, o teu plano com quantos treinos por semana e o teu objetivo de corrida. Em baixo: o teu calendário e o tempo para as tuas corridas.", "Dein Profil, dein Plan mit Einheiten pro Woche und dein Laufziel. Darunter: dein Kalender und das Wetter für deine Läufe.", "Il tuo profilo, il tuo piano con quanti allenamenti a settimana e il tuo obiettivo di corsa. Sotto: il tuo calendario e il meteo per le tue corse."],
 ["Your running goal", "A tua meta de corrida", "Dein Laufziel", "Il tuo obiettivo di corsa"],
 ["Your running numbers start here", "Os teus números de corrida começam aqui", "Deine Lauf-Zahlen beginnen hier", "I tuoi numeri della corsa iniziano qui"],
 ["Your running pace", "O teu ritmo de corrida", "Deine Laufpace", "Il tuo passo di corsa"],
@@ -2178,7 +2182,5 @@ NFI18N.load([
 ["📍 Show the weather where I am", "📍 Mostrar o tempo onde estou", "📍 Wetter für meinen Standort zeigen", "📍 Mostra il meteo dove sono"],
 ["📤 Share", "📤 Partilhar", "📤 Teilen", "📤 Condividi"],
 ["🗑 Delete session", "🗑 Apagar treino", "🗑 Einheit löschen", "🗑 Elimina allenamento"],
-["🧘‍♀️ Start yoga", "🧘‍♀️ Começar yoga", "🧘‍♀️ Yoga starten", "🧘‍♀️ Inizia yoga"],
-["Routes close by, with the way there", "Percursos por perto, com o caminho até lá", "Strecken in der Nähe, mit dem Weg dorthin", "Percorsi vicini, con la strada per arrivarci"],
-["Nearby routes", "Percursos por perto", "Strecken in der Nähe", "Percorsi vicini"]
+["🧘‍♀️ Start yoga", "🧘‍♀️ Começar yoga", "🧘‍♀️ Yoga starten", "🧘‍♀️ Inizia yoga"]
 ]);
