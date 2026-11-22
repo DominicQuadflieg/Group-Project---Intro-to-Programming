@@ -3,7 +3,7 @@
 **One training app for gym, running and yoga, made for Nova SBE students.**
 Group project for *Introduction to Programming* at Nova SBE, 2026/27.
 
-**Live app:** _link follows (Netlify)_ · open it on a phone and choose “Add to Home Screen”.
+**Live app:** https://inquisitive-pegasus-dbcd63.netlify.app · open it on a phone and choose “Add to Home Screen”.
 
 | Today | Train | Workout | Progress |
 |---|---|---|---|
