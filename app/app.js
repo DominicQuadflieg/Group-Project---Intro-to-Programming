@@ -1146,23 +1146,33 @@ function exCard(ex, base, pos){
     ${ex.cue && timesDone(ex.id) < 3 ? `<p class="cue">${ex.cue}</p>` : ""}${ll}${hint}
     <div class="colhead"><span>Set</span><span>${COLS[ex.type||"w"][0]}</span><span>${COLS[ex.type||"w"][1]}</span><span></span></div>
     <div class="sets">${setRows(ex)}</div>
+    <button class="addsetin" data-act="addset" data-ex="${ex.id}">+ Add set</button>
   </article>`;
 }
 // ⋯ per exercise: everything that used to sit under each card
 function exMenu(d){
   const ex = EXN[d.ex] || {n:"Exercise"}, it = (act, label, attrs, sub) => `<button class="secondary" data-act="exm" data-go="${act}" ${attrs}>${label}${sub ? `<span class="muted small">${sub}</span>` : ""}</button>`;
-  const base = `data-base="${d.base}"`, exa = `data-ex="${d.ex}"`;
-  sheet(`<div class="exh2" style="margin-bottom:6px">${cardPic(ex)}<span class="nm"><b>${esc(ex.n)}</b><small>${esc(ex.part || "")}${ex.eq ? " · " + esc(ex.eq) : ""}</small></span></div>
+  const base = `data-base="${d.base}"`, exa = `data-ex="${d.ex}"`, a = S.active;
+  EXM = d;
+  // Today at a glance: every exercise with its sets, in order; ↑ ↓ change the order (main and optional ones each among themselves)
+  const plan = a ? planEx(a.type).filter(e => !(a.hidden||[]).includes(e.id)) : [], added = a ? (a.added||[]).map(addedEx).filter(Boolean) : [];
+  const grp = e => plan.filter(x => !!x.opt === !!e.opt);
+  const row = (e, isAdded) => {
+    const x = eff(e), arr = (a.sets||{})[x.id] || [], done = arr.filter(isDone).length, g = isAdded ? null : grp(e), gi = g ? g.indexOf(e) : -1, cur = e.id===d.base || x.id===d.ex;
+    const mv = (dir, dis, lbl) => `<button class="ovmv" data-act="ovmove" data-base="${e.id}" data-d="${dir}" aria-label="${lbl} ${esc(x.n)}"${dis?" disabled":""}>${dir<0?"↑":"↓"}</button>`;
+    return `<li class="ovrow${cur?" cur":""}${e.opt?" opt":""}">${cardPic(x)}<span class="ovn"><b>${esc(x.n)}</b><small>${done ? `${done} of ${arr.length} sets done` : `${arr.length} ${arr.length===1?"set":"sets"}`}${e.opt ? " · optional" : ""}${isAdded ? " · added" : ""}</small></span>
+      ${isAdded ? "" : `<span class="ovmvs">${mv(-1, gi<=0, "Move up")}${mv(1, gi>=g.length-1, "Move down")}</span>`}</li>`;
+  };
+  sheet(`<p class="eyebrow" style="margin:0">Today</p><h3 style="margin:2px 0 10px">${esc((W[a && a.type]||{}).name || "Your workout")}</h3>
+    <ol class="ovlist">${plan.map(e => row(e, false)).join("")}${added.map(e => row(e, true)).join("")}</ol>
+    <p class="eyebrow tehd" style="margin-top:16px">${esc(ex.n)}</p>
     <div class="exmenu" style="display:flex;flex-direction:column;gap:8px">
     ${it("guide", "How to do it", exa, "pictures and tips")}
-    ${it("addset", "Add a set", exa)}
-    ${S.active && (S.active.sets[d.ex]||[]).length > 1 ? it("rmlastset", "Remove a set", exa, "takes away the last one") : ""}
     ${!d.added && altsOf(d.base).length ? it("swap", "Swap exercise", base, "e.g. machine instead") : ""}
-    ${d.first ? "" : it("move", "Move up", `${base} data-d="-1"`)}
-    ${d.last ? "" : it("move", "Move down", `${base} data-d="1"`)}
     ${d.opt ? it("closeopt", "Skip this exercise", `data-ex="${d.base}"`) : it("rmex", "Remove from today", `${base} data-added="${d.added||""}"`).replace('class="secondary"', 'class="secondary rm"')}
     </div><button class="secondary" data-act="closesheet">Close</button>`);
 }
+let EXM = null;
 
 function treadBlock(){
   const a = S.active;
@@ -4910,7 +4920,6 @@ document.addEventListener("click", async ev => {
       if(allDone(id) && !(a.unfold||{})[id]) setTimeout(() => { if(screen==="session" && S.active===a && allDone(id)) renderSession(); }, 700);
       break;
     }
-    case "rmlastset": { const arr = S.active && S.active.sets[b.dataset.ex]; if(arr && arr.length > 1){ arr.pop(); rest = null; save(); renderSession(); } break; }
     case "rmset": { const arr = S.active.sets[b.dataset.ex]; if(arr && +b.dataset.i < arr.length){ arr.splice(+b.dataset.i, 1); rest = null; save(); renderSession(); } break; }
     case "addset": { const ex = EXN[b.dataset.ex], arr = (S.active.sets[ex.id] = S.active.sets[ex.id]||[]); arr.push(prefill(ex.id, arr.length, arr[arr.length-1])); save(); renderSession(); break; }
     case "openopt": { const base = exIn(S.active.type, b.dataset.ex), x = eff(base); S.active.open[base.id] = true; if(!S.active.sets[x.id]) S.active.sets[x.id] = prefilledSets(x); save(); renderSession(); break; }
@@ -5025,6 +5034,8 @@ document.addEventListener("click", async ev => {
     case "totop": window.scrollTo({top:0, behavior:smoothOk() ? "smooth" : "auto"}); break;
     case "swap": swapSheet(b.dataset.base); break;
     case "move": moveEx(b.dataset.base, +b.dataset.d); break;
+    case "ovmove": { const sc = ($(".sheet")||{}).scrollTop || 0; moveEx(b.dataset.base, +b.dataset.d); if(EXM) exMenu(EXM); const sh = $(".sheet"); if(sh) sh.scrollTop = sc;
+      const nb = document.querySelector(`.ovmv[data-base="${b.dataset.base}"][data-d="${b.dataset.d}"]`); if(nb && !nb.disabled) nb.focus(); break; }
     case "doswap": doSwap(b.dataset.base, b.dataset.id); break;
     case "chart": chartSheet(b.dataset.id); break;
     case "runchart": runChartSheet(b.dataset.k); break;

@@ -38,7 +38,7 @@ function guideSteps(kinds){
     {ch:"Gym", t:"Warm up first", b:"A guided 5-minute warm-up that fits today's workout, with a timer.", el:() => $q(".warmcard")},
     {ch:"Gym", t:"Lift a bit more", b:"Your sets from last time are filled in. Did them all? Then the app suggests more weight. Tap Apply.", el:() => $q("[data-act=applyup]"), tap:true},
     {ch:"Gym", t:"Not sure how it works?", b:"Tap ⋯ next to the exercise.", el:() => notWarm("[data-act=exmenu]"), tap:true},
-    {ch:"Gym", t:"How to do it", b:"Every exercise has drawings and tips. You can also add a set, swap it for one that trains the same muscles, or move it. Tap How to do it.", el:() => $q("[data-go=guide]"), tap:true, noscroll:true},
+    {ch:"Gym", t:"How to do it", b:"Here you see today's whole workout and can change the order with the arrows. Every exercise has drawings and tips, and you can swap it for one that trains the same muscles. Tap How to do it.", el:() => $q("[data-go=guide]"), tap:true},
     {ch:"Gym", t:"Pictures and tips", b:"How to move, what to watch out for, which muscles it trains.", el:() => $q(".sheet"), noscroll:true, maxh:300},
     {ch:"Gym", t:"Done a set?", b:"Tick it off.", el:() => notWarm("[data-act=tick]"), tap:true, before:() => { closeSheet(); window.scrollTo(0,0); }},
     {ch:"Gym", t:"Rest timer", b:"It starts by itself and rings when it's time for the next set.", el:() => $q("#rest"), noscroll:true},
@@ -193,6 +193,7 @@ function guideShow(tries){
     return guideNext();
   }
   if(!st.noscroll && !el.closest(".sheet") && el.id!=="app") el.scrollIntoView({block:st.block || "center"});
+  else if(el.closest(".sheet")){ const sh = el.closest(".sheet"), er = el.getBoundingClientRect(), sr = sh.getBoundingClientRect(); if(er.bottom > sr.bottom - 8 || er.top < sr.top) sh.scrollTop += er.top - sr.top - sh.clientHeight/3; }   // a long sheet: bring the button up
   const r = el.getBoundingClientRect(), pad = 6, to = st.spanTo && $q(st.spanTo);
   let h = to ? to.getBoundingClientRect().bottom - r.top : r.height;
   h = Math.min(h, st.maxh || 1e5);
