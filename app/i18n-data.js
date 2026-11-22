@@ -1,6 +1,10 @@
 /* NOVAFit · translations: English, Portuguese (Portugal), German, Italian.
    One row per text. {0}, {1} … are numbers, {a}, {b} … names, months or weekdays (see i18n.js). Generated from the app's texts; edit by hand. */
 NFI18N.load([
+["Before the swap: {0} set of {a}, saved with this session.", "Antes da troca: {0} série de {a}, guardada com este treino.", "Vor dem Tausch: {0} Satz {a}, mit dieser Einheit gespeichert.", "Prima dello scambio: {0} serie di {a}, salvata con questo allenamento."],
+["Before the swap: {0} sets of {a}, saved with this session.", "Antes da troca: {0} séries de {a}, guardadas com este treino.", "Vor dem Tausch: {0} Sätze {a}, mit dieser Einheit gespeichert.", "Prima dello scambio: {0} serie di {a}, salvate con questo allenamento."],
+["Machine taken? Choose an alternative. Sets you already did stay saved with this session.", "Máquina ocupada? Escolhe uma alternativa. As séries que já fizeste ficam guardadas com este treino.", "Gerät besetzt? Wähl eine Alternative. Sätze, die du schon gemacht hast, bleiben in dieser Einheit gespeichert.", "Macchina occupata? Scegli un'alternativa. Le serie che hai già fatto restano salvate con questo allenamento."],
+["Machine taken? Choose an alternative.", "Máquina ocupada? Escolhe uma alternativa.", "Gerät besetzt? Wähl eine Alternative.", "Macchina occupata? Scegli un'alternativa."],
 ["Choose an option", "Escolhe uma opção", "Wähl eine Option", "Scegli un'opzione"],
 ["Enter a height between {0} and {1} cm", "Introduz uma altura entre {0} e {1} cm", "Gib eine Größe zwischen {0} und {1} cm ein", "Inserisci un'altezza tra {0} e {1} cm"],
 ["Enter a weight between {0} and {1} kg", "Introduz um peso entre {0} e {1} kg", "Gib ein Gewicht zwischen {0} und {1} kg ein", "Inserisci un peso tra {0} e {1} kg"],

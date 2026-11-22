@@ -1159,6 +1159,12 @@ function cardPic(e){
 // How often an exercise was done before: the instructions show for the first 3 times, later behind ⋯ › How to
 const timesDone = id => S.history.reduce((n, e) => n + (e.sets && e.sets[id] && e.sets[id].length ? 1 : 0), 0);
 const allDone = id => { const a = (S.active.sets||{})[id] || []; return a.length>0 && a.every(isDone); };
+// Sets done before a swap: still saved with the session, named under the new exercise
+function keptHtml(base, ex){
+  const a = S.active, ids = ((a.kept||{})[base.id]||[]).filter(id => id!==ex.id && (a.sets[id]||[]).some(isDone));
+  return ids.map(id => { const n = a.sets[id].filter(isDone).length;
+    return `<p class="keptl small muted">Before the swap: ${n} ${n===1?"set":"sets"} of ${esc((EXN[id]||{}).n||id)}, saved with this session.</p>`; }).join("");
+}
 function exCard(ex, base, pos){
   base = base || ex; pos = pos || {};
   // finished exercises fold into one line (tap to open again)
@@ -1184,7 +1190,7 @@ function exCard(ex, base, pos){
       <button class="more" ${menu} aria-haspopup="dialog" aria-label="Options for ${esc(ex.n)}">${MORE_ICO}</button></div>
     ${ex.cue && timesDone(ex.id) < 3 ? `<p class="cue">${ex.cue}</p>` : ""}${ll}${hint}
     <div class="colhead"><span>Set</span><span>${COLS[ex.type||"w"][0]}</span><span>${COLS[ex.type||"w"][1]}</span><span></span></div>
-    <div class="sets">${setRows(ex)}</div>
+    ${keptHtml(base, ex)}<div class="sets">${setRows(ex)}</div>
     <button class="addsetin" data-act="addset" data-ex="${ex.id}">+ Add set</button>
   </article>`;
 }
@@ -2570,7 +2576,7 @@ function moveEx(baseId, d){
 function swapSheet(baseId){
   const base = exIn(S.active.type, baseId), cur = eff(base).id, opts = [base, ...altsOf(baseId)];
   const has = (S.active.sets[cur]||[]).some(isDone);
-  sheet(`<h3>Swap exercise</h3><p class="muted small">Machine taken? Choose an alternative. ${has?"Sets you already checked off for this exercise will be reset.":""}</p>
+  sheet(`<h3>Swap exercise</h3><p class="muted small">Machine taken? Choose an alternative. ${has?"Sets you already did stay saved with this session.":""}</p>
     <div class="alts">${opts.map(o => `<button class="altrow ${o.id===cur?"cur":""}" data-act="doswap" data-base="${baseId}" data-id="${o.id}"><b>${esc(o.n)}</b>${o.id===baseId?`<small>Original</small>`:`<small>${esc(o.eq)} · ${NFEx.TYPES[o.type]}</small>`}${o.id===cur?`<span class="pill">current</span>`:""}</button>`).join("")}</div>
     <button class="secondary" data-act="closesheet">Cancel</button>`);
 }
@@ -2578,9 +2584,10 @@ function doSwap(baseId, id){
   const a = S.active; a.swap = a.swap || {};
   const cur = eff(exIn(a.type, baseId)).id;
   if(cur!==id){
-    delete a.sets[cur];
     if(id===baseId) delete a.swap[baseId]; else a.swap[baseId] = id;
-    a.sets[id] = prefilledSets(eff(exIn(a.type, baseId)));
+    // sets already done stay with the session (and come back when swapping back)
+    a.sets = NFEx.swapSets(a.sets, cur, id, prefilledSets(eff(exIn(a.type, baseId))));
+    if((a.sets[cur]||[]).length){ a.kept = a.kept || {}; a.kept[baseId] = [...new Set([...(a.kept[baseId]||[]), cur])]; }
   }
   save(); closeSheet(); renderSession();
 }

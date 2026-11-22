@@ -2,6 +2,12 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Swapping an exercise keeps your sets
+
+- Machine taken after two sets? Swapping the exercise used to delete the sets you had already done (a small grey note said so). They now stay with the session, are saved with it, and a line under the new exercise says so (“Before the swap: 2 sets of …”). Swapping back brings them back, followed by fresh sets
+- “Machine taken? Choose an alternative.” is translated now
+- `swapSets` in `exercises.js` with a unit test; one new browser test
+
 ## Unreleased – A backup never replaces your account
 
 - Loading a backup brings training data and settings, but name, email, password and the lock of this phone stay as they are. Until now a backup file from someone else (or a changed one) replaced them, so after loading it your own password no longer worked
