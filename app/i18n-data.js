@@ -1,6 +1,17 @@
 /* NOVAFit · translations: English, Portuguese (Portugal), German, Italian.
    One row per text. {0}, {1} … are numbers, {a}, {b} … names, months or weekdays (see i18n.js). Generated from the app's texts; edit by hand. */
 NFI18N.load([
+["Enter a valid date", "Introduz uma data válida", "Gib ein gültiges Datum ein", "Inserisci una data valida"],
+["Enter the distance as a number, e.g. {0}", "Introduz a distância como número, p. ex. {0}", "Gib die Distanz als Zahl ein, z. B. {0}", "Inserisci la distanza come numero, ad es. {0}"],
+["Enter the time like {0}:{1} or {2}:{3}:{4}", "Introduz o tempo como {0}:{1} ou {2}:{3}:{4}", "Gib die Zeit so ein: {0}:{1} oder {2}:{3}:{4}", "Inserisci il tempo così: {0}:{1} o {2}:{3}:{4}"],
+["Enter your time", "Introduz o teu tempo", "Gib deine Zeit ein", "Inserisci il tuo tempo"],
+["Minutes and seconds go up to {0}", "Minutos e segundos vão até {0}", "Minuten und Sekunden gehen bis {0}", "Minuti e secondi arrivano fino a {0}"],
+["That target is faster than the world record. Check the time.", "Esse objetivo é mais rápido do que o recorde mundial. Verifica o tempo.", "Dieses Ziel ist schneller als der Weltrekord. Prüf die Zeit.", "Questo obiettivo è più veloce del record mondiale. Controlla il tempo."],
+["That target is slower than walking. Check the time.", "Esse objetivo é mais lento do que caminhar. Verifica o tempo.", "Dieses Ziel ist langsamer als Gehen. Prüf die Zeit.", "Questo obiettivo è più lento che camminare. Controlla il tempo."],
+["That would be faster than a world record – please check distance and time", "Isso seria mais rápido do que um recorde mundial – verifica a distância e o tempo", "Das wäre schneller als ein Weltrekord – bitte Distanz und Zeit prüfen", "Sarebbe più veloce di un record mondiale – controlla distanza e tempo"],
+["The date can't be in the future", "A data não pode ser no futuro", "Das Datum darf nicht in der Zukunft liegen", "La data non può essere nel futuro"],
+["The distance must be between {0} and {1} km", "A distância tem de estar entre {0} e {1} km", "Die Distanz muss zwischen {0} und {1} km liegen", "La distanza deve essere tra {0} e {1} km"],
+["The time must be between {0} minutes and {1} hours", "O tempo tem de estar entre {0} minutos e {1} horas", "Die Zeit muss zwischen {0} Minuten und {1} Stunden liegen", "Il tempo deve essere tra {0} minuti e {1} ore"],
 ["Help: {0} to {1} kg", "Ajuda: {0} a {1} kg", "Hilfe: {0} bis {1} kg", "Aiuto: da {0} a {1} kg"],
 ["Reps: a whole number from {0} to {1}", "Repetições: um número inteiro de {0} a {1}", "Wiederholungen: eine ganze Zahl von {0} bis {1}", "Ripetizioni: un numero intero da {0} a {1}"],
 ["Time: {0} to {1} minutes", "Tempo: {0} a {1} minutos", "Zeit: {0} bis {1} Minuten", "Tempo: da {0} a {1} minuti"],
@@ -1902,6 +1913,7 @@ NFI18N.load([
 ["{0} km under {1}", "{0} km abaixo de {1}", "{0} km unter {1}", "{0} km sotto {1}"],
 ["{0} km under {1} minutes", "{0} km em menos de {1} minutos", "{0} km unter {1} Minuten", "{0} km sotto i {1} minuti"],
 ["{0} km under {1}:{2}", "{0} km abaixo de {1}:{2}", "{0} km unter {1}:{2}", "{0} km sotto {1}:{2}"],
+["{0} km under {1}:{2}:{3}", "{0} km abaixo de {1}:{2}:{3}", "{0} km unter {1}:{2}:{3}", "{0} km sotto {1}:{2}:{3}"],
 ["{0} km, half marathon or your loop, with a plan", "{0} km, meia maratona ou a tua volta, com um plano", "{0} km, Halbmarathon oder deine Runde, mit Plan", "{0} km, mezza maratona o il tuo giro, con un piano"],
 ["{0} km, with a plan up to race day", "{0} km, com um plano até ao dia da prova", "{0} km, mit einem Plan bis zum Renntag", "{0} km, con un piano fino al giorno della gara"],
 ["{0} km, with a {1}-week plan up to race day", "{0} km, com um plano de {1} semanas até ao dia da prova", "{0} km, mit einem {1}-Wochen-Plan bis zum Renntag", "{0} km, con un piano di {1} settimane fino al giorno della gara"],

@@ -220,7 +220,8 @@ function parseMin(v){
   return num(t);
 }
 function mmss(min){ if(!(min>0)) return "–"; let m = Math.floor(min), s = Math.round((min-m)*60); if(s===60){m++;s=0;} return m+":"+String(s).padStart(2,"0"); }
-function hms(min){ if(min>=60){ const h = Math.floor(min/60); return h+":"+mmss(min-h*60).padStart(5,"0"); } return mmss(min); }
+// full hours too: 60 → "1:00:00" (mmss(0) is "–", which turned a 60-minute target into "1:0000–", read as 1 minute)
+function hms(min){ if(min>=60){ let h = Math.floor(min/60), r = min-h*60, m = Math.floor(r), sec = Math.round((r-m)*60); if(sec===60){ m++; sec = 0; } if(m===60){ h++; m = 0; } return h+":"+String(m).padStart(2,"0")+":"+String(sec).padStart(2,"0"); } return mmss(min); }
 const paceOf = (km,min) => km>0 && min>0 ? min/km : 0;
 function durTxt(ms){ const m = Math.max(0, Math.round(ms/60000)); return m<60 ? m+" min" : Math.floor(m/60)+" h "+String(m%60).padStart(2,"0")+" min"; }
 /* Gym-Uhr stoppt automatisch nach 60 Minuten (falls das Beenden vergessen wird) */
@@ -1237,6 +1238,15 @@ function fmtTimeDigits(v){
   return d.slice(0,-4) + ":" + d.slice(-4,-2) + ":" + d.slice(-2);
 }
 function runDateTxt(a){ const t = a.runAt || Date.now(); return new Date(t).toLocaleDateString("en-GB", {weekday:"long", day:"numeric", month:"long"}) + (a.runAt ? ", " + new Date(t).toLocaleTimeString("en-GB", {hour:"2-digit", minute:"2-digit"}) : ""); }
+/* Errors of a run typed in by hand, right below the time and distance fields */
+function runErrShow(err){
+  [["min", err.time], ["km", err.km]].forEach(([f, m]) => {
+    const el = $(`#run-${f}-err`), inp = $(`#run-${f}`); if(el) el.textContent = m || "";
+    if(inp){ if(m) inp.setAttribute("aria-invalid", "true"); else inp.removeAttribute("aria-invalid"); }
+  });
+  const first = err.km ? $("#run-km") : err.time ? $("#run-min") : null;
+  if(first){ first.focus(); const l = first.closest(".runtime, .runkm"); if(l){ l.classList.remove("shake"); void l.offsetWidth; l.classList.add("shake"); } }
+}
 function runInfoHtml(){
   const r = S.active.run, min = parseMin(r.min), km = num(r.km), st = stats();
   const isAl = r.mode!=="band" && km>0 && Math.abs(km - alsterKm()) < 1.2, lr = isAl ? lastRun("alster") : lastRun(r.mode);
@@ -1254,8 +1264,8 @@ function runInfoHtml(){
 function runBlock(){
   wxLoad();
   const a = S.active, r = a.run, band = r.mode==="band", inf = runInfoHtml(), nx = band ? null : planNext();
-  const timeBox = `<label class="runtime" for="run-min"><small>${band ? "Time" : "Your time"}</small><input id="run-min" inputmode="numeric" autocomplete="off" data-in="run" data-f="min" value="${esc(r.min)}" placeholder="00:00" aria-label="Time"><span class="ri tnum" id="runinfo">${inf.line}</span></label>`;
-  const kmBox = `<label class="runkm" for="run-km"><small>Distance</small><span><input id="run-km" inputmode="decimal" data-in="run" data-f="km" value="${esc(r.km)}" placeholder="${band?"e.g. 3":"e.g. 7.7"}"><em>km</em></span>${band ? "" : `<button type="button" class="kmchip" data-act="kmalster">${esc(LN())} ${fmt(alsterKm())} km</button>`}</label>`;
+  const timeBox = `<label class="runtime" for="run-min"><small>${band ? "Time" : "Your time"}</small><input id="run-min" inputmode="numeric" autocomplete="off" data-in="run" data-f="min" value="${esc(r.min)}" placeholder="00:00" aria-label="Time" aria-describedby="run-min-err"><span class="ri tnum" id="runinfo">${inf.line}</span></label><p class="err runerr" id="run-min-err" role="alert"></p>`;
+  const kmBox = `<label class="runkm" for="run-km"><small>Distance</small><span><input id="run-km" inputmode="decimal" data-in="run" data-f="km" aria-describedby="run-km-err" value="${esc(r.km)}" placeholder="${band?"e.g. 3":"e.g. 7.7"}"><em>km</em></span>${band ? "" : `<button type="button" class="kmchip" data-act="kmalster">${esc(LN())} ${fmt(alsterKm())} km</button>`}</label><p class="err runerr" id="run-km-err" role="alert"></p>`;
   const note = `<details class="runnote"${r.note?" open":""}><summary>+ Add note</summary><textarea id="run-note" data-in="run" data-f="note" placeholder="e.g. easy pace, headwind, lovely sunset …">${esc(r.note)}</textarea></details>`;
   const incBox = `<label class="runkm" for="run-inc"><small>Incline · number from the display</small><span><input id="run-inc" inputmode="decimal" data-in="run" data-f="incline" value="${esc(r.incline||"")}" placeholder="0"><em>%</em></span></label>`;
   if(band) return `<div class="runwrap"><p class="runlead">Enter what the treadmill shows.</p>${kmBox}${timeBox}${incBox}<div id="runwin">${inf.win}</div>
@@ -5047,6 +5057,8 @@ document.addEventListener("click", async ev => {
       const w = PLW, tgt = parseMin(w.target), dt = w.date ? new Date(w.date + "T20:00").getTime() : 0;
       if((w.goal==="k10" || w.goal==="alster") && !(tgt>0)){ toast("Enter your target time."); break; }
       if((w.goal==="k10" || w.goal==="hm") && !(dt > Date.now() + 2*WEEK)){ toast("Choose a race day at least 3 weeks away."); break; }
+      { const km = {k10:10, alster:alsterKm(), hm:21.0975, mar:42.195}[w.goal], e = km ? NFRun.checkTarget(km, tgt) : "";
+        if(e){ toast(e); const f = $('#app [data-in="plw"][data-f="target"]'); if(f){ f.setAttribute("aria-invalid", "true"); f.focus(); } break; } }
       if(w.days.length < w.perWeek){ toast(`Choose ${w.perWeek} running days.`); break; }
       S.settings.runPlan = {goal:w.goal, target:tgt||0, date:w.goal==="fit" ? 0 : (dt || (w.goal==="alster" ? Date.now() + 8*WEEK : 0)), perWeek:w.perWeek, days:w.days.slice(), created:Date.now()};
       PLW = null; save(); render(); window.scrollTo(0,0); toast("Your running plan is ready"); break;
@@ -5088,6 +5100,9 @@ document.addEventListener("click", async ev => {
       const e = buildEntry(), pend = pendingCount(), w = W[S.active.type];
       if(w.kind==="run"){
         if(!(parseMin(S.active.run.min)>0)){ const f = $("#run-min"); if(f){ f.focus(); const l = f.closest(".runtime"); l.classList.remove("shake"); void l.offsetWidth; l.classList.add("shake"); } toast("Enter your time 🙂"); return; }
+        // the same check as for a screenshot or a watch file: no negative or impossible distance, no 10 km in 5 seconds
+        const v = NFRun.validateRun({km:S.active.run.km, time:S.active.run.min});
+        if(!v.ok){ runErrShow(v.errors); return; }
         finishSession(); return;
       }
       if(pend>0){
@@ -5385,6 +5400,7 @@ document.addEventListener("input", ev => {
     });
   }else if(k==="run"){
     if(t.id==="run-min"){ const f = fmtTimeDigits(t.value); if(f!==t.value) t.value = f; }
+    if(t.id==="run-min" || t.id==="run-km") runErrShow({});   // typing again clears the message
     S.active.run[t.dataset.f] = t.value;
     const inf = runInfoHtml(), el = $("#runinfo"), wn = $("#runwin"); if(el) el.textContent = inf.line; if(wn && wn.innerHTML!==inf.win) wn.innerHTML = inf.win;
   }else if(k==="tread"){ S.active.tread[t.dataset.f] = t.value; }
