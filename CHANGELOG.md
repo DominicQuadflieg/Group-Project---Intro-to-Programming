@@ -2,6 +2,11 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – External services in the README
+
+- New section *External services and APIs* in the README: every outside service NOVAFit uses (openrouteservice, Open-Meteo, BigDataCloud, the Nova SBE news page, OneSignal, Strava, Tesseract.js via jsDelivr, Google Fonts, Google Maps links), what for, where in the code, which key it needs and what is sent
+- Credits name Open-Meteo (CC BY 4.0), openrouteservice with OpenStreetMap data (ODbL) and BigDataCloud
+
 ## Unreleased – Runs near you is back in the running menu
 
 - *Train › Running* has a row **Runs near you** again (it was taken out in #39, so the routes and the loop from here could not be opened anymore, even though the route service is set up on the live site)
