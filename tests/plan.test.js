@@ -365,3 +365,14 @@ test("own days at sign-up: every chosen exercise needs at least one set", () => 
   assert.equal(bad.day, 0);
   assert.equal(P.validateOwnDays([{ name: "Push", mode: "own", ex: ["bench"] }], 1).ok, true);   // older answers without sets
 });
+
+/* ---------- body fields one at a time (Settings › Profile and body) ---------- */
+test("kgError and cmError refuse what Settings used to store", () => {
+  for (const v of ["abc", "-70", "68kg", "", "20", "300"]) assert.ok(P.kgError(v), JSON.stringify(v));
+  for (const v of ["64.5", "64,5", "70", 70]) assert.equal(P.kgError(v), "", JSON.stringify(v));
+  assert.equal(P.cmError(""), "");                                  // height is optional
+  for (const v of ["abc", "-170", "50", "300"]) assert.ok(P.cmError(v), v);
+  assert.equal(P.cmError("175"), "");
+  // the sign-up uses the same texts
+  assert.equal(P.validateBody({ sex: "female", age: 22, kg: "68kg" }).errors.kg, P.kgError("68kg"));
+});

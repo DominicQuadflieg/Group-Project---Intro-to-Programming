@@ -2,6 +2,12 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Body weight and height in Settings are checked
+
+- *Settings › Profile and body*: weight and height get the same check as at sign-up (weight 30 to 250 kg, height 120 to 230 cm or empty). Until now “abc” or “−70” were saved as body weight, which the calorie estimate uses. A wrong number shows an error below the field and the last good value stays saved
+- The sign-up's errors for weight, height, age and “Choose an option” were never translated; they are now
+- `kgError` and `cmError` in `plan.js`, also used by the sign-up, with a unit test; one new browser test
+
 ## Unreleased – Set numbers are checked
 
 - Reps and weights in a gym session are checked while you type: reps a whole number from 1 to 200, weight 0 to 500 kg (assistance 0 to 200 kg), timed exercises 1 to 3600 seconds or 0.5 to 300 minutes. Until now −5 reps, letters or 99 999 kg were saved and spoiled records and totals

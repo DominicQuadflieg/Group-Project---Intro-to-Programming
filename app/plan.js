@@ -79,6 +79,20 @@
   }
 
   // Height is optional: empty is fine, anything else must be a plausible height in cm
+  /* One field at a time, for sign-up and for Settings › Profile and body: the error text, or "" when fine */
+  function kgError(v) {
+    const kg = toNumber(v);
+    if (!Number.isFinite(kg)) return "Enter your weight in kg, e.g. 68 or 68.5";
+    if (kg < MIN_KG || kg > MAX_KG) return `Enter a weight between ${MIN_KG} and ${MAX_KG} kg`;
+    return "";
+  }
+  function cmError(v) {                       // height is optional: empty is fine
+    const t = String(v == null ? "" : v).trim(); if (t === "") return "";
+    const cm = toNumber(t);
+    if (!Number.isFinite(cm)) return "Enter your height in cm, e.g. 175";
+    if (cm < MIN_CM || cm > MAX_CM) return `Enter a height between ${MIN_CM} and ${MAX_CM} cm`;
+    return "";
+  }
   function validateBody(input) {
     const sex = (input && input.sex) || "", age = toNumber(input && input.age), kg = toNumber(input && input.kg);
     const cmRaw = String((input && input.cm) == null ? "" : input.cm).trim(), cm = cmRaw === "" ? null : toNumber(cmRaw);
@@ -86,12 +100,8 @@
     if (!SEXES.includes(sex)) errors.sex = "Choose an option";
     if (!Number.isInteger(age)) errors.age = "Enter your age in whole years";
     else if (age < MIN_AGE || age > MAX_AGE) errors.age = `Enter an age between ${MIN_AGE} and ${MAX_AGE}`;
-    if (!Number.isFinite(kg)) errors.kg = "Enter your weight in kg, e.g. 68 or 68.5";
-    else if (kg < MIN_KG || kg > MAX_KG) errors.kg = `Enter a weight between ${MIN_KG} and ${MAX_KG} kg`;
-    if (cm !== null) {
-      if (!Number.isFinite(cm)) errors.cm = "Enter your height in cm, e.g. 175";
-      else if (cm < MIN_CM || cm > MAX_CM) errors.cm = `Enter a height between ${MIN_CM} and ${MAX_CM} cm`;
-    }
+    if (kgError(input && input.kg)) errors.kg = kgError(input && input.kg);
+    if (cmError(cmRaw)) errors.cm = cmError(cmRaw);
     const ok = Object.keys(errors).length === 0;
     return { ok, errors, value: ok ? { sex, age, kg: Math.round(kg * 10) / 10, cm: cm === null ? null : Math.round(cm) } : null };
   }
@@ -512,7 +522,7 @@
   const api = {
     appKeys,
     KINDS, KIND_LABEL, DAY_NAMES, GOALS, LEVELS, MINUTES, MIN_DAYS, MAX_DAYS, MAX_GOALS, MAX_PER_KIND,
-    SEXES, MIN_AGE, MAX_AGE, MIN_KG, MAX_KG, MIN_CM, MAX_CM,
+    SEXES, MIN_AGE, MAX_AGE, MIN_KG, MAX_KG, MIN_CM, MAX_CM, kgError, cmError,
     goalById, validateSignup, validateBody, toNumber, restingKcalPerDay, kcalFactor, validateDays, validateMix, validateGoals, validateAnswers,
     rebalanceMix, mixTotal, scheduleWeek, suggestPlans, weekdayIndex, sessionOn, nextSession,
     WORKOUTS, HEAVY_LEGS, ADDONS, ADDON_FOR, SPLITS, splitsFor, splitById, recommendSplit, splitFor, validateSplit,

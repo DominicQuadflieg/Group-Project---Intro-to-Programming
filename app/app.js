@@ -2421,8 +2421,8 @@ function settingsSheet(part){
       <span class="lbl" id="set-sex-l" style="margin-top:6px">Sex</span>
       <div class="seg theme" id="sexseg" role="group" aria-labelledby="set-sex-l" style="grid-template-columns:repeat(2,1fr)">${Object.entries(SEX_TXT).map(([k,l]) => `<button data-act="bodysex" data-v="${k}" aria-pressed="${(st.body && st.body.sex)===k}">${l}</button>`).join("")}</div>
       <div class="rungrid" style="margin-top:10px"><div><label class="lbl" for="set-age">Age</label><div class="field"><input inputmode="numeric" id="set-age" data-in="bodyage" maxlength="3" value="${esc((st.body && st.body.age) || "")}" placeholder="e.g. 21" aria-describedby="set-age-err"><span class="u">years</span></div><p class="err" id="set-age-err" role="alert"></p></div><div></div></div>
-      <div class="rungrid"><div><label class="lbl" for="set-kg">Body weight</label><div class="field"><input inputmode="decimal" id="set-kg" data-in="bodykg" value="${esc(st.bodyKg)}" placeholder="e.g. 60"><span class="u">kg</span></div></div>
-      <div><label class="lbl" for="set-cm">Height</label><div class="field"><input inputmode="numeric" id="set-cm" data-in="bodycm" value="${esc((st.body && st.body.cm) || "")}" placeholder="e.g. 175"><span class="u">cm</span></div></div></div>
+      <div class="rungrid"><div><label class="lbl" for="set-kg">Body weight</label><div class="field"><input inputmode="decimal" id="set-kg" data-in="bodykg" value="${esc(st.bodyKg)}" placeholder="e.g. 60" aria-describedby="set-kg-err"><span class="u">kg</span></div><p class="err" id="set-kg-err" role="alert"></p></div>
+      <div><label class="lbl" for="set-cm">Height</label><div class="field"><input inputmode="numeric" id="set-cm" data-in="bodycm" value="${esc((st.body && st.body.cm) || "")}" placeholder="e.g. 175" aria-describedby="set-cm-err"><span class="u">cm</span></div><p class="err" id="set-cm-err" role="alert"></p></div></div>
       <p class="small muted" style="margin:6px 0 10px">Only used to estimate calories after a session.</p>
       <span class="lbl">Show calories</span>
       <div class="seg theme" id="kcalseg">${[["1","On"],["0","Off"]].map(([k,l]) => `<button data-act="kcalshow" data-v="${k}" aria-pressed="${(st.showKcal!==false)===(k==="1")}">${l}</button>`).join("")}</div>
@@ -4981,6 +4981,8 @@ async function signOutNow(){
   location.replace(location.pathname);
 }
 
+/* An error under a settings field (the page translator translates it) */
+function fieldErr(inp, sel, msg){ const er = $(sel); if(er) er.textContent = msg || ""; inp.setAttribute("aria-invalid", msg ? "true" : "false"); }
 /* Account section in settings */
 function accountHtml(){
   const p = S.settings.profile; if(!p) return "";
@@ -5362,12 +5364,14 @@ document.addEventListener("input", ev => {
   if(k==="libq"){ LIB.q = t.value; const l = $("#liblist"); if(l) l.innerHTML = libListHtml(); return; }
   if(k==="ownname"){ const day = OB.a && OB.a.own && OB.a.own.days[+t.dataset.i]; if(day) day.name = t.value; return; }
   if(k==="name"){ S.settings.name = t.value; save(); return; }
-  if(k==="bodykg"){ S.settings.bodyKg = t.value.trim(); save(); return; }
+  // like the sign-up: a wrong number shows an error and the last good value stays saved
+  if(k==="bodykg"){ const v = t.value.trim(), e = NFPlan.kgError(v); fieldErr(t, "#set-kg-err", e);
+    if(!e){ S.settings.bodyKg = String(Math.round(num(v)*10)/10); save(); } return; }
   if(k==="bodyage"){ const v = t.value.trim(), age = Math.round(num(v)), er = $("#set-age-err"), okA = age>=NFPlan.MIN_AGE && age<=NFPlan.MAX_AGE;
     if(er) er.textContent = !v || okA ? "" : T(`Enter an age between ${NFPlan.MIN_AGE} and ${NFPlan.MAX_AGE}`); t.setAttribute("aria-invalid", v && !okA ? "true" : "false");
     if(okA){ S.settings.body = S.settings.body || {}; S.settings.body.age = age; save(); } return; }
-  if(k==="bodycm"){ const cm = Math.round(num(t.value)); S.settings.body = S.settings.body || {};
-    if(cm>=NFPlan.MIN_CM && cm<=NFPlan.MAX_CM) S.settings.body.cm = cm; else delete S.settings.body.cm; save(); return; }
+  if(k==="bodycm"){ const v = t.value.trim(), e = NFPlan.cmError(v); fieldErr(t, "#set-cm-err", e); if(e) return;
+    S.settings.body = S.settings.body || {}; if(v) S.settings.body.cm = Math.round(num(v)); else delete S.settings.body.cm; save(); return; }
   if(k==="time"){ S.settings.remTime = t.value || "18:00"; save(); return; }
   if(k==="plw"){ if(t.dataset.f==="target"){ const f = fmtTimeDigits(t.value); if(f!==t.value) t.value = f; } PLW[t.dataset.f] = t.value; if(t.type==="date") render(); return; }
   if(k==="shot"){ if(t.id==="sh-time"){ const f = fmtTimeDigits(t.value); if(f!==t.value) t.value = f; } t.setAttribute("aria-invalid", "false"); const e = t.closest("div").parentNode.querySelector(".err"); if(e) e.textContent = ""; return; }

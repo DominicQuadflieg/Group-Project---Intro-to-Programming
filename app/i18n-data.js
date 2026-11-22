@@ -1,6 +1,12 @@
 /* NOVAFit · translations: English, Portuguese (Portugal), German, Italian.
    One row per text. {0}, {1} … are numbers, {a}, {b} … names, months or weekdays (see i18n.js). Generated from the app's texts; edit by hand. */
 NFI18N.load([
+["Choose an option", "Escolhe uma opção", "Wähl eine Option", "Scegli un'opzione"],
+["Enter a height between {0} and {1} cm", "Introduz uma altura entre {0} e {1} cm", "Gib eine Größe zwischen {0} und {1} cm ein", "Inserisci un'altezza tra {0} e {1} cm"],
+["Enter a weight between {0} and {1} kg", "Introduz um peso entre {0} e {1} kg", "Gib ein Gewicht zwischen {0} und {1} kg ein", "Inserisci un peso tra {0} e {1} kg"],
+["Enter your age in whole years", "Introduz a tua idade em anos completos", "Gib dein Alter in ganzen Jahren ein", "Inserisci la tua età in anni interi"],
+["Enter your height in cm, e.g. {0}", "Introduz a tua altura em cm, p. ex. {0}", "Gib deine Größe in cm ein, z. B. {0}", "Inserisci la tua altezza in cm, ad es. {0}"],
+["Enter your weight in kg, e.g. {0} or {1}", "Introduz o teu peso em kg, p. ex. {0} ou {1}", "Gib dein Gewicht in kg ein, z. B. {0} oder {1}", "Inserisci il tuo peso in kg, ad es. {0} o {1}"],
 ["Help: {0} to {1} kg", "Ajuda: {0} a {1} kg", "Hilfe: {0} bis {1} kg", "Aiuto: da {0} a {1} kg"],
 ["Reps: a whole number from {0} to {1}", "Repetições: um número inteiro de {0} a {1}", "Wiederholungen: eine ganze Zahl von {0} bis {1}", "Ripetizioni: un numero intero da {0} a {1}"],
 ["Time: {0} to {1} minutes", "Tempo: {0} a {1} minutos", "Zeit: {0} bis {1} Minuten", "Tempo: da {0} a {1} minuti"],
