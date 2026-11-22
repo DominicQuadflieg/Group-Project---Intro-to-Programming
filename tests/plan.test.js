@@ -354,3 +354,14 @@ test("own template: every exercise needs 1 to 10 sets when sets are given", () =
   // without sets (sign-up path) nothing changes
   assert.deepEqual(P.validateBuild({ name: "Push", ex: ["bench"] }), { ok: true, name: "Push", ex: ["bench"] });
 });
+
+test("own days at sign-up: every chosen exercise needs at least one set", () => {
+  const P = require("../app/plan.js");
+  const day = (sets) => [{ name: "Push", mode: "own", ex: ["bench", "dips"], sets }];
+  assert.equal(P.validateOwnDays(day({ bench: 3, dips: 2 }), 1).ok, true);
+  const bad = P.validateOwnDays(day({ bench: 3, dips: 0 }), 1);
+  assert.equal(bad.ok, false);
+  assert.match(bad.error, /at least one set/);
+  assert.equal(bad.day, 0);
+  assert.equal(P.validateOwnDays([{ name: "Push", mode: "own", ex: ["bench"] }], 1).ok, true);   // older answers without sets
+});

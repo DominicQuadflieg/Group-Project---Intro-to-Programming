@@ -71,7 +71,8 @@ function registerOwn(){
       desc:ex.slice(0, 4).map(e => e.n.replace(/ \(.*\)$/, "")).join(" · ") || "Your own workout"};
     if(!ALL_W.includes(k)) ALL_W.splice(ALL_W.indexOf("lauf"), 0, k);
   });
-  ((S && S.history) || []).forEach(e => { if(e && e.type && !W[e.type]){ W[e.type] = {name:"Workout", kind:"gym", group:"free", ex:[], desc:""}; if(!ALL_W.includes(e.type)) ALL_W.splice(ALL_W.indexOf("lauf"), 0, e.type); } });
+  const gone = (S && S.settings && S.settings.ownGone) || {};
+  ((S && S.history) || []).forEach(e => { if(e && e.type && !W[e.type]){ W[e.type] = {name:gone[e.type] || "Workout", kind:"gym", group:"free", ex:[], desc:""}; if(!ALL_W.includes(e.type)) ALL_W.splice(ALL_W.indexOf("lauf"), 0, e.type); } });
 }
 function addCustomToEXN(){ customList().forEach(c => { if(c && c.id && !NFEx.BY_ID[c.id]) EXN[c.id] = exFromLib(c); }); }
 const exType = id => (EXN[id] && EXN[id].type) || "w";
@@ -102,7 +103,8 @@ function normalize(s){
   if(st.ownW && typeof st.ownW==="object") Object.keys(st.ownW).forEach(k => { const w = st.ownW[k]; if(!w || typeof w!=="object" || !/^[A-Za-z0-9_-]{1,40}$/.test(k)) delete st.ownW[k]; else { w.name = NFEx.safeText(w.name, 40, "Own workout");
     if(w.sets && typeof w.sets==="object"){ const c = {}; Object.keys(w.sets).forEach(id => { const n = Math.floor(+w.sets[id]); if(/^[A-Za-z0-9_-]{1,40}$/.test(id) && n>=1 && n<=NFPlan.OWN_MAX_SETS) c[id] = n; }); w.sets = c; } else delete w.sets; } });
   if(st.loopName != null) st.loopName = NFEx.safeText(st.loopName, 24);
-  if(st.lang != null && !NFI18N.LANGS.some(l => l.id===st.lang)) delete st.lang;   // language: only one we have
+  if(st.lang != null && !NFI18N.LANGS.some(l => l.id===st.lang)) delete st.lang;
+  if(st.ownGone != null){ const g = {}; if(typeof st.ownGone==="object") Object.keys(st.ownGone).forEach(k => { if(/^[A-Za-z0-9_-]{1,40}$/.test(k)) g[k] = NFEx.safeText(st.ownGone[k], 40, "Workout"); }); st.ownGone = g; }   // language: only one we have
   return {v:2, active:s.active||null, history:Array.isArray(s.history)?s.history:[], settings:st, badges:(s.badges && typeof s.badges==="object") ? s.badges : null};
 }
 let S = (() => { try{ return normalize(JSON.parse(localStorage.getItem(LS)||"null")); }catch(e){ return clone(DEF); } })();
@@ -117,7 +119,7 @@ function initLang(){
   // (one-word workout names like "Push" are left out: they are also ordinary words in the tips)
   const fixed = [...NFEx.LIBRARY.map(e => e.n), ...Object.values(NFPlan.WORKOUTS).map(w => w.title).filter(t => / /.test(t))];
   NFI18N.keepFrom(() => { const p = S.settings.profile || {}, nm = String(p.name || S.settings.name || "").trim();
-    return [...fixed, ...(S.settings.custom||[]).map(c => c && c.n).filter(Boolean), ...(nm.length > 1 ? [nm] : [])]; });
+    return [...fixed, ...(S.settings.custom||[]).map(c => c && c.n).filter(Boolean), ...Object.values(S.settings.ownW||{}).map(w => w && w.name).filter(Boolean), ...Object.values(S.settings.ownGone||{}), ...(nm.length > 1 ? [nm] : [])]; });
   NFI18N.watch(document);
 }
 function langPicker(){
@@ -439,7 +441,7 @@ function renderMe(){
     row2(sp("profile"), "Profile and body", "For calories and starting weights", [num(set.bodyKg)>0 ? fmt(num(set.bodyKg)) + " kg" : "", set.body && set.body.cm ? set.body.cm + " cm" : ""].filter(Boolean).join(" · ")) +
     // one row for the plan: it sets the sessions per week too (no separate weekly goal)
     row2('data-act="ob" data-do="edit"', "My plan", "Sessions per week and your days for gym, run and yoga", set.plan ? `${set.goal}× · ${set.plan.name}` : "Not set", !set.plan) +
-    row2('data-act="runplan"', "Running goal", "Towards 10 km or a half marathon", set.runPlan ? planTitle(set.runPlan) : "Not set") +
+    row2('data-act="runplan"', "Running goal", "Towards 10 km, a half marathon or a marathon", set.runPlan ? planTitle(set.runPlan) : "Not set") +
     row2(sp("account"), "Account", "Name, email, password", pr.email || ""));
   h += grp2("me-remind", "Reminders and weather", "",
     row2(sp("push"), "Push notifications", "Reminders and your weekly review", push==="on" ? "On" : "Off", push!=="on") +
@@ -592,7 +594,7 @@ function todayTabHtml(st){
   if(yGoals().includes("sleep") && hNow >= 20 && !yToday && !S.active)
     h += `<section class="card nudge ynudge"><b>Wind down tonight</b><p class="small muted" style="margin:0">For your goal “Sleep better”: quiet stretches on the floor before bed, 10 to 20 minutes.</p><button class="primary yoga" data-act="yogaflow">Start Wind down</button></section>`;
   const up = upcoming(2);
-  const tiles = up.length ? up.map(se => `<button class="ntile" data-act="planday" data-d="${se.day}"><img src="${KIND_PHOTO[se.kind]||KIND_PHOTO.s}" alt="" loading="lazy"><span class="nmeta"><span>${KIND_LBL[se.kind]||""}</span><span>${new Date(se.at).toLocaleDateString("en-GB",{weekday:"short", day:"numeric"})}</span></span><b>${esc(se.title)} · ${se.min} min</b></button>`).join("")
+  const tiles = up.length ? up.map(se => `<button class="ntile" data-act="planday" data-d="${se.day}"><img src="${KIND_PHOTO[se.kind]||KIND_PHOTO.s}" alt="" loading="lazy"><span class="nmeta"><span>${KIND_LBL[se.kind]||""}</span><span>${new Date(se.at).toLocaleDateString("en-GB",{weekday:"short", day:"numeric"})}</span></span><b>${esc(se.title)}${durTxt(se) ? " · " + durTxt(se) : ""}</b></button>`).join("")
     : startKeys().slice(0,2).map(t => `<button class="ntile" data-act="start" data-t="${t}"><img src="${KIND_PHOTO[kindOfW(t)]}" alt="" loading="lazy"><span class="nmeta"><span>${KIND_LBL[kindOfW(t)]}</span><span>${st.lastBy[t] ? "last " + ago(st.lastBy[t]) : "new"}</span></span><b>${esc(W[t].name)}</b></button>`).join("");
   h += `<section class="nextsec"><div class="sechead"><h2 class="sec">What's next</h2><button class="more" data-act="tab" data-t="train">${up.length ? "Full week" : "All sessions"} ›</button></div><div class="ntiles">${tiles}</div>${examNoteHtml()}</section>`;
   const last = S.history.slice(-1)[0];
@@ -669,8 +671,8 @@ function trTodayHtml(){
   const t = trToday();
   if(!t) return `<div class="trrow"><span><small>Today</small><b>Rest day</b><em>Nothing planned. Pick anything below.</em></span></div>`;
   const se = t.se, k = sessKey(se), w = W[k] || {};
-  const sub = se.kind==="s" ? (se.min ? se.min + " min · " : "") + (w.desc || "") : se.min ? se.min + " min" : se.kind==="r" ? "Outside or on the treadmill" : "Your pace";
-  return `<div class="trrow k-${se.kind}"><span><small>${t.when}</small><b>${esc(se.title || w.name || "")}${se.min && se.kind!=="s" ? " · " + se.min + " min" : ""}</b><em>${esc(sub)}</em></span><button class="tstart" data-act="${se.kind==="r" ? "runout" : se.kind==="y" ? "yogaopen" : "start"}" data-t="${esc(k)}" data-id="${se.kind==="y" ? esc(ySuggest() || "vinyasa") : ""}">Start</button></div>`;
+  const sub = se.kind==="s" ? (durTxt(se) ? durTxt(se) + " · " : "") + (w.desc || "") : durTxt(se) || (se.kind==="r" ? "Outside or on the treadmill" : "Your pace");
+  return `<div class="trrow k-${se.kind}"><span><small>${t.when}</small><b>${esc(se.title || w.name || "")}${se.kind!=="s" && durTxt(se) ? " · " + durTxt(se) : ""}</b><em>${esc(sub)}</em></span><button class="tstart" data-act="${se.kind==="r" ? "runout" : se.kind==="y" ? "yogaopen" : "start"}" data-t="${esc(k)}" data-id="${se.kind==="y" ? esc(ySuggest() || "vinyasa") : ""}">Start</button></div>`;
 }
 function trLineHtml(only){
   const p = S.settings.plan; if(!p || !Array.isArray(p.sessions) || (only && !p.sessions.some(x => x.kind===only))) return "";
@@ -724,8 +726,9 @@ function renderSport(){
   let h;
   if(k==="s"){
     h = spHead("s", "Gym", p && p.split ? esc(p.split.name) : "Your workouts") + `<div class="spbody">` + trLineHtml("s");
-    if(up){ const w = W[up.se.workout]; h += `<div class="trrow k-s"><span><small>${up.lbl}</small><b>${esc(w.name)}</b><em>${up.se.min ? up.se.min + " min · " : ""}${esc(w.desc||"")}</em></span><button class="tstart" data-act="start" data-t="${esc(up.se.workout)}">Start</button></div>`; }
-    if(ses.length) h += spSec("Your plan", `${nd} of ${ses.length} done`) + `<div class="splist">${ses.map(x => spRow(`data-act="start" data-t="${esc(x.workout)}"`, D[x.day], W[x.workout].name, W[x.workout].desc, planRight(x), done.has(x.day))).join("")}</div>`;
+    if(up){ const w = W[up.se.workout]; h += `<div class="trrow k-s"><span><small>${up.lbl}</small><b>${esc(w.name)}</b><em>${durTxt(up.se) ? durTxt(up.se) + " · " : ""}${esc(w.desc||"")}</em></span><button class="tstart" data-act="start" data-t="${esc(up.se.workout)}">Start</button></div>`; }
+    if(ses.length) h += spSec("Your plan", `${nd} of ${ses.length} done`) + `<div class="splist">${ses.map(x => { const r = spRow(`data-act="start" data-t="${esc(x.workout)}"`, D[x.day], W[x.workout].name, W[x.workout].desc, planRight(x), done.has(x.day));
+      return W[x.workout].own && S.settings.ownW && S.settings.ownW[x.workout] ? `<div class="sprow2">${r}<button class="tetog ghost" data-act="bedit" data-t="${esc(x.workout)}" aria-label="Edit ${esc(W[x.workout].name)}">Edit</button></div>` : r; }).join("")}</div>`;
     const own = ownTemplates().filter(w => !ses.some(x => x.workout===w));
     h += spSec("Your templates") + (own.length ? `<div class="splist">${own.map(w => `<div class="sprow2">${spRow(`data-act="start" data-t="${esc(w)}"`, "", W[w].name, W[w].desc || "Your own workout", `<span class="yours">Yours</span>`)}<button class="tetog ghost" data-act="bedit" data-t="${esc(w)}" aria-label="Edit ${esc(W[w].name)}">Edit</button></div>`).join("")}</div>` : "")
       + `<button class="tecreate" data-act="bnew">${PLUS_ICO}<span><b>Save a new template</b><small>Name it, pick exercises from the library</small></span></button>`;
@@ -736,7 +739,7 @@ function renderSport(){
     wxLoad();
     const rp = S.settings.runPlan, pg = rp ? planProgress(rp) : null;
     h = spHead("r", "Run", WX ? `<span data-wx="short">${wxShort()}</span>` : new Date().toLocaleDateString("en-GB", {weekday:"long"})) + `<div class="spbody">` + trLineHtml("r");
-    if(up) h += `<div class="trrow k-r"><span><small>${up.lbl}</small><b>${esc(up.se.title || "Run")}${up.se.min ? " · " + up.se.min + " min" : ""}</b><em>Outside or on the treadmill</em></span><button class="tstart" data-act="runout">Start</button></div>`;
+    if(up) h += `<div class="trrow k-r"><span><small>${up.lbl}</small><b>${esc(up.se.title || "Run")}</b><em>Outside or on the treadmill</em></span><button class="tstart" data-act="runout">Start</button></div>`;
     h += spSec("Log a run") + `<div class="splog"><button data-act="runout"><b>Outdoor</b><small>Screenshot, watch or by hand</small></button><button data-act="runband"><b>Treadmill</b><small>km and time from the display</small></button></div>`;
     if(ses.length) h += spSec("Your plan", `${nd} of ${ses.length} done`) + `<div class="splist">${ses.map(x => spRow(`data-act="runout"`, D[x.day], x.title || "Run", x.min ? x.min + " min" : "", planRight(x), done.has(x.day))).join("")}</div>`;
     h += spSec("Your goal") + (rp ? `<button class="spgoal" data-act="runplan"><span><b>${esc(planTitle(rp))}</b>${pg.n ? `<small>week ${pg.i+1} of ${pg.n}</small>` : ""}</span><i aria-hidden="true"><i style="width:${Math.round(pg.f*100)}%"></i></i></button>`
@@ -756,6 +759,20 @@ function renderSport(){
   $("#app").innerHTML = h;
 }
 
+/* How long a planned session takes, from what is in it (the sign-up no longer asks for minutes).
+   Gym: about 45 s per set plus the rest after it, plus 5 min to get going. Yoga: the chosen length. Runs: none (the running plan says km). */
+function gymMin(k){
+  const ex = ((W[k] && W[k].ex) || []).filter(e => !e.opt);
+  if(!ex.length) return 0;
+  let m = 5; ex.forEach(e => { const n = e.s || 3; m += n*0.75 + Math.max(0, n-1)*((e.rest || 90)/60) + 2; });
+  return Math.max(15, Math.round(m/5)*5);
+}
+function durTxt(se){
+  if(!se) return "";
+  if(se.kind==="s"){ const m = gymMin(se.workout); return m ? `about ${m} min` : ""; }
+  if(se.kind==="y") return se.min ? `${se.min} min` : "";
+  return "";
+}
 /* ---- Edit Train: hide plan sessions, add any other workout ---- */
 const PLUS_ICO = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
 /* ---- Build your own gym workout: name, exercises, optional plan day ---- */
@@ -789,7 +806,26 @@ function buildSheet(){
     ${e.ex ? `<p class="err" id="b-ex-err" role="alert">${esc(e.ex)}</p>` : ""}
     ${days.length ? `<label class="lbl" for="b-day" style="margin-top:18px">In your plan</label><select class="inp" id="b-day"><option value="">${b.key && days.some(x => x.workout===b.key) ? "Leave my plan as it is" : "No, just on Train"}</option>${days.map(x => `<option value="${x.day}"${String(x.day)===String(b.day)?" selected":""}>${DN[x.day]} · instead of ${esc(x.title || (W[x.workout]||{}).name || "")}</option>`).join("")}</select>` : ""}
     <button class="primary" data-act="bsave" style="margin-top:18px">Save</button>
-    <button class="secondary" data-act="closesheet">Cancel</button>`);
+    <button class="secondary" data-act="closesheet">Cancel</button>
+    ${b.key ? `<button class="secondary rm" data-act="bdel" style="margin-top:14px">Delete template</button>` : ""}`);
+}
+// Deleting an own template: past workouts keep their name; a plan day that used it gets a ready-made workout again
+function buildDelete(confirmed){
+  const k = BUILD && BUILD.key, d = k && S.settings.ownW && S.settings.ownW[k]; if(!d) return;
+  const p = S.settings.plan, used = p && Array.isArray(p.sessions) ? p.sessions.filter(x => x.kind==="s" && x.workout===k) : [];
+  if(!confirmed){
+    sheet(`<h3>Delete “${esc(d.name)}”?</h3><p class="muted small">Your past workouts with it stay in your history.${used.length ? ` In your plan, a ready-made workout takes its place on ${used.map(x => NFPlan.DAY_NAMES[x.day]).join(", ")}.` : ""}</p>
+      <button class="primary rm" data-act="bdelok">Delete</button><button class="secondary" data-act="bedit" data-t="${esc(k)}">Cancel</button>`);
+    return;
+  }
+  if(used.length){
+    const ss = p.sessions.filter(x => x.kind==="s").sort((x,y) => x.day-y.day), rec = NFPlan.recommendSplit(ss.length, (S.settings.answers||{}).goals, (S.settings.answers||{}).level).split.workouts;
+    ss.forEach((x, i) => { if(x.workout===k){ x.workout = rec[i % rec.length]; x.title = NFPlan.WORKOUTS[x.workout].title; } });
+  }
+  S.settings.ownGone = Object.assign({}, S.settings.ownGone, {[k]: d.name});
+  delete S.settings.ownW[k]; delete W[k];
+  const ai = ALL_W.indexOf(k); if(ai>=0 && !S.history.some(e => e.type===k)) ALL_W.splice(ai, 1);
+  registerOwn(); save(); closeSheet(); BUILD = null; render(); toast(`“${d.name}” deleted`);
 }
 function buildSave(){
   buildCapture();
@@ -924,7 +960,7 @@ function runCard(id, st){
   if(id==="race"){
     if(!runForm()) return {lab:"If you raced today", h:pEmpty("Log a run of 3 km or more with a time and you see what you could run.")};
     const rp = S.settings.runPlan, tg = rp && rp.target ? rp.target : 0;
-    return {lab:"If you raced today", h:pRow("5 km", hms(predict(5))) + pRow("10 km", `${hms(predict(10))}${tg && rp.goal==="k10" ? ` <span class="pp">goal ${hms(tg)}</span>` : ""}`) + pRow("Half marathon", `${hms(predict(21.0975))}${tg && rp.goal==="hm" ? ` <span class="pp">goal ${hms(tg)}</span>` : ""}`) + `<p class="psm">From your best run of the last 10 weeks.</p>`};
+    return {lab:"If you raced today", h:pRow("5 km", hms(predict(5))) + pRow("10 km", `${hms(predict(10))}${tg && rp.goal==="k10" ? ` <span class="pp">goal ${hms(tg)}</span>` : ""}`) + pRow("Half marathon", `${hms(predict(21.0975))}${tg && rp.goal==="hm" ? ` <span class="pp">goal ${hms(tg)}</span>` : ""}`) + pRow("Marathon", `${hms(predict(42.195))}${tg && rp.goal==="mar" ? ` <span class="pp">goal ${hms(tg)}</span>` : ""}`) + `<p class="psm">From your best run of the last 10 weeks.</p>`};
   }
   if(id==="pace"){
     if(!timed.length) return {lab:"Pace", h:noRun};
@@ -1288,10 +1324,11 @@ function predict(d){ const f = runForm(); return f ? riegel(f.min, f.km, d) : 0;
 function planTitle(p){
   if(p.goal==="k10") return `10 km under ${hms(p.target)}`;
   if(p.goal==="hm") return p.target ? `Half marathon under ${hms(p.target)}` : "Finish a half marathon";
+  if(p.goal==="mar") return p.target ? `Marathon under ${hms(p.target)}` : "Finish a marathon";
   if(p.goal==="alster") return `${LN()} under ${hms(p.target)}`;
   return "Stay fit";
 }
-function planDist(p){ return p.goal==="k10" ? 10 : p.goal==="hm" ? 21.1 : p.goal==="alster" ? alsterKm() : 0; }
+function planDist(p){ return p.goal==="k10" ? 10 : p.goal==="hm" ? 21.1 : p.goal==="mar" ? 42.2 : p.goal==="alster" ? alsterKm() : 0; }
 
 /* ---- Plan berechnen ---- */
 function planWeeks(p){
@@ -1299,20 +1336,23 @@ function planWeeks(p){
   let n = p.date ? Math.ceil((mondayOf(p.date) + WEEK - ws0)/WEEK) : Math.max(4, Math.ceil((mondayOf(Date.now()) - ws0)/WEEK) + 4);
   n = Math.max(3, Math.min(26, n));
   const f10 = predict(10), cur = f10 ? f10/10 : 6.5;
-  const gp = p.goal==="k10" ? p.target/10 : p.goal==="alster" ? p.target/ak : p.goal==="hm" ? (p.target ? p.target/21.1 : riegel(cur*10, 10, 21.1)/21.1) : cur;
+  const gp = p.goal==="k10" ? p.target/10 : p.goal==="alster" ? p.target/ak : p.goal==="hm" ? (p.target ? p.target/21.1 : riegel(cur*10, 10, 21.1)/21.1)
+    : p.goal==="mar" ? (p.target ? p.target/42.2 : riegel(cur*10, 10, 42.2)/42.2) : cur;
   const easy = Math.max(cur, gp) + .55;
   const days = (p.days && p.days.length ? p.days : [2, 0]).slice(0, p.perWeek).sort((a,b) => ((a+6)%7) - ((b+6)%7));
   const W2 = [];
   for(let i=0; i<n; i++){
     const ws = ws0 + i*WEEK, f = n>1 ? i/(n-1) : 1, last = i===n-1, runs = [];
-    const tp = p.goal==="hm" ? gp - .1 : cur + (gp-cur)*Math.min(1, f*1.15);
-    const longKm = p.goal==="k10" ? Math.round((7 + 4*f)*2)/2 : p.goal==="hm" ? Math.round((8 + 10*Math.min(1, f/.85))*2)/2 : ak;
+    const tp = p.goal==="hm" ? gp - .1 : p.goal==="mar" ? gp - .25 : cur + (gp-cur)*Math.min(1, f*1.15);
+    // marathon: the long run grows from 12 to 32 km, and the week before the race it is shorter again (taper)
+    const longKm = p.goal==="k10" ? Math.round((7 + 4*f)*2)/2 : p.goal==="hm" ? Math.round((8 + 10*Math.min(1, f/.85))*2)/2
+      : p.goal==="mar" ? (i===n-2 && n>3 ? 16 : Math.round((12 + 20*Math.min(1, f/.8))*2)/2) : ak;
     const mk = {
       easy:(km) => ({type:"easy", km, pace:easy, label:`Easy · ${fmt(km)} km`, desc:`about ${mmss(easy)} /km, totally relaxed`}),
       tempo:() => ({type:"tempo", km:ak, target:tp*ak, label:`Tempo · ${LN()}`, desc:`Target under ${hms(tp*ak)} (${mmss(tp)} /km)`}),
       int:() => { const r = 4 + Math.round(f*3); return {type:"int", km:6, label:`Intervals · ${r} × 3 min`, desc:`brisk at about ${mmss(Math.max(3.5, gp-.15))} /km, 2 min easy in between`}; },
       long:(km) => ({type:"long", km, pace:easy+.1, label:`Long · ${fmt(km)} km`, desc:`very easy, about ${mmss(easy+.1)} /km`}),
-      race:() => p.goal==="alster" ? {type:"race", km:ak, target:p.target, label:`${LN()} test`, desc:`Target under ${hms(p.target)}`} : {type:"race", km:planDist(p), target:p.target, label:p.goal==="hm" ? "Race day · half marathon" : "Race day · 10 km", desc:p.target ? `Target under ${hms(p.target)}` : "Finish and enjoy it"}
+      race:() => p.goal==="alster" ? {type:"race", km:ak, target:p.target, label:`${LN()} test`, desc:`Target under ${hms(p.target)}`} : {type:"race", km:planDist(p), target:p.target, label:p.goal==="hm" ? "Race day · half marathon" : p.goal==="mar" ? "Race day · marathon" : "Race day · 10 km", desc:p.target ? `Target under ${hms(p.target)}` : "Finish and enjoy it"}
     };
     let plan;
     if(p.goal==="fit") plan = p.perWeek===2 ? [mk.easy(5), {...mk.easy(ak), label:`Easy · ${LN()}`}] : [{...mk.easy(ak), label:`Easy · ${LN()}`}];
@@ -1355,14 +1395,15 @@ let PLW = null, planAll = false;
 const GOALS = [
   ["k10", "10 km in a target time", "e.g. 10 km under 55 minutes", "tempo"],
   ["hm", "Finish a half marathon", "21.1 km, with a plan up to race day", "hm"],
+  ["mar", "Finish a marathon", "42.2 km, with a 16-week plan up to race day", "hm"],
   ["alster", "Faster on your loop", "your usual route, set it under Running goals", "alster"],
   ["fit", "Just stay fit", "Easy running, no pressure", "fit"]
 ];
 function plwDefaults(g){
-  const ak = alsterKm(), p10 = predict(10), pa = predict(ak), ph = predict(21.1);
+  const ak = alsterKm(), p10 = predict(10), pa = predict(ak), ph = predict(21.1), pm = predict(42.2);
   const r30 = v => Math.max(1, Math.floor(v*2)/2);
-  const d = new Date(Date.now() + (g==="hm" ? 12 : 10)*WEEK); const iso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
-  const target = g==="k10" ? (p10 ? r30(p10-1.5) : 60) : g==="alster" ? (pa ? r30(pa-1.5) : 45) : g==="hm" ? (ph ? r30(ph-2) : 0) : 0;
+  const d = new Date(Date.now() + (g==="mar" ? 16 : g==="hm" ? 12 : 10)*WEEK); const iso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  const target = g==="k10" ? (p10 ? r30(p10-1.5) : 60) : g==="alster" ? (pa ? r30(pa-1.5) : 45) : g==="hm" ? (ph ? r30(ph-2) : 0) : g==="mar" ? (pm ? r30(pm-5) : 0) : 0;
   return {step:2, goal:g, target:target ? hms(target) : "", date:g==="fit" ? "" : iso, perWeek:2, days:[2, 0]};
 }
 function renderPlan(){
@@ -1377,23 +1418,25 @@ function planWizard(){
   const steps = `<div class="plsteps"><i class="on"></i><i class="${w.step>=2?"on":""}"></i></div>`;
   if(w.step===1) return `<div class="plw">${steps}<h1 class="plh">Your running goal</h1><p class="muted" style="margin:-6px 0 4px">What do you want to work toward?</p>
     ${GOALS.map(g => `<button class="goalopt" data-act="plgoal" data-g="${g[0]}">${rico(g[3])}<span><b>${g[1]}</b><small>${g[2]}</small></span><span class="arrow">›</span></button>`).join("")}</div>`;
-  const g = GOALS.find(x => x[0]===w.goal), ak = alsterKm(), dist = w.goal==="k10" ? 10 : w.goal==="hm" ? 21.1 : ak;
+  const g = GOALS.find(x => x[0]===w.goal), ak = alsterKm(), dist = w.goal==="k10" ? 10 : w.goal==="hm" ? 21.1 : w.goal==="mar" ? 42.2 : ak;
   const tgt = parseMin(w.target), pred = w.goal==="fit" ? 0 : predict(dist), f = runForm();
   const weeks = w.date ? Math.round((new Date(w.date).getTime() - Date.now())/WEEK) : 0;
   let info = "";
-  if(f) info = `Your current form: <b>${fmt(f.km)} km in ${hms(f.min)}</b>${pred ? ` → ${w.goal==="k10"?"10 km":w.goal==="hm"?"a half marathon":"your loop"} would take about <b>${hms(pred)}</b>.` : "."}`;
+  if(f) info = `Your current form: <b>${fmt(f.km)} km in ${hms(f.min)}</b>${pred ? ` → ${w.goal==="k10"?"10 km":w.goal==="hm"?"a half marathon":w.goal==="mar"?"a marathon":"your loop"} would take about <b>${hms(pred)}</b>.` : "."}`;
   else info = "Once you've uploaded a few runs, the plan adapts to your form.";
   let verdict = "";
   if(pred && tgt){ verdict = tgt >= pred ? " Your goal is well within reach." : tgt >= pred*.94 ? " Very doable with the plan." : " That's ambitious – consider allowing a bit more time."; }
   const warn = [];
   if(w.goal==="hm" && w.perWeek===1) warn.push("For a half marathon, 2 runs per week are recommended.");
   if(w.goal==="hm" && w.date && weeks < 8) warn.push("For a half marathon, plan at least 8–10 weeks.");
+  if(w.goal==="mar" && w.perWeek===1) warn.push("For a marathon, 2 runs per week are recommended.");
+  if(w.goal==="mar" && w.date && weeks < 12) warn.push("For a marathon, plan at least 12–16 weeks.");
   if(w.date && weeks < 3) warn.push("That date is very close – choose at least 3 weeks.");
   const gymDays = Object.keys(trainDays()).map(Number), clash = w.days.filter(d => gymDays.includes(d));
   const order = [1,2,3,4,5,6,0];
   return `<div class="plw">${steps}<h1 class="plh">${g[1]}</h1>
     ${w.goal!=="fit" ? `<div class="plg2">
-      <label class="plf"><small>${w.goal==="hm" ? "Target time (optional)" : "Target time"}</small><input inputmode="numeric" data-in="plw" data-f="target" value="${esc(w.target)}" placeholder="${w.goal==="hm"?"2:05:00":"55:00"}"></label>
+      <label class="plf"><small>${w.goal==="hm" || w.goal==="mar" ? "Target time (optional)" : "Target time"}</small><input inputmode="numeric" data-in="plw" data-f="target" value="${esc(w.target)}" placeholder="${w.goal==="mar"?"4:15:00":w.goal==="hm"?"2:05:00":"55:00"}"></label>
       <label class="plf"><small>${w.goal==="alster" ? "By when (optional)" : "Race day"}</small><input type="date" data-in="plw" data-f="date" value="${esc(w.date)}"></label></div>` : ""}
     ${w.goal!=="fit" ? `<p class="plinfo">${info}${verdict}</p>` : ""}
     <p class="plq">How often do you want to run?</p>
@@ -3640,7 +3683,7 @@ function planDaySheet(d){
   }
   const w = W[se.workout] || {}, ad = se.addon && MOB[se.addon.id];
   const list = w.kind==="gym" ? `<ol class="dayex">${w.ex.filter(e => !e.opt).map(e => `<li>${esc(e.n)} <small>${e.s} × ${rangeTxt(e)}</small></li>`).join("")}</ol>` : "";
-  sheet(`<p class="eyebrow">${WDAY[(se.day+1)%7]}${today?" · today":""} · ${se.min} min</p><h3>${esc(se.title)}</h3>
+  sheet(`<p class="eyebrow">${WDAY[(se.day+1)%7]}${today?" · today":""}${durTxt(se) ? " · " + durTxt(se) : ""}</p><h3>${esc(se.title)}</h3>
     ${w.desc && w.kind!=="gym" ? `<p class="muted small">${esc(w.desc)}</p>` : ""}${list}
     ${ad ? `<p class="small" style="margin:0">Afterwards: <b>${esc(ad.n)}</b> · ${stepsMin(ad.steps)} min</p>` : ""}
     <button class="primary" data-act="start" data-t="${esc(se.workout)}">${today ? "Start now" : "Start anyway"}</button>
@@ -4604,8 +4647,6 @@ function renderOnboard(){
       h = obHead("goals") + obStep(5, obTotal()) + `<h2>Last thing: your level</h2>
         <p class="lead">So the plan starts at the right intensity.</p>
         <div class="opts" role="group" aria-label="Level">${NFPlan.LEVELS.map(l => `<button class="opt" data-act="ob" data-do="level" data-v="${l}" aria-pressed="${a.level===l}">${LEVEL_TXT[l][0]}<small>${LEVEL_TXT[l][1]}</small></button>`).join("")}</div>
-        <label class="f">Time per session</label>
-        <div class="mins" role="group" aria-label="Time per session">${NFPlan.MINUTES.map(m => `<button class="opt" data-act="ob" data-do="min" data-v="${m}" aria-pressed="${a.min===m}">${m} min</button>`).join("")}</div>
         ${errEl("ob-err")}<div class="foot"><button class="primary" data-act="ob" data-do="next">${a.mix.s>0 ? "Continue" : "Show my plans"}</button></div>`;
       break;
     case "stmode": {
@@ -4649,7 +4690,7 @@ function renderOnboard(){
           const seg = custom ? "" : `<div class="odseg" role="group" aria-label="${esc(d.name)}: template or own">${[["rec","Recommended"],["own","Choose my own"]].map(([m,l]) => `<button type="button" aria-pressed="${d.mode===m}" data-act="ob" data-do="ownmode" data-i="${i}" data-v="${m}">${l}</button>`).join("")}</div>`;
           const name = custom ? `<label class="f" for="od-n${i}" style="margin:0">Name of day ${i+1}</label><input class="inp" id="od-n${i}" data-in="ownname" data-i="${i}" maxlength="${NFPlan.OWN_NAME_MAX}" value="${esc(d.name)}" placeholder="e.g. Chest &amp; Back">` : "";
           const body = d.mode==="own"
-            ? `<div class="od-ex">${(d.ex||[]).map(id => { const e = EXN[id]; return e ? `<div class="oe">${exThumb(e)}<span>${esc(e.n)}</span><button type="button" data-act="ob" data-do="ownrm" data-i="${i}" data-ex="${id}" aria-label="Remove ${esc(e.n)}">×</button></div>` : ""; }).join("")}</div>
+            ? `<div class="od-ex">${(d.ex||[]).map(id => { const e = EXN[id], n = (d.sets && d.sets[id]) || 0; return e ? `<div class="oe${n<1 && OB.setErr===i ? " miss" : ""}">${exThumb(e)}<span>${esc(e.n)}<span class="bstep"><button type="button" data-act="ob" data-do="ownset" data-i="${i}" data-ex="${id}" data-d="-1" aria-label="One set less for ${esc(e.n)}"${n<1?" disabled":""}>−</button><b>${n} ${n===1?"set":"sets"}</b><button type="button" data-act="ob" data-do="ownset" data-i="${i}" data-ex="${id}" data-d="1" aria-label="One set more for ${esc(e.n)}"${n>=NFPlan.OWN_MAX_SETS?" disabled":""}>+</button></span></span><button type="button" data-act="ob" data-do="ownrm" data-i="${i}" data-ex="${id}" aria-label="Remove ${esc(e.n)}">×</button></div>` : ""; }).join("")}</div>
                <button type="button" class="od-add" data-act="ob" data-do="ownadd" data-i="${i}">+ ${(d.ex||[]).length ? "Add more exercises" : "Choose exercises"}</button>`
             : `<p class="od-prev">${prev}</p><p class="od-prev" style="font-size:12px">You can still add exercises during the workout.</p>`;
           return `<div class="ownday"><div class="od-h">${custom ? "" : `<b>${esc(d.name)}</b>`}<small>DAY ${i+1}${d.mode==="own" ? ` · ${(d.ex||[]).length} ${(d.ex||[]).length===1?"exercise":"exercises"}` : ""}</small></div>${name}${seg}${body}</div>`;
@@ -4661,7 +4702,7 @@ function renderOnboard(){
       h = obHead(a.mix.s>0 ? (a.stmode==="own" ? "owndays" : "split") : "level") + `<h2>Your suggested plans</h2>
         <p class="lead">${LEVEL_TXT[a.level][0]} · ${a.goals.map(id => esc(NFPlan.goalById(id).label)).join(" · ")}</p>
         <div class="plans">${OB.plans.map((p,i) => `<article class="plan${p.best?" best":""}"><header><span aria-hidden="true" style="font-size:20px">${p.best?"🎯":p.id==="easy"?"🌱":"⚖️"}</span><div><b>${esc(p.name)}</b><small>${esc(p.why)} · ${p.days} sessions${p.split ? " · " + esc(p.split.name) : ""}</small></div>${p.best?`<span class="tag">Best match</span>`:""}</header>
-          ${p.sessions.map(s => `<div class="ses"><b>${NFPlan.DAY_NAMES[s.day]}</b><span aria-hidden="true">${KICON[s.kind]}</span><span class="st">${esc(s.title)}${s.addon && MOB[s.addon.id] ? `<small class="addon">+ ${esc(MOB[s.addon.id].n.toLowerCase())} ${stepsMin(MOB[s.addon.id].steps)} min</small>` : ""}</span><em>${s.min} min</em></div>`).join("")}
+          ${p.sessions.map(s => `<div class="ses"><b>${NFPlan.DAY_NAMES[s.day]}</b><span aria-hidden="true">${KICON[s.kind]}</span><span class="st">${esc(s.title)}${s.addon && MOB[s.addon.id] ? `<small class="addon">+ ${esc(MOB[s.addon.id].n.toLowerCase())} ${stepsMin(MOB[s.addon.id].steps)} min</small>` : ""}</span>${durTxt(s) ? `<em>${durTxt(s)}</em>` : ""}</div>`).join("")}
           <button class="${p.best?"primary":"secondary"}" data-act="ob" data-do="choose" data-i="${i}">Choose this plan</button></article>`).join("")}</div>`;
       break;
     case "history": {
@@ -4773,6 +4814,8 @@ function obAct(b){
     case "stmode": a.stmode = d.v; document.querySelectorAll('[data-do="stmode"]').forEach(x => x.setAttribute("aria-checked", String(x.dataset.v===d.v))); obError("ob-err", ""); break;
     case "ownmode": { const day = a.own && a.own.days[+d.i]; if(day){ day.mode = d.v; renderOnboard(); } break; }
     case "ownrm": { const day = a.own && a.own.days[+d.i]; if(day){ day.ex = (day.ex||[]).filter(x => x!==d.ex); renderOnboard(); } break; }
+    case "ownset": { const day = a.own && a.own.days[+d.i]; if(day){ day.sets = day.sets || {}; day.sets[d.ex] = Math.min(NFPlan.OWN_MAX_SETS, Math.max(0, (day.sets[d.ex]||0) + (+d.d)));
+      const y = scrollY; renderOnboard(); scrollTo(0, y); const nb = document.querySelector(`[data-do=ownset][data-i="${d.i}"][data-ex="${d.ex}"][data-d="${d.d}"]`); if(nb && !nb.disabled) nb.focus(); } break; }
     case "ownadd": { const day = a.own && a.own.days[+d.i]; if(day) openPicker(+d.i); break; }
     case "min": a.min = +d.v; renderOnboard(); break;
     case "next": {
@@ -4793,7 +4836,9 @@ function obAct(b){
       }
       else if(OB.step==="owndays"){
         const v = NFPlan.validateOwnDays(a.own && a.own.days, a.mix.s);
-        if(!v.ok){ obError("ob-err", v.error); return; }
+        if(!v.ok){ OB.setErr = /set/.test(v.error) ? v.day : null; if(OB.setErr!=null) renderOnboard(); obError("ob-err", v.error);
+          const m = $(".oe.miss [data-d='1']"); if(m){ m.scrollIntoView({block:"center"}); m.focus(); } return; }
+        OB.setErr = null;
         const keys = NFPlan.ownDayKeys(a.own.days);
         const spName = a.own.split==="custom" ? "Custom split" : ((NFPlan.splitById(a.own.split)||{}).name || "") + " (your own)";
         OB.plans = NFPlan.suggestPlans(a).map(p => NFPlan.applyOwnDays(p, keys, spName)); obGo("plans");
@@ -4807,7 +4852,7 @@ function obAct(b){
       if(a.stmode==="own" && a.own && a.mix.s>0){
         const keys = NFPlan.ownDayKeys(a.own.days);
         S.settings.ownW = S.settings.ownW || {};
-        a.own.days.forEach((x, i) => { if(x.mode==="own") S.settings.ownW[keys[i].workout] = {name:keys[i].title, ex:(x.ex||[]).slice()}; });
+        a.own.days.forEach((x, i) => { if(x.mode==="own") S.settings.ownW[keys[i].workout] = Object.assign({name:keys[i].title, ex:(x.ex||[]).slice()}, x.sets ? {sets:Object.fromEntries((x.ex||[]).map(id => [id, x.sets[id]]))} : {}); });
         registerOwn();
       }
       S.settings.plan = Object.assign({chosen:Date.now()}, p);
@@ -5124,6 +5169,8 @@ document.addEventListener("click", async ev => {
     case "trainedit": BUILD = null; trainEditSheet(); break;
     case "bnew": buildNew(); break;
     case "bedit": buildEdit(b.dataset.t); break;
+    case "bdel": buildCapture(); buildDelete(false); break;
+    case "bdelok": buildDelete(true); break;
     case "bset": {   // change sets in place, so the sheet doesn't jump to the top
       const id = b.dataset.ex, n = Math.min(NFPlan.OWN_MAX_SETS, Math.max(0, (BUILD.sets[id]||0) + (+b.dataset.d)));
       BUILD.sets[id] = n;
@@ -5160,7 +5207,7 @@ document.addEventListener("click", async ev => {
     case "libpickdone": {
       if(LIB.build && BUILD){ BUILD.ex = (LIB.sel||[]).slice(); BUILD.ex.forEach(id => { if(BUILD.sets[id]==null) BUILD.sets[id] = 0; }); buildSheet(); break; }
       const day = OB.a && OB.a.own && OB.a.own.days[LIB.day];
-      if(day) day.ex = (LIB.sel||[]).slice();
+      if(day){ day.ex = (LIB.sel||[]).slice(); day.sets = day.sets || {}; day.ex.forEach(id => { if(day.sets[id]==null) day.sets[id] = 0; }); }   // new exercises start at 0 sets
       closeSheet(); if(screen==="onboard") renderOnboard(); break;
     }
     case "planday": planDaySheet(+b.dataset.d); break;

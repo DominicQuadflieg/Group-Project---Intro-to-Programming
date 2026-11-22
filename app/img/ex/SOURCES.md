@@ -25,6 +25,7 @@ two positions were swapped so they follow the order of the movement. The drawing
 | crossover – Cable Crossover | 0048 Cable Crossover |
 | pushup – Push-up | 0077 Push Up: Body Weight |
 | chestdip – Chest Dip | 0054 Chest Dips |
+| wchestdip – Chest Dip (Weighted) | 0054 Chest Dips (same drawing) |
 | deadlift – Deadlift (Barbell) | 0099 Dead Lifts: Barbell |
 | tbar – T-Bar Row | 0029 T-Bar Rows |
 | dbrow – Single-Arm Row (Dumbbell) | 0024 Rear Deltoid Row Dumbbell |
@@ -32,6 +33,7 @@ two positions were swapped so they follow the order of the movement. The drawing
 | latclose – Close-Grip Lat Pulldown (Cable) | 0096 Pull Down: V Bar |
 | straightarm – Straight-Arm Pulldown (Cable) | 0092 Straight Arm Push Down |
 | pullup – Pull-up | 0087 Pull Ups |
+| wpullup – Pull-up (Weighted) | 0087 Pull Ups (same drawing) |
 | invrow – Inverted Row | 0086 Body Row |
 | bbshrug – Shrug (Barbell) | 0030 Barbell Shrugs |
 | dbshrug – Shrug (Dumbbell) | 0005 Shoulder Shrugs: Dumbbell |
