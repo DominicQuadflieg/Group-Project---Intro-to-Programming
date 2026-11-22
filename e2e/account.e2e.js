@@ -91,3 +91,26 @@ test("the locked app asks for the password and refuses a wrong one", async () =>
   await page.waitForFunction(() => !S.settings.locked);
   assert.deepEqual(await page.done(), []);
 });
+
+test("Settings › Profile and body: a wrong weight or height shows an error and keeps the last good value", async () => {
+  const page = await app.open();
+  await page.evaluate(() => { S.settings.profile = { name: "T", email: "t@t.pt" }; S.settings.guideDone = true; S.settings.bodyKg = "70"; S.settings.body = { sex: "female", age: 22, cm: 170 }; save(); screen = "home"; render(); settingsSheet("profile"); });
+  await page.waitForSelector("#set-kg");
+  for (const v of ["abc", "-70", "400"]) {
+    await page.fill("#set-kg", v);
+    assert.ok(await text(page, "#set-kg-err"), v);
+    assert.equal(await page.getAttribute("#set-kg", "aria-invalid"), "true");
+    assert.equal(await page.evaluate(() => S.settings.bodyKg), "70");
+  }
+  await page.fill("#set-kg", "64,5");
+  assert.equal(await text(page, "#set-kg-err"), "");
+  assert.equal(await page.evaluate(() => S.settings.bodyKg), "64.5");
+
+  await page.fill("#set-cm", "50");
+  assert.match(await text(page, "#set-cm-err"), /between 120 and 230 cm/);
+  assert.equal(await page.evaluate(() => S.settings.body.cm), 170);
+  await page.fill("#set-cm", "");                                     // optional: empty removes it
+  assert.equal(await text(page, "#set-cm-err"), "");
+  assert.equal(await page.evaluate(() => S.settings.body.cm), undefined);
+  assert.deepEqual(await page.done(), []);
+});

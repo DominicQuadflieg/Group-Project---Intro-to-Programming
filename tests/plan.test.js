@@ -377,3 +377,14 @@ test("backupSettings drops the account only when this phone has one", () => {
   assert.deepEqual(P.backupSettings(file, false), file);            // new phone: the account comes from the file
   assert.deepEqual(P.backupSettings(null, true), {});
 });
+
+/* ---------- body fields one at a time (Settings › Profile and body) ---------- */
+test("kgError and cmError refuse what Settings used to store", () => {
+  for (const v of ["abc", "-70", "68kg", "", "20", "300"]) assert.ok(P.kgError(v), JSON.stringify(v));
+  for (const v of ["64.5", "64,5", "70", 70]) assert.equal(P.kgError(v), "", JSON.stringify(v));
+  assert.equal(P.cmError(""), "");                                  // height is optional
+  for (const v of ["abc", "-170", "50", "300"]) assert.ok(P.cmError(v), v);
+  assert.equal(P.cmError("175"), "");
+  // the sign-up uses the same texts
+  assert.equal(P.validateBody({ sex: "female", age: 22, kg: "68kg" }).errors.kg, P.kgError("68kg"));
+});
