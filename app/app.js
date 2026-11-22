@@ -582,7 +582,7 @@ function todayTabHtml(st){
   if(push==="install" && !S.settings.hideInstall){
     h += `<section class="card nudge"><b>Install as an app</b><p class="small muted" style="margin:0">In Safari, tap <b>Share</b> at the bottom and then <b>“Add to Home Screen”</b>. The app then opens full screen and can remind you to train.</p>${S.history.length || S.settings.profile ? `<p class="small" style="margin:6px 0 0">Signed up here already? <button class="linkbtn" data-act="copydata" style="text-decoration:underline">Copy my data</button> and paste it in the app.</p>` : ""}<button class="addset" data-act="hideinstall" style="align-self:flex-end">Hide</button></section>`;
   }else if(push==="off" && !S.settings.hidePush){
-    h += `<section class="card nudge"><b>Turn on reminders</b><p class="small muted" style="margin:0">The app reminds you to train on Wednesdays at 18:40, Fridays at 14:00 and Saturdays at 10:00, checks in in the evening if you haven't trained yet, and sends your weekly review on Sundays.</p>
+    h += `<section class="card nudge"><b>Turn on reminders</b><p class="small muted" style="margin:0">A short nudge on Monday morning, Wednesday evening and Friday lunchtime, your weekly review on Sunday evening, and a reminder after a few days without training.</p>
       <div class="row2"><button class="secondary" data-act="hidepush">Later</button><button class="primary" style="height:48px;font-size:17px" data-act="pushon">Allow</button></div></section>`;
   }
 
@@ -5673,7 +5673,7 @@ function pushState(){
   try{
     if(!OS.Notifications.isPushSupported()) return "unsupported";
     if(OS.Notifications.permissionNative==="denied") return "denied";
-    return OS.Notifications.permission && OS.User.PushSubscription.optedIn!==false ? "on" : "off";
+    return OS.Notifications.permission && OS.User.PushSubscription.optedIn!==false && OS.User.PushSubscription.id ? "on" : "off";
   }catch(e){ return "unsupported"; }
 }
 function refreshPush(){ push = pushState(); document.querySelectorAll("[data-push]").forEach(el => el.innerHTML = pushHtml()); if(screen==="home" && !isTyping() && !$("#layer").innerHTML) renderHome(); }
@@ -5744,13 +5744,28 @@ function initPush(){
 /* Things the tap needs at once (iPhone allows subscribing only right in the tap, before anything waits):
    the service worker registration and the app's push key from OneSignal's public config. */
 let SWREG = null, VAPID = "";
+// OneSignal has two push keys: its own one for Safari (iPhone home-screen apps, Safari on the Mac) and the app's key for
+// Chrome, Edge and Firefox. A subscription made with the wrong key is one OneSignal can't use, so pick the one it expects.
+const SAFARI_PUSH = (() => { const ua = navigator.userAgent; return /iPhone|iPad|iPod/.test(ua) || (navigator.platform==="MacIntel" && navigator.maxTouchPoints>1) || (/Safari\//.test(ua) && !/Chrome|Chromium|CriOS|FxiOS|Edg|OPR|Firefox/.test(ua)); })();
+const VAPID_FIELD = SAFARI_PUSH ? "onesignal_vapid_public_key" : "vapid_public_key", VAPID_STORE = SAFARI_PUSH ? "nf-vapid-safari" : "nf-vapid";
 function pushPrep(){
-  try{ VAPID = localStorage.getItem("nf-vapid") || ""; }catch(e){}
-  if(navigator.serviceWorker) navigator.serviceWorker.getRegistration().then(r => { if(r) SWREG = r; }).catch(() => {});
+  try{ VAPID = localStorage.getItem(VAPID_STORE) || ""; }catch(e){}
+  if(navigator.serviceWorker) navigator.serviceWorker.getRegistration().then(r => { if(r){ SWREG = r; dropWrongKey(); } }).catch(() => {});
   fetch(`https://api.onesignal.com/sync/${ONESIGNAL_APP_ID}/web`).then(r => r.text()).then(t => {
-    const m = t.match(/"vapid_public_key"\s*:\s*"([A-Za-z0-9_-]+)"/);
-    if(m){ VAPID = m[1]; try{ localStorage.setItem("nf-vapid", VAPID); }catch(e){} }
+    const m = t.match(new RegExp(`"${VAPID_FIELD}"\\s*:\\s*"([A-Za-z0-9_-]+)"`));
+    if(m){ VAPID = m[1]; try{ localStorage.setItem(VAPID_STORE, VAPID); }catch(e){} dropWrongKey(); }
   }).catch(() => {});
+}
+/* A push subscription from an older version made with the other key: remove it, so the next tap makes a working one */
+async function dropWrongKey(){
+  try{
+    if(!SWREG || !SWREG.pushManager || !VAPID) return;
+    const s = await SWREG.pushManager.getSubscription(), k = s && s.options && s.options.applicationServerKey;
+    if(!k) return;
+    const want = b64u(VAPID), have = new Uint8Array(k);
+    if(have.length===want.length && have.every((v, i) => v===want[i])) return;
+    await s.unsubscribe(); PUSH_ERR = ""; refreshPush();
+  }catch(e){}
 }
 function b64u(s){ const p = "=".repeat((4 - s.length % 4) % 4), b = atob((s + p).replace(/-/g, "+").replace(/_/g, "/")); return Uint8Array.from(b, c => c.charCodeAt(0)); }
 // Gives up after ms, so a call that never answers can't freeze the button

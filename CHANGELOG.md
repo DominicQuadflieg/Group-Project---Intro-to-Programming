@@ -2,6 +2,10 @@
 
 Alle Versionen der App, die neueste oben. Alle Abschnitte mit *v2.15* gehören zur Version 2.15.0 (21.–22. Nov 2026).
 
+## Unreleased – iPhone push works
+
+On iPhone and Safari the app now subscribes with OneSignal's Safari key, so OneSignal can register the device; an old subscription with the wrong key is removed. The app only shows notifications as on when OneSignal knows the device. The reminder card is translated and matches the real push times.
+
 ## v2.15 – Usability check: no impossible numbers, and Undo
 
 A walk through the whole app with nonsense inputs (−3 km, 80 % incline, 600 min of yoga, 99 999 km per month, a 5-second loop goal) and every action that deletes or replaces something.
