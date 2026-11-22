@@ -2,6 +2,12 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Polar Flow CSV
+
+- Runs exported from Polar Flow as **CSV** can now be imported, as a single run (Log a run → watch file) and in “Bring your training history”, several files at once. NOVAFit reads date, start time, duration and distance; without a distance it uses the watch's per-second distances
+- Recognised by the content, so `.CSV` in capitals works too; other Polar sports (e.g. cycling) are skipped, treadmill runs count as treadmill
+- Clear error messages in all four languages; 5 new unit tests and a browser check with a real Polar export
+
 ## Unreleased – Sign out
 
 - New **Sign out** in Settings › Account. NOVAFit has no server account, so signing out removes the account and all training from this phone: it offers a backup first (to sign in again on any phone with “I already have an account”), asks for the password and then removes the training data, photos, Strava login, weather and news caches and turns off push reminders. Other sites' data stays

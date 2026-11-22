@@ -20,7 +20,7 @@ NOVAFit is a Progressive Web App in plain HTML, CSS and JavaScript, with no fram
 | `app/app.js` | The app: state, screens, sessions, storage, reviews, Progress, settings |
 | `app/plan.js` | Sign-up validation, questionnaire checks, strength splits, plan suggestions, which sports are on Train, the chapters of the weekly review |
 | `app/exercises.js` | Exercise library (124 exercises), workout templates, search, alternatives, checks for custom exercises |
-| `app/run.js` | Running: reading runs from screenshots and from GPX, TCX and FIT files, importing histories from Garmin and Strava, routes |
+| `app/run.js` | Running: reading runs from screenshots and from GPX, TCX, FIT and Polar Flow CSV files, importing histories from Garmin and Strava, routes |
 | `app/yoga.js` | Yoga sessions, timing, which session to suggest, tension and flexibility checks |
 | `app/muscles.js` | Which muscles were trained and how much |
 | `app/progress.js` | Progress cards per sport, small chart calculations, special Nova badges |

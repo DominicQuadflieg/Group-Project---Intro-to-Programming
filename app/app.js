@@ -1591,7 +1591,7 @@ function impChooserHtml(){
     ${card("out", "Strava archive", "The ZIP Strava emails you, or activities.csv from it", `${pick("Choose ZIP or CSV")}
       <details class="runnote"><summary>How do I get it?</summary><ol class="hsteps"><li>Open <b>strava.com</b> → <b>Settings → My Account</b>.</li><li><b>Download or Delete Your Account → Get Started</b>.</li><li><b>Request Your Archive</b>. Strava emails a download link, usually within a few hours.</li><li>Save the ZIP to Files and choose it here.</li></ol></details>`)}
     ${st ? card("check", stOn() ? "Strava · connected" : "Connect Strava", "Gets all your runs since 1 January, no download needed", `<button class="secondary hpick" data-act="histstrava">${stOn() ? "Get this year from Strava" : "Connect and get this year"}</button>`) : ""}
-    ${card("fit", "Files from your watch", "GPX, FIT or TCX, choose several at once (Polar, Coros, Suunto …)", pick("Choose files", true))}
+    ${card("fit", "Files from your watch", "GPX, FIT, TCX or Polar CSV, choose several at once (Polar, Coros, Suunto …)", pick("Choose files", true))}
   </div>`;
 }
 function impSheet(){
