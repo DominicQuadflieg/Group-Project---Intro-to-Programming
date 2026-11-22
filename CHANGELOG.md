@@ -2,6 +2,13 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Edge cases
+
+- Screenshots in Portuguese, Spanish, French and Italian are read correctly (dates, labels, "Tempo" as time).
+- A full phone storage is no longer silent: the app says so once and points to the backup.
+- A new account sees one short card per sport on Progress instead of many empty cards.
+- Earned badges are visible in dark mode.
+
 ## Unreleased – Menu, profile photo, install first on iPhone
 
 A compact menu: five groups, one line per setting that says what it is for, missing things in red, a profile photo (tap + to add, tap the photo to change or remove it), Nova default pack for photos, no footer; the guided tour explains the sections. On an iPhone in Safari, Create account first shows how to add NOVAFit to the Home Screen (Safari and the app keep separate data); anyone who signed up in Safari moves everything with Copy my data and Paste from Safari.
