@@ -430,19 +430,19 @@ function renderMe(){
   const nPh = (PHOTOS||[]).length;
   let h = nfHeadHtml();
   h += `<section class="mehead"><button class="meav" data-act="avatar" aria-label="${set.avatar ? "Change profile photo" : "Add a profile photo"}. ${st.thisWeek} of ${st.goal} sessions this week"><svg viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="33" class="trk"/><circle cx="36" cy="36" r="33" class="val" stroke-dasharray="${(C*pct).toFixed(1)} ${C.toFixed(1)}"/></svg>${set.avatar ? `<img src="${set.avatar}" alt="">` : `<b>${esc(initials(name))}</b><i class="meplus" aria-hidden="true">+</i>`}</button>
-    <div><h1>${esc(name)}</h1><p>Nova SBE${set.plan ? " · " + esc(set.plan.name) : ""}</p><button class="linkbtn" data-act="ob" data-do="edit">Edit profile and plan</button></div></section>`;
+    <div><h1>${esc(name)}</h1><p>Nova SBE${set.plan ? " · " + esc(set.plan.name) : ""}</p></div></section>`;
   h += countersHtml([[`${st.thisWeek}/${st.goal}`, "this week"], [st.streak, st.streak===1 ? "week in a row" : "weeks in a row"], [got, got===1 ? "badge" : "badges"]]);
   const row2 = (attrs, label, why, val, warn) => `<button class="merow two" ${attrs}><span><b>${label}</b><em>${why}</em></span>${val!=null && val!=="" ? `<small class="${warn?"warn":""}">${esc(String(val))}</small>` : ""}<span class="chev" aria-hidden="true">›</span></button>`;
   const grp2 = (id, t, note, rows) => `<section class="megrp two" id="${id}"><h2>${t}${note ? `<small>${note}</small>` : ""}</h2><div>${rows}</div></section>`;
   const bk = S.settings.backupAt ? new Date(S.settings.backupAt).toLocaleDateString("en-GB",{day:"numeric",month:"short"}) : "Never";
   h += grp2("me-plan", "You and your plan", "",
     row2(sp("profile"), "Profile and body", "For calories and starting weights", [num(set.bodyKg)>0 ? fmt(num(set.bodyKg)) + " kg" : "", set.body && set.body.cm ? set.body.cm + " cm" : ""].filter(Boolean).join(" · ")) +
-    row2(sp("goal"), "Weekly goal", "Sessions that make a good week", `${set.goal}×`) +
-    row2('data-act="ob" data-do="edit"', "My plan", "Your days for gym, run and yoga", set.plan ? set.plan.name : "Not set", !set.plan) +
+    // one row for the plan: it sets the sessions per week too (no separate weekly goal)
+    row2('data-act="ob" data-do="edit"', "My plan", "Sessions per week and your days for gym, run and yoga", set.plan ? `${set.goal}× · ${set.plan.name}` : "Not set", !set.plan) +
     row2('data-act="runplan"', "Running goal", "Towards 10 km or a half marathon", set.runPlan ? planTitle(set.runPlan) : "Not set") +
     row2(sp("account"), "Account", "Name, email, password", pr.email || ""));
   h += grp2("me-remind", "Reminders and weather", "",
-    row2(sp("push"), "Push notifications", "A nudge on your training days", push==="on" ? "On" : "Off", push!=="on") +
+    row2(sp("push"), "Push notifications", "Reminders and your weekly review", push==="on" ? "On" : "Off", push!=="on") +
     row2(sp("cal"), "Add to my calendar", "Training days in your calendar", "") +
     row2(sp("weather"), "Running weather", "Forecast for your runs, where you are", set.wxGeo===true ? "Where I am" : NFRun.WX_HOME.place) +
     (stravaSettings() ? row2(sp("strava"), "Strava", "New runs come in by themselves", stGet() ? "Connected" : "Not connected") : ""));
@@ -4894,7 +4894,7 @@ function accountHtml(){
     <p style="margin:0"><b>${esc(p.name)}</b><br><span class="small muted">${esc(p.email)} · saved on this phone only</span></p>
     ${S.settings.body ? `<p class="small muted" style="margin:0">${esc(SEX_TXT[S.settings.body.sex]||"")} · ${esc(S.settings.body.age)} years${num(S.settings.bodyKg)>0 ? " · " + fmt(num(S.settings.bodyKg)) + " kg" : ""}${S.settings.body.cm ? " · " + esc(S.settings.body.cm) + " cm" : ""}</p>` : ""}
     <p class="small muted" style="margin:0">Plan: ${esc((S.settings.plan||{}).name || "none yet")}</p>
-    <div class="row2"><button class="secondary" data-act="ob" data-do="edit">Edit profile and plan</button><button class="secondary" data-act="ob" data-do="pwsheet">Change password</button></div>
+    <div class="row2"><button class="secondary" data-act="ob" data-do="edit">Change my plan</button><button class="secondary" data-act="ob" data-do="pwsheet">Change password</button></div>
     <button class="secondary" data-act="ob" data-do="lock">Lock app</button>
     <button class="secondary danger" data-act="signout">Sign out</button></div>`;
 }
