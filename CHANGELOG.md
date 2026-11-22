@@ -15,6 +15,29 @@ Alle Versionen der App, die neueste oben.
 
 - In Save a new template every exercise starts at 0 sets; set 1 to 10 sets per exercise with + and −. The template keeps them.
 - During a workout, ⋯ › Remove a set takes away a set, also one of the planned ones.
+## Unreleased – Polar Flow CSV
+
+- Runs exported from Polar Flow as **CSV** can now be imported, as a single run (Log a run → watch file) and in “Bring your training history”, several files at once. NOVAFit reads date, start time, duration and distance; without a distance it uses the watch's per-second distances
+- Recognised by the content, so `.CSV` in capitals works too; other Polar sports (e.g. cycling) are skipped, treadmill runs count as treadmill
+- Clear error messages in all four languages; 5 new unit tests and a browser check with a real Polar export
+
+## Unreleased – Runs near you in the new design
+
+- *Runs near you* is now built from the same parts as the running and yoga menus: two sections with a small heading, a serif title and a short line (“Close by · Routes near you”, “From where you are · A loop from here”)
+- Routes are rows like “Outdoor run” (stripe, serif name, distance, arrow); tapping one opens the description with *Directions* and *Start this run*, so only one pair of buttons shows at a time
+- The loop button reads “Make me a loop · 8 km” (it said “Make a 8 km loop”); *Start this run* is the main button in blue
+- Works in light and dark mode and in all four languages; the browser tests open and close a route too
+
+## Unreleased – External services in the README
+
+- New section *External services and APIs* in the README: every outside service NOVAFit uses (openrouteservice, Open-Meteo, BigDataCloud, the Nova SBE news page, OneSignal, Strava, Tesseract.js via jsDelivr, Google Fonts, Google Maps links), what for, where in the code, which key it needs and what is sent
+- Credits name Open-Meteo (CC BY 4.0), openrouteservice with OpenStreetMap data (ODbL) and BigDataCloud
+
+## Unreleased – Runs near you is back in the running menu
+
+- *Train › Running* has a row **Runs near you** again (it was taken out in #39, so the routes and the loop from here could not be opened anymore, even though the route service is set up on the live site)
+- The sheet is now in all four languages: titles, buttons, route names and descriptions, distances (“about 5 km · 3 km away”), loop texts and errors; place names stay as they are
+- Three browser tests: the menu opens the sheet with the nearest routes and a loop that starts a run; without the route key the routes still work; in German nothing stays in English
 
 ## Unreleased – Sign out
 

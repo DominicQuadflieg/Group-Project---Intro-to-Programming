@@ -46,13 +46,13 @@ New users can bring their runs from other apps right after choosing a plan (“B
 | Garmin Connect | the activity list (CSV) | connect.garmin.com → *Activities → All Activities* → scroll until the year is loaded → *Export CSV* |
 | Strava | the archive (ZIP) or `activities.csv` from it | strava.com → *Settings → My Account → Download or Delete Your Account → Request Your Archive* |
 | Strava (connected) | nothing, NOVAFit gets the runs since 1 January | needs the Strava connection above (not switched on in our live version) |
-| Polar, Coros, Suunto, Apple Watch … | several GPX, FIT or TCX files at once | export from the app of the watch |
+| Polar, Coros, Suunto, Apple Watch … | several GPX, FIT or TCX files at once (Polar also CSV) | export from the app of the watch, Polar on flow.polar.com → session → Export |
 
 A preview shows the number of runs and kilometres, with the time range (this year, last 12 months, everything), walks on or off, and kilometres or miles for Garmin files. Rides and other sports are left out, runs that are already in NOVAFit are skipped, and an import can be undone right away. Everything is read on the phone; big Strava archives are not loaded completely, only the activity list inside.
 
 ## Runs near you
 
-The code for runs near you (`NEARBY_ROUTES` in `app/run.js`, `netlify/functions/route.mjs`) is still in the app, but its entry in the running menu was removed in #39. It suggests at most five runs:
+*Train › Running › Runs near you* suggests at most five runs (`NEARBY_ROUTES` in `app/run.js`, `netlify/functions/route.mjs`). The entry was taken out of the running menu in #39 and is back as its own row, in the menu's design:
 
 - **Up to 4 hand-picked routes** (`NEARBY_ROUTES` in `app/run.js`): Carcavelos seafront, Oeiras seafront, Paredão Estoril–Cascais and the Lisbon riverside at Belém, sorted by how far away they are. The weather location is used for this (rounded to about 1 km, Nova SBE if location is off). Routes that fit the next run of your running plan are marked. Lengths are approximate: it's a demo set, check them before you rely on them.
 - **A loop from here:** pick 3, 5, 8 or 10 km (or the length of your next plan run) and NOVAFit makes a round trip on foot paths from where you are, shows its shape and opens it in Google Maps. For this one request the position is sent to the route service, it isn't stored.

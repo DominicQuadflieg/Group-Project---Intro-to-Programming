@@ -535,14 +535,20 @@ a.dl{display:grid;place-items:center;text-decoration:none;color:var(--ink)}
 .runnote summary{list-style:none;color:var(--run);font-weight:600;font-size:14px;padding:2px 4px;cursor:pointer}
 .runnote summary::-webkit-details-marker{display:none}
 .runnote[open] summary{margin-bottom:8px}
-.nearc{display:flex;flex-direction:column;gap:6px;border:1px solid var(--line);border-left:4px solid var(--run);padding:12px 14px;background:var(--surface)}
-.nearc.fits{border-color:var(--run)}.nearc p{margin:0;font-size:13.5px;line-height:1.45;color:var(--ink)}
-.nearh{display:flex;justify-content:space-between;align-items:center;gap:8px}.nearh b{font-size:16px}
-.nearc small{color:var(--muted);font-size:12.5px}
-.nearfit{font:700 11px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--run);background:var(--run-soft);padding:3px 7px;white-space:nowrap}
-.nearbtn{display:flex;align-items:center;justify-content:center;text-decoration:none;color:var(--ink);font-size:14px}
+/* Runs near you: built from the running menu rows (.start) and the yoga menu sections (.yhub-*) */
+.nearsheet .nearsec{display:flex;flex-direction:column;gap:10px;padding-top:18px}
+.nearsheet .nearsec h4{margin:2px 0 0}.nearsheet .nearsec .yhub-desc{margin:0 0 4px}
+.nearrows{display:flex;flex-direction:column;gap:10px}
+.nearrow{width:100%;font:inherit;color:inherit}
+.nearrow .arrow{transition:transform .2s}.nearrow.open .arrow{transform:rotate(90deg)}
+.nearrow.open{border-color:var(--run);box-shadow:0 0 0 1px var(--run) inset}
+.nearfit{display:inline-block;margin-top:6px;font:700 11px var(--body);letter-spacing:.1em;text-transform:uppercase;color:var(--run);background:var(--run-soft);padding:3px 7px}
+.nearpanel{display:flex;flex-direction:column;gap:10px;margin:-4px 0 2px;padding:12px 14px;border:1px solid var(--line);border-top:0;background:var(--surface)}
+.nearpanel p{margin:0;font-size:14px;line-height:1.5;color:var(--ink)}
+.nearbtn{display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:14px}a.nearbtn{color:var(--ink)}
 .nearmap{width:100%;height:auto;background:var(--run-soft)}.nearmap path{fill:none;stroke:var(--run);stroke-width:3.5;stroke-linejoin:round;stroke-linecap:round}
 .nearmap circle{fill:var(--hl);stroke:#fff;stroke-width:2}
+.nearloopkm{margin:0;font-size:14px}
 .nearkm{display:grid;grid-template-columns:repeat(auto-fit,minmax(56px,1fr));gap:6px}
 .nearkm button{border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 4px;font:600 13.5px var(--body);cursor:pointer}
 .nearkm button[aria-pressed="true"]{border-color:var(--run);background:var(--run-soft);color:var(--run)}

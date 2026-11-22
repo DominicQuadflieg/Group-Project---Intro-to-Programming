@@ -152,3 +152,53 @@ test("a run that is already saved is found", () => {
   assert.equal(R.findDuplicate([{ start: pm, run: { km: 5 } }], am, 7.72), null);
   assert.equal(R.findDuplicate(h, 0, 7.72), null);
 });
+
+/* ---------- Polar Flow CSV ---------- */
+// Built like Polar Flow's export: summary header and row, then one row per second
+function polarCsv({ sport = "RUNNING", km = "12.52", dur = "01:13:43", date = "2026-11-15", time = "17:40:36", lastM = "12518.20", german = false } = {}) {
+  const head = german
+    ? "Name,Sportart,Datum,Startzeit,Dauer,Gesamtdistanz (km),Durchschnittliche Herzfrequenz (bpm)"
+    : "Name,Sport,Date,Start time,Duration,Total distance (km),Average heart rate (bpm),Average speed (km/h),Calories";
+  return [head, `Test Runner,${sport},${date},${time},${dur},${km},139,10.2,946`,
+    "Sample rate,Time,HR (bpm),Speed (km/h),Pace (min/km),Cadence,Altitude (m),Stride length (m),Distances (m),Temperatures (C),Power (W)",
+    "1,00:00:00,,0.0,00:00,0,,,0.00,,", ",00:00:01,120,9.0,06:40,78,23,,2.50,,", `,01:13:43,151,4.6,13:09,79,22,,${lastM},,`].join("\r\n");
+}
+const u8 = s => new TextEncoder().encode(s);
+
+test("Polar CSV is recognised by its content, also with an upper-case .CSV name", () => {
+  assert.equal(R.fileKind("Julius_2026-11-15_17-40-36.CSV", u8(polarCsv())), "polarcsv");
+  assert.equal(R.fileKind("run.csv", u8(polarCsv({ german: true }))), "polarcsv");
+  assert.equal(R.fileKind("activities.csv", u8("Activity ID,Activity Date,Activity Name,Activity Type\n1,x,y,Run")), "csv"); // Strava stays a list
+});
+
+test("Polar CSV gives date, distance and time of the session", () => {
+  const r = R.parseActivity("polarcsv", u8(polarCsv()));
+  assert.equal(r.km, 12.52);
+  close(r.min, 73 + 43 / 60);
+  assert.equal(r.at, new Date(2026, 10, 15, 17, 40, 36).getTime()); // local time like on the watch
+  assert.equal(r.sport, "running");
+});
+
+test("Polar CSV without a summary distance uses the per-second distances", () => {
+  const r = R.parsePolarCsv(polarCsv({ km: "", lastM: "5000.00" }));
+  assert.equal(r.km, 5);
+});
+
+test("Polar CSV: other sports are refused, broken files explained", () => {
+  assert.throws(() => R.parseActivity("polarcsv", u8(polarCsv({ sport: "CYCLING" }))), /not a run/);
+  assert.throws(() => R.parsePolarCsv(polarCsv({ date: "", time: "" })), /date/);
+  assert.throws(() => R.parsePolarCsv("Name,Foo\n1,2"), /not a Polar/);
+  assert.ok(R.parseActivity("polarcsv", u8(polarCsv({ sport: "TREADMILL_RUNNING" }))).km > 0);
+});
+
+test("Polar CSV in the history import becomes one run", () => {
+  const h = R.readHistoryCsv(polarCsv());
+  assert.equal(h.source, "polar");
+  assert.equal(h.items.length, 1);
+  assert.equal(h.items[0].entry.run.km, 12.52);
+  const bike = R.readHistoryCsv(polarCsv({ sport: "CYCLING" }));
+  assert.equal(bike.items.length, 0);
+  assert.equal(bike.other, 1);
+  const tread = R.readHistoryCsv(polarCsv({ sport: "TREADMILL_RUNNING" }));
+  assert.equal(tread.items[0].entry.run.mode, "band");
+});
