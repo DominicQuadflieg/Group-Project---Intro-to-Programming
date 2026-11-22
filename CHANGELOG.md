@@ -9,6 +9,11 @@ Alle Versionen der App, die neueste oben.
 - Wrong or empty password: an error next to the field; after 5 wrong tries a 30-second pause, like unlocking
 - In all four languages; one unit test and three browser tests (wrong password, only lock, full sign out)
 
+## Unreleased – Allow notifications on iPhone
+
+- Tapping Allow notifications in the installed iPhone app now shows the question right away (it was asked too late, so iOS ignored the tap).
+- The app always says what happened: on, blocked (with where to allow it) or not possible right now.
+
 ## Unreleased – Push messages in four languages
 
 - The weekly and review push messages come in English, Portuguese, German or Italian; the app tells OneSignal the language chosen in the app where the browser allows it.
@@ -26,6 +31,12 @@ Alle Versionen der App, die neueste oben.
 - A full phone storage is no longer silent: the app says so once and points to the backup.
 - A new account sees one short card per sport on Progress instead of many empty cards.
 - Earned badges are visible in dark mode.
+
+## Unreleased – The cursor stays where you tapped
+
+- **Fixed:** on a slow phone, the sign-up form (and the form for your own exercise) could move the cursor back to the first field just after you tapped the next one, so your email landed in the name field. The app now only places the cursor when you haven't chosen a field yet
+- Found through a browser test that failed now and then on GitHub; a new test stops the page's clock to reproduce it every time
+- When the sign-up in a browser test doesn't reach the next step, the test now says what the screen showed (step, error messages, which fields were filled, whether the account was saved) instead of only “timeout”
 
 ## Unreleased – Menu, profile photo, install first on iPhone
 

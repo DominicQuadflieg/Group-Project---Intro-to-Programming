@@ -3230,7 +3230,9 @@ function guideSheet(id, back){
   const ex = EXN[id]; if(!ex) return;
   const g = GUIDE[id] || {}, focus = g.f || NFEx.focusOf(ex);
   const steps = g.s || [ex.cue].filter(Boolean);
-  sheet(`<p class="eyebrow">How to · ${esc(ex.part||"")} · ${esc(NFEx.TYPES[ex.type]||"")}</p><h3 style="margin:-6px 0 0">${esc(ex.n)}</h3>${focus?`<p class="muted small" style="margin:-4px 0 0">🎯 ${esc(focus)}</p>`:""}
+  // ✕ stays in the top corner while scrolling; from the library it goes back to the list
+  const x = `<button type="button" class="sheetx" data-act="${back ? "libback" : "closesheet"}" aria-label="${back ? "Back to the exercise list" : "Close"}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>`;
+  sheet(`${x}<p class="eyebrow">How to · ${esc(ex.part||"")} · ${esc(NFEx.TYPES[ex.type]||"")}</p><h3 style="margin:-6px 0 0">${esc(ex.n)}</h3>${focus?`<p class="muted small" style="margin:-4px 0 0">🎯 ${esc(focus)}</p>`:""}
     ${ex.img ? `<div class="exdraw n${ex.img.length}">${ex.img.map((c,i) => `<figure><img src="img/ex/${id}-${i+1}.svg" alt="${esc(ex.n)}: ${esc(c.toLowerCase())}" loading="lazy"><figcaption>${ex.img.length>1?`<b>${i+1}</b> `:""}${esc(c)}</figcaption></figure>`).join("")}</div>
       <p class="credit">Drawings: ${ex.imgSrc==="wg" ? `<a href="https://github.com/bryllim/workout-guide" target="_blank" rel="noopener">Workout Guide</a> by Bryl Lim, based on ` : ""}<a href="https://github.com/everkinetic/data" target="_blank" rel="noopener">Everkinetic</a>, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a></p>`
       : poseSvg(EXPOSE[id] || PAT_POSE[ex.pat], "expose")}
@@ -3523,7 +3525,7 @@ function libListHtml(){
     const L = (e.n.charAt(0) || "#").toUpperCase();
     if(!LIB.q && L!==letter){ letter = L; h += `<p class="lsec" aria-hidden="true">${esc(L)}</p>`; }
     const has = mode==="add" && inSession(e.id), on = mode==="pick" && sel.includes(e.id);
-    const act = mode==="pick" ? "libpick" : mode==="add" ? "libadd" : "guide";
+    const act = mode==="pick" ? "libpick" : mode==="add" ? "libadd" : "libguide";
     const sub = `${esc(e.part)}${e.eq ? " · " + esc(e.eq) : ""}${e.custom ? " · your exercise" : ""}${has ? " · added" : ""}`;
     h += `<div class="librow2${on?" on":""}"><button type="button" class="lr-main" data-act="${act}" data-ex="${e.id}"${mode==="pick" ? ` aria-pressed="${on}"` : ""}${has ? ` aria-disabled="true"` : ""}>${exThumb(e)}<span class="lr-t"><b>${esc(e.n)}</b><small>${sub}</small></span>${mode==="pick" ? `<span class="lr-ck">${on ? CK_ICO : ""}</span>` : ""}</button>${mode!=="browse" ? `<button type="button" class="lr-info" data-act="libguide" data-ex="${e.id}" aria-label="How to do ${esc(e.n)}">${INFO_ICO}</button>` : ""}</div>`;
   });
@@ -3540,6 +3542,13 @@ function libSheet(){
     <button class="secondary" data-act="${pick && LIB.build ? "libpickdone" : "closesheet"}">${pick && LIB.build ? "‹ Back" : "Close"}</button>`);
 }
 function openLibrary(mode){ LIB = {q:"", part:"", eq:"", mode}; libSheet(); }
+// Back from an exercise: same search, filters and scroll position, focus on the exercise you opened
+function libRestore(){
+  const sh = $(".sheet"); if(!sh) return;
+  sh.scrollTop = LIB.scroll || 0;
+  const row = LIB.last && sh.querySelector(`.lr-main[data-ex="${LIB.last}"]`);
+  if(row){ try{ row.focus({preventScroll:true}); }catch(e){} }
+}
 // Picks exercises for an own day during onboarding: several at once, then back to the day list
 function openPicker(i){ const day = OB.a.own.days[i]; LIB = {q:"", part:"", eq:"", mode:"pick", day:i, sel:(day.ex||[]).slice()}; libSheet(); }
 const pickLabel = () => { const n = (LIB.sel||[]).length; return n ? `Done (${n})` : "Done"; };
@@ -3555,7 +3564,8 @@ function libNewSheet(err, val){
       <div class="row2"><button type="button" class="secondary" data-act="libback">‹ Back</button><button class="primary" type="submit">Create</button></div>
     </form>`);
   const first = document.querySelector('#cx-form [aria-invalid="true"]') || (!val.name ? document.getElementById("cx-name") : null);
-  if(first) setTimeout(() => { try{ first.focus({preventScroll:true}); }catch(e){} }, 50);
+  // like the onboarding: don't take the cursor away from a field the user already chose
+  if(first) setTimeout(() => { const a = document.activeElement; if(a && a!==first && a.closest && a.closest("#cx-form")) return; try{ first.focus({preventScroll:true}); }catch(e){} }, 50);
 }
 function libCreate(form){
   const val = {name:form.name.value, part:form.part.value, eq:form.eq.value, type:form.type.value};
@@ -4636,7 +4646,15 @@ function renderOnboard(){
     }
   }
   app.innerHTML = h;
-  const f = app.querySelector("input:not([hidden])"); if(f && !f.value) setTimeout(() => { try{ f.focus({preventScroll:true}); }catch(e){} }, 50);
+  // Put the cursor in the first empty field, but never take it away from a field the user already chose
+  // (on a slow phone the timer can fire after they tapped the next field, and their typing would land in the wrong one)
+  const f = app.querySelector("input:not([hidden])");
+  if(f && !f.value) setTimeout(() => {
+    const a = document.activeElement;
+    if(a && a!==document.body && a!==f && app.contains(a) && /INPUT|TEXTAREA|SELECT/.test(a.tagName)) return;
+    if(!f.isConnected || f.value) return;
+    try{ f.focus({preventScroll:true}); }catch(e){}
+  }, 50);
 }
 
 function obError(id, msg){
@@ -5075,8 +5093,8 @@ document.addEventListener("click", async ev => {
     case "libfilter": LIB[b.dataset.k] = b.dataset.v; document.querySelectorAll(`[data-act="libfilter"][data-k="${b.dataset.k}"]`).forEach(x => x.setAttribute("aria-pressed", String(x.dataset.v===b.dataset.v))); { const l = $("#liblist"); if(l) l.innerHTML = libListHtml(); } break;
     case "libadd": if(b.getAttribute("aria-disabled")!=="true") libAdd(b.dataset.ex); break;
     case "libnew": libNewSheet(); break;
-    case "libback": libSheet(); break;
-    case "libguide": guideSheet(b.dataset.ex, true); break;
+    case "libback": libSheet(); libRestore(); break;
+    case "libguide": { const sh = $(".sheet"); LIB.scroll = sh ? sh.scrollTop : 0; LIB.last = b.dataset.ex; guideSheet(b.dataset.ex, true); break; }
     case "libpick": {
       const id = b.dataset.ex, sel = LIB.sel = LIB.sel || [], i = sel.indexOf(id);
       if(i>=0) sel.splice(i, 1);
@@ -5318,13 +5336,19 @@ function initPush(){
   document.head.appendChild(sc);
 }
 async function enablePush(){
-  if(!OS) return;
+  if(!OS){ toast("Notifications are still loading. Try again in a moment."); return; }
+  // On an iPhone the question "Allow notifications?" only appears if it is asked right in the tap,
+  // before anything else waits. OneSignal's own request waits for its setup first, so iOS ignored the tap.
+  let ask = null;
+  try{ if("Notification" in window && Notification.permission==="default") ask = Notification.requestPermission(); }catch(e){}
   try{
-    await OS.Notifications.requestPermission();
-    if(OS.Notifications.permission){ try{ await OS.User.PushSubscription.optIn(); }catch(e){} }
+    if(ask) await ask; else await OS.Notifications.requestPermission();
+    if(("Notification" in window ? Notification.permission==="granted" : OS.Notifications.permission)) await OS.User.PushSubscription.optIn();
   }catch(e){}
   refreshPush(); syncTags();
   if(push==="on") toast("Notifications are on.");
+  else if(push==="denied") toast("Notifications are blocked. Allow them in your phone's settings under Notifications → NOVAFit.");
+  else toast("Notifications couldn't be turned on. Close NOVAFit completely, open it again and try once more.");
 }
 
 /* Direktlinks aus Push-Nachrichten: #woche öffnet den Wochenrückblick, #yoga startet Yoga, #studybreak die Lernpause */
