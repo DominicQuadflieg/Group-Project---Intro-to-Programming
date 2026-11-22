@@ -1,6 +1,10 @@
 /* NOVAFit · translations: English, Portuguese (Portugal), German, Italian.
    One row per text. {0}, {1} … are numbers, {a}, {b} … names, months or weekdays (see i18n.js). Generated from the app's texts; edit by hand. */
 NFI18N.load([
+["Before the swap: {0} set of {a}, saved with this session.", "Antes da troca: {0} série de {a}, guardada com este treino.", "Vor dem Tausch: {0} Satz {a}, mit dieser Einheit gespeichert.", "Prima dello scambio: {0} serie di {a}, salvata con questo allenamento."],
+["Before the swap: {0} sets of {a}, saved with this session.", "Antes da troca: {0} séries de {a}, guardadas com este treino.", "Vor dem Tausch: {0} Sätze {a}, mit dieser Einheit gespeichert.", "Prima dello scambio: {0} serie di {a}, salvate con questo allenamento."],
+["Machine taken? Choose an alternative. Sets you already did stay saved with this session.", "Máquina ocupada? Escolhe uma alternativa. As séries que já fizeste ficam guardadas com este treino.", "Gerät besetzt? Wähl eine Alternative. Sätze, die du schon gemacht hast, bleiben in dieser Einheit gespeichert.", "Macchina occupata? Scegli un'alternativa. Le serie che hai già fatto restano salvate con questo allenamento."],
+["Machine taken? Choose an alternative.", "Máquina ocupada? Escolhe uma alternativa.", "Gerät besetzt? Wähl eine Alternative.", "Macchina occupata? Scegli un'alternativa."],
 ["Help: {0} to {1} kg", "Ajuda: {0} a {1} kg", "Hilfe: {0} bis {1} kg", "Aiuto: da {0} a {1} kg"],
 ["Reps: a whole number from {0} to {1}", "Repetições: um número inteiro de {0} a {1}", "Wiederholungen: eine ganze Zahl von {0} bis {1}", "Ripetizioni: un numero intero da {0} a {1}"],
 ["Time: {0} to {1} minutes", "Tempo: {0} a {1} minutos", "Zeit: {0} bis {1} Minuten", "Tempo: da {0} a {1} minuti"],

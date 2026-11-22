@@ -2,6 +2,12 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Swapping an exercise keeps your sets
+
+- Machine taken after two sets? Swapping the exercise used to delete the sets you had already done (a small grey note said so). They now stay with the session, are saved with it, and a line under the new exercise says so (“Before the swap: 2 sets of …”). Swapping back brings them back, followed by fresh sets
+- “Machine taken? Choose an alternative.” is translated now
+- `swapSets` in `exercises.js` with a unit test; one new browser test
+
 ## Unreleased – Set numbers are checked
 
 - Reps and weights in a gym session are checked while you type: reps a whole number from 1 to 200, weight 0 to 500 kg (assistance 0 to 200 kg), timed exercises 1 to 3600 seconds or 0.5 to 300 minutes. Until now −5 reps, letters or 99 999 kg were saved and spoiled records and totals

@@ -228,3 +228,19 @@ test("the limits fit every set the library suggests", () => {
     assert.ok(X.setOk({ r: String(lo), kg: "" }, e) && X.setOk({ r: String(hi), kg: "" }, e), e.id);
   }
 });
+
+/* ---------- swapping an exercise keeps what was done ---------- */
+test("swapSets keeps the done sets of the old exercise and brings them back on swapping back", () => {
+  const fresh = n => Array.from({ length: n }, () => ({ r: "", kg: "", ok: false }));
+  const start = { leg: [{ r: "10", kg: "80", ok: true }, { r: "10", kg: "80", ok: false }, { r: "", kg: "", ok: false }], row: [{ r: "8", kg: "40", ok: true }] };
+  const a = X.swapSets(start, "leg", "hack", fresh(3));
+  assert.deepEqual(a.leg, [{ r: "10", kg: "80", ok: true }]);           // only the done set stays
+  assert.equal(a.hack.length, 3);
+  assert.deepEqual(a.row, start.row);                                    // other exercises untouched
+  assert.equal(start.leg.length, 3);                                     // input not changed
+  const b = X.swapSets(a, "hack", "leg", fresh(3));
+  assert.equal(b.hack, undefined);                                       // nothing done on the alternative
+  assert.deepEqual(b.leg[0], { r: "10", kg: "80", ok: true });           // the done set is back …
+  assert.equal(b.leg.length, 3);                                         // … followed by fresh ones
+  assert.deepEqual(X.swapSets({ x: [{ r: "5", kg: "" }] }, "x", "y", fresh(1)).x, [{ r: "5", kg: "" }]);   // old entries without ok
+});
