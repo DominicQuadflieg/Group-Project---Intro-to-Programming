@@ -489,7 +489,17 @@
     return out;
   }
 
+  /* ---------- signing out ----------
+     Everything NOVAFit keeps in the browser's storage starts with one of these prefixes:
+     po- (training data, weather), nf- (news, tab, tour), novafit- (Strava login, imports).
+     Signing out removes exactly these and leaves other sites' or tools' keys alone. */
+  const APP_KEY = /^(po-|nf-|novafit-)/;
+  function appKeys(keys) {
+    return (Array.isArray(keys) ? keys : []).filter(k => typeof k === "string" && APP_KEY.test(k));
+  }
+
   const api = {
+    appKeys,
     KINDS, KIND_LABEL, DAY_NAMES, GOALS, LEVELS, MINUTES, MIN_DAYS, MAX_DAYS, MAX_GOALS, MAX_PER_KIND,
     SEXES, MIN_AGE, MAX_AGE, MIN_KG, MAX_KG, MIN_CM, MAX_CM,
     goalById, validateSignup, validateBody, toNumber, restingKcalPerDay, kcalFactor, validateDays, validateMix, validateGoals, validateAnswers,
