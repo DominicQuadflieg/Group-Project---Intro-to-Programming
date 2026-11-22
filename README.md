@@ -167,6 +167,7 @@ Every change went through its own branch and pull request into `main`, with a sh
 | | 22 Nov | README and docs, rotating Today messages, backups, compact menu, iPhone install, edge cases ([#53](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/53)–[#57](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/57)) |
 | | 22 Nov | Four languages, push notifications in the app language, sign out, library and running fixes ([#58](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/58)–[#65](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/65)) |
 | | 22 Nov | Polar Flow import, external services in the README, Runs near you and running plan in the new design, sets in own templates, workout overview, Profile and body ([#66](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/66)–[#70](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/70)) |
+| v2.15 | 22 Nov | Push notifications on iPhone, checks on every typed-in number, editing saved sessions and Undo, backups that keep your account, demo data, translation gaps closed ([#71](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/71)–[#86](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/86)) |
 
 Every change in detail: [CHANGELOG.md](CHANGELOG.md).
 
