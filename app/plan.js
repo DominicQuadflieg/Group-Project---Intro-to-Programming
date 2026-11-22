@@ -417,6 +417,8 @@
         if (!ex.length) return { ok: false, error: `Add at least one exercise to ${label}`, day: i };
         if (ex.length > OWN_MAX_EX) return { ok: false, error: `Use ${OWN_MAX_EX} exercises or fewer on ${label}`, day: i };
         if (new Set(ex).size !== ex.length) return { ok: false, error: `${label} has an exercise twice`, day: i };
+        if (d.sets && typeof d.sets === "object" && ex.some(id => !(Math.floor(Number(d.sets[id]) || 0) >= 1)))
+          return { ok: false, error: `Add at least one set to every exercise on ${label}`, day: i };
       }
     }
     return { ok: true };

@@ -2,6 +2,12 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Own gym days and templates
+
+- Choose my own at sign-up: every exercise starts at 0 sets; set 1 to 10 with + and −. Exercises without a set are marked red.
+- Own templates can be edited from Your plan too, and deleted (Edit › Delete template). Past workouts keep their name; a plan day that used it gets a ready-made workout again.
+- New exercises: Pull-up (Weighted) and Chest Dip (Weighted), logged with the extra kg.
+
 ## Unreleased – Marathon, and session length from what's in it
 
 - Running goal: Finish a marathon, with an optional target time and a 16-week plan (long run up to 32 km, shorter the week before). If you raced today now shows a marathon time too; Marathon is also a goal at sign-up.
