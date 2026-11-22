@@ -2347,6 +2347,9 @@ function settingsSheet(part){
     profile: ["Profile and body", () => `
     <div class="card" style="background:var(--bg);border:0">
       <span class="lbl">My profile</span>
+      <span class="lbl" id="set-sex-l" style="margin-top:6px">Sex</span>
+      <div class="seg theme" id="sexseg" role="group" aria-labelledby="set-sex-l" style="grid-template-columns:repeat(2,1fr)">${Object.entries(SEX_TXT).map(([k,l]) => `<button data-act="bodysex" data-v="${k}" aria-pressed="${(st.body && st.body.sex)===k}">${l}</button>`).join("")}</div>
+      <div class="rungrid" style="margin-top:10px"><div><label class="lbl" for="set-age">Age</label><div class="field"><input inputmode="numeric" id="set-age" data-in="bodyage" maxlength="3" value="${esc((st.body && st.body.age) || "")}" placeholder="e.g. 21" aria-describedby="set-age-err"><span class="u">years</span></div><p class="err" id="set-age-err" role="alert"></p></div><div></div></div>
       <div class="rungrid"><div><label class="lbl" for="set-kg">Body weight</label><div class="field"><input inputmode="decimal" id="set-kg" data-in="bodykg" value="${esc(st.bodyKg)}" placeholder="e.g. 60"><span class="u">kg</span></div></div>
       <div><label class="lbl" for="set-cm">Height</label><div class="field"><input inputmode="numeric" id="set-cm" data-in="bodycm" value="${esc((st.body && st.body.cm) || "")}" placeholder="e.g. 175"><span class="u">cm</span></div></div></div>
       <p class="small muted" style="margin:6px 0 10px">Only used to estimate calories after a session.</p>
@@ -4498,7 +4501,8 @@ function obHead(back){
   const n = OB_STEPS[OB.step];
   return `<div class="ob-top">${left}${right}</div>${n ? `<div class="ob-prog" aria-hidden="true"><i style="width:${n/10*100}%"></i></div>` : ""}`;
 }
-const obStep = (n, of) => `<p class="ob-step">Step ${n} of ${of}</p>`;
+// When the plan is changed later, the "about you" step is skipped (it lives in Profile and body), so the count starts one lower
+const obStep = (n, of) => OB.mode==="edit" ? `<p class="ob-step">Step ${n-1} of ${of-1}</p>` : `<p class="ob-step">Step ${n} of ${of}</p>`;
 const errEl = (id) => `<p class="err" id="${id}" role="alert" aria-live="polite"></p>`;
 
 function renderOnboard(){
@@ -4560,7 +4564,7 @@ function renderOnboard(){
       break;
     }
     case "days":
-      h = obHead("body") + obStep(2, obTotal()) + `<h2>${firstName() ? "Hi " + esc(firstName()) + ", how" : "How"} often do you want to train?</h2>
+      h = obHead(OB.mode==="edit" ? "" : "body") + obStep(2, obTotal()) + `<h2>${firstName() ? "Hi " + esc(firstName()) + ", how" : "How"} often do you want to train?</h2>
         <p class="lead">Sessions per week. You can change this any time.</p>
         <div class="daysel" role="group" aria-label="Sessions per week">${[2,3,4,5,6].map(d => `<button class="opt" data-act="ob" data-do="days" data-v="${d}" aria-pressed="${a.days===d}">${d}</button>`).join("")}</div>
         <p class="lead" aria-live="polite">${{2:"A calm start. Perfect for busy exam weeks.",3:"The sweet spot for steady progress.",4:"Ambitious, with room to recover.",5:"Serious training. Plan your rest days well.",6:"Athlete mode. One rest day per week."}[a.days]||""}</p>
@@ -4728,7 +4732,7 @@ function obAct(b){
   const a = OB.a, d = b.dataset;
   switch(d.do){
     case "go": obGo(d.to); break;
-    case "edit": OB.body = null; startOnboarding("body", "edit"); break;
+    case "edit": OB.body = null; startOnboarding("days", "edit"); break;   // sex, age, weight and height live under Settings › Profile and body
     case "sex":
       (OB.body = OB.body || {}).sex = d.v; obError("ob-sex-err", "");
       document.querySelectorAll('[data-do="sex"]').forEach(x => x.setAttribute("aria-pressed", String(x.dataset.v===d.v)));
@@ -5176,6 +5180,7 @@ document.addEventListener("click", async ev => {
     case "storyclose": closeStory(); render(); break;
     case "restsound": S.settings.restSound = b.dataset.v==="1"; save(); if(b.dataset.v==="1"){ restAudio(); restBeep(); }
       document.querySelectorAll("#restsoundseg button").forEach(x => x.setAttribute("aria-pressed", x.dataset.v===b.dataset.v)); break;
+    case "bodysex": S.settings.body = S.settings.body || {}; S.settings.body.sex = b.dataset.v; save(); document.querySelectorAll("#sexseg button").forEach(x => x.setAttribute("aria-pressed", x===b)); break;
     case "kcalshow": S.settings.showKcal = b.dataset.v==="1"; save();
       document.querySelectorAll("#kcalseg button").forEach(x => x.setAttribute("aria-pressed", x.dataset.v===b.dataset.v)); break;
     case "goal": { S.settings.goal = Math.min(7, Math.max(1, S.settings.goal + (+b.dataset.d))); $("#goalv").textContent = S.settings.goal; save(); break; }
@@ -5246,6 +5251,9 @@ document.addEventListener("input", ev => {
   if(k==="ownname"){ const day = OB.a && OB.a.own && OB.a.own.days[+t.dataset.i]; if(day) day.name = t.value; return; }
   if(k==="name"){ S.settings.name = t.value; save(); return; }
   if(k==="bodykg"){ S.settings.bodyKg = t.value.trim(); save(); return; }
+  if(k==="bodyage"){ const v = t.value.trim(), age = Math.round(num(v)), er = $("#set-age-err"), okA = age>=NFPlan.MIN_AGE && age<=NFPlan.MAX_AGE;
+    if(er) er.textContent = !v || okA ? "" : T(`Enter an age between ${NFPlan.MIN_AGE} and ${NFPlan.MAX_AGE}`); t.setAttribute("aria-invalid", v && !okA ? "true" : "false");
+    if(okA){ S.settings.body = S.settings.body || {}; S.settings.body.age = age; save(); } return; }
   if(k==="bodycm"){ const cm = Math.round(num(t.value)); S.settings.body = S.settings.body || {};
     if(cm>=NFPlan.MIN_CM && cm<=NFPlan.MAX_CM) S.settings.body.cm = cm; else delete S.settings.body.cm; save(); return; }
   if(k==="time"){ S.settings.remTime = t.value || "18:00"; save(); return; }

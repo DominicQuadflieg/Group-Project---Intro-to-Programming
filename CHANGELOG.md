@@ -2,6 +2,10 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Profile and body in settings
+
+- Changing your plan starts with how often you want to train; sex, age, weight and height are set under Settings › Profile and body (sex and age are new there).
+
 ## Unreleased – Workout overview
 
 - + Add set right under each exercise; extra sets can be removed with −, the planned ones stay.
