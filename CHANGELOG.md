@@ -8,6 +8,13 @@ Alle Versionen der App, die neueste oben.
 - Recognised by the content, so `.CSV` in capitals works too; other Polar sports (e.g. cycling) are skipped, treadmill runs count as treadmill
 - Clear error messages in all four languages; 5 new unit tests and a browser check with a real Polar export
 
+## Unreleased – Runs near you in the new design
+
+- *Runs near you* is now built from the same parts as the running and yoga menus: two sections with a small heading, a serif title and a short line (“Close by · Routes near you”, “From where you are · A loop from here”)
+- Routes are rows like “Outdoor run” (stripe, serif name, distance, arrow); tapping one opens the description with *Directions* and *Start this run*, so only one pair of buttons shows at a time
+- The loop button reads “Make me a loop · 8 km” (it said “Make a 8 km loop”); *Start this run* is the main button in blue
+- Works in light and dark mode and in all four languages; the browser tests open and close a route too
+
 ## Unreleased – External services in the README
 
 - New section *External services and APIs* in the README: every outside service NOVAFit uses (openrouteservice, Open-Meteo, BigDataCloud, the Nova SBE news page, OneSignal, Strava, Tesseract.js via jsDelivr, Google Fonts, Google Maps links), what for, where in the code, which key it needs and what is sent
