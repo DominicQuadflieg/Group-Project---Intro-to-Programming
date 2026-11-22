@@ -1249,6 +1249,7 @@ function runSheet(){
     <button class="start" data-kind="run" data-act="runout"><span class="stripe"></span><span><b>Outdoor run</b><small>Upload a screenshot or enter it yourself</small><small>${lo?"Last done "+ago(lo.start)+" · "+fmt(num(lo.run.km))+" km":"Not done yet"}</small></span><span class="arrow">›</span></button>
     <button class="start" data-kind="run" data-act="runband"><span class="stripe"></span><span><b>Treadmill at the gym</b><small>Enter km and time from the display</small><small>${lb?"Last done "+ago(lb.start):"Not done yet"}</small></span><span class="arrow">›</span></button>
     <button class="start" data-kind="run" data-act="runplan"><span class="stripe"></span><span><b>My running goal</b><small>${p ? esc(planTitle(p)) + (pg.n ? ` · Week ${pg.i+1} of ${pg.n}` : "") : "Set a goal and get your running plan"}</small>${pg && pg.n ? `<span class="gbar"><i style="width:${Math.round(pg.f*100)}%"></i></span>` : ""}</span><span class="arrow">›</span></button>
+    <button class="start" data-kind="run" data-act="near"><span class="stripe"></span><span><b>Runs near you</b><small>Routes close by, or a loop from where you are</small></span><span class="arrow">›</span></button>
     ${stravaRow()}
     <button class="secondary" data-act="closesheet">Cancel</button></div>`);
 }
@@ -1532,7 +1533,7 @@ function nearSheet(){
       <button class="primary run" data-act="nearloop"${NEAR.busy ? " disabled" : ""}>${NEAR.busy ? "Making your loop …" : L ? `Make a new ${fmt(NEAR.km)} km loop` : `Make a ${fmt(NEAR.km)} km loop from here`}</button>
       <p class="small muted" style="margin:0">Uses your location once for this loop. It isn't saved.</p>`;
   sheet(`<h3>Runs near you</h3>
-    <p class="small muted" style="margin:0">${mine ? `Near ${esc(wxPlace())}` : `Near Nova SBE · <button class="txtbtn" data-act="nearloc">Use my location</button>`}${target ? ` · your plan: ${esc(nx.label)}` : ""}</p>
+    <p class="small muted" style="margin:0">${mine ? `<span>Near</span> <b translate="no">${esc(wxPlace())}</b>` : `<span>Near</span> <b translate="no">Nova SBE</b> · <button class="txtbtn" data-act="nearloc">Use my location</button>`}${target ? ` · <span>Your plan:</span> <b>${esc(nx.label)}</b>` : ""}</p>
     ${list.length ? list.map(card).join("") : `<p class="muted small" style="margin:0">No saved routes close to you yet.</p>`}
     <article class="nearc loopc"><div class="nearh"><b>A loop from here</b></div>${loop}</article>
     <button class="secondary" data-act="closesheet">Close</button>`);
