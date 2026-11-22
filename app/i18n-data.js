@@ -1834,5 +1834,15 @@ NFI18N.load([
 ["📍 Show the weather where I am", "📍 Mostrar o tempo onde estou", "📍 Wetter für meinen Standort zeigen", "📍 Mostra il meteo dove sono"],
 ["📤 Share", "📤 Partilhar", "📤 Teilen", "📤 Condividi"],
 ["🗑 Delete session", "🗑 Apagar treino", "🗑 Einheit löschen", "🗑 Elimina allenamento"],
-["🧘‍♀️ Start yoga", "🧘‍♀️ Começar yoga", "🧘‍♀️ Yoga starten", "🧘‍♀️ Inizia yoga"]
+["🧘‍♀️ Start yoga", "🧘‍♀️ Começar yoga", "🧘‍♀️ Yoga starten", "🧘‍♀️ Inizia yoga"],
+["Sign out", "Terminar sessão", "Abmelden", "Esci"],
+["Sign out of NOVAFit?", "Terminar sessão no NOVAFit?", "Von NOVAFit abmelden?", "Uscire da NOVAFit?"],
+["NOVAFit keeps your account and training on this phone, not on a server. Signing out removes them from this phone.", "O NOVAFit guarda a tua conta e os teus treinos neste telemóvel, não num servidor. Ao terminar a sessão, são removidos deste telemóvel.", "NOVAFit speichert dein Konto und deine Trainings auf diesem Handy, nicht auf einem Server. Beim Abmelden werden sie von diesem Handy entfernt.", "NOVAFit salva il tuo account e i tuoi allenamenti su questo telefono, non su un server. Uscendo, vengono rimossi da questo telefono."],
+["Back up first", "Faz primeiro uma cópia", "Zuerst ein Backup machen", "Prima fai il backup"],
+["With a backup file you can sign in again on any phone: “I already have an account” → Load backup file.", "Com um ficheiro de cópia podes voltar a entrar em qualquer telemóvel: “Já tenho conta” → Carregar ficheiro de cópia.", "Mit einer Backup-Datei kannst du dich auf jedem Handy wieder anmelden: „Ich habe schon ein Konto“ → Backup-Datei laden.", "Con un file di backup puoi rientrare su qualsiasi telefono: “Ho già un account” → Carica file di backup."],
+["Enter your password to confirm", "Introduz a tua palavra-passe para confirmar", "Gib zur Bestätigung dein Passwort ein", "Inserisci la password per confermare"],
+["Enter your password", "Introduz a tua palavra-passe", "Gib dein Passwort ein", "Inserisci la password"],
+["Sign out and remove my data", "Terminar sessão e remover os meus dados", "Abmelden und meine Daten entfernen", "Esci e rimuovi i miei dati"],
+["Only lock the app (keep my data)", "Só bloquear a app (manter os meus dados)", "Nur die App sperren (Daten behalten)", "Blocca solo l'app (mantieni i miei dati)"],
+["Signed out. Your data was removed from this phone.", "Sessão terminada. Os teus dados foram removidos deste telemóvel.", "Abgemeldet. Deine Daten wurden von diesem Handy entfernt.", "Uscita completata. I tuoi dati sono stati rimossi da questo telefono."]
 ]);

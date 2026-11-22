@@ -12,6 +12,7 @@ What is protected, and what isn't:
 Limits we know about:
 
 - **Data lives on the phone.** Training data is in the browser's storage. “Lock app” hides the app behind the password, but it is not encryption: someone with access to the unlocked phone and the browser's developer tools could read the data. A real fix needs accounts on a server.
+- **Signing out** (*Settings › Account › Sign out*) asks for the password, offers a backup first and then removes everything NOVAFit keeps on the phone: the training data, the photos, the Strava login, the weather and news caches, and it turns off push reminders. Keys of other sites are left alone (`appKeys` in `app/plan.js`).
 - **OneSignal** has to be loaded from its own address for major version 16, which can change without notice, so it can't be checked with Subresource Integrity.
 - **The rate limit** is kept in the memory of a function instance: it slows abuse down but resets when Netlify starts a new instance.
 - **The Strava tokens** are kept in the browser's storage on the phone (not in backups or the sync), like most web apps do.
