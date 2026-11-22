@@ -1,17 +1,6 @@
-// Push (OneSignal) + offline cache for NOVAFit
-importScripts("https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js");
+// Offline cache for NOVAFit. The file keeps its old name, so apps already on a home screen keep their service worker.
 
-// Badge on the app icon: set a "1" for training reminders and check-ins
-self.addEventListener("push", e => {
-  try{
-    const t = e.data ? e.data.text() : "";
-    if(/dein Training!|schon trainiert|your session|trained yet/i.test(t) && self.navigator && self.navigator.setAppBadge){
-      e.waitUntil(self.navigator.setAppBadge(1).catch(() => {}));
-    }
-  }catch(_){}
-});
-
-const CACHE = "novafit-v63";
+const CACHE = "novafit-v64";
 // Text recognition for run screenshots (a few MB, fixed version): own cache, so app updates don't download it again
 const OCR_CACHE = "novafit-ocr-v1";
 const FILES = ["./", "./index.html", "./exercises.js", "./plan.js", "./app.js", "./run.js", "./muscles.js", "./yoga.js", "./progress.js", "./tour.js", "./i18n.js", "./i18n-data.js", "./guide.js", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png", "./OneSignalSDKWorker.js", "./img/campus-1.svg", "./img/campus-2.svg", "./img/gym.svg", "./img/run.svg", "./img/yoga.svg"];

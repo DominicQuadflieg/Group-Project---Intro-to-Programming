@@ -448,7 +448,6 @@ function renderMe(){
     row2('data-act="runplan"', "Running goal", "Towards 10 km, a half marathon or a marathon", set.runPlan ? planTitle(set.runPlan) : "Not set") +
     row2(sp("account"), "Account", "Name, email, password", pr.email || ""));
   h += grp2("me-remind", "Reminders and weather", "",
-    row2(sp("push"), "Push notifications", "Reminders and your weekly review", push==="on" ? "On" : "Off", push!=="on") +
     row2(sp("cal"), "Add to my calendar", "Training days in your calendar", "") +
     row2(sp("weather"), "Running weather", "Forecast for your runs, where you are", set.wxGeo===true ? "Where I am" : NFRun.WX_HOME.place) +
     (stravaSettings() ? row2(sp("strava"), "Strava", "New runs come in by themselves", stGet() ? "Connected" : "Not connected") : ""));
@@ -579,11 +578,8 @@ function examNoteHtml(){
 }
 function todayTabHtml(st){
   let h = heroHtml(st);
-  if(push==="install" && !S.settings.hideInstall){
-    h += `<section class="card nudge"><b>Install as an app</b><p class="small muted" style="margin:0">In Safari, tap <b>Share</b> at the bottom and then <b>“Add to Home Screen”</b>. The app then opens full screen and can remind you to train.</p>${S.history.length || S.settings.profile ? `<p class="small" style="margin:6px 0 0">Signed up here already? <button class="linkbtn" data-act="copydata" style="text-decoration:underline">Copy my data</button> and paste it in the app.</p>` : ""}<button class="addset" data-act="hideinstall" style="align-self:flex-end">Hide</button></section>`;
-  }else if(push==="off" && !S.settings.hidePush){
-    h += `<section class="card nudge"><b>Turn on reminders</b><p class="small muted" style="margin:0">A short nudge on Monday morning, Wednesday evening and Friday lunchtime, your weekly review on Sunday evening, and a reminder after a few days without training.</p>
-      <div class="row2"><button class="secondary" data-act="hidepush">Later</button><button class="primary" style="height:48px;font-size:17px" data-act="pushon">Allow</button></div></section>`;
+  if(needsInstall && !S.settings.hideInstall){
+    h += `<section class="card nudge"><b>Install as an app</b><p class="small muted" style="margin:0">In Safari, tap <b>Share</b> at the bottom and then <b>“Add to Home Screen”</b>. The app then opens full screen and works offline.</p>${S.history.length || S.settings.profile ? `<p class="small" style="margin:6px 0 0">Signed up here already? <button class="linkbtn" data-act="copydata" style="text-decoration:underline">Copy my data</button> and paste it in the app.</p>` : ""}<button class="addset" data-act="hideinstall" style="align-self:flex-end">Hide</button></section>`;
   }
 
   h += yearCardHtml();   // week and month reviews are slides in the big card now (heroExtras)
@@ -1586,7 +1582,7 @@ function stAdd(list){
   const add = list.filter(e => !ids.has(e.id));
   if(!add.length) return 0;
   S.history.push(...add); S.history.sort((x, y) => x.start - y.start);
-  save(); checkBadges(false); syncTags();
+  save(); checkBadges(false);
   return add.length;
 }
 const stErrTxt = e => e && e.status===401 ? "Your Strava connection has ended. Connect again in the run menu."
@@ -1754,7 +1750,7 @@ function impAdd(){
   if(!p.add.length) return;
   S.history.push(...p.add); S.history.sort((x, y) => x.start - y.start);
   const fresh = checkBadges(false);
-  save(); syncTags();
+  save();
   HI.done = {n:p.add.length, km:p.km, badges:fresh.length, ids:p.add.map(e => e.id)};
   if(screen==="onboard"){ OB.hist = HI.done; closeSheet(); renderOnboard(); return; }
   render();
@@ -1767,7 +1763,7 @@ function impUndo(){
   const d = HI && HI.done; if(!d) return;
   const ids = new Set(d.ids);
   S.history = S.history.filter(e => !ids.has(e.id));
-  save(); syncTags(); HI = null;
+  save(); HI = null;
   if(screen==="onboard"){ OB.hist = null; closeSheet(); renderOnboard(); } else { closeSheet(); render(); }
   toast(`Import undone, ${d.n} ${d.n===1 ? "run" : "runs"} removed.`);
 }
@@ -2288,7 +2284,7 @@ function finishSession(withPending){
   summary = buildSummary(e);
   S.history.push(e); S.history.sort((x, y) => x.start - y.start); S.active = null; rest = null; screen = "summary";
   summary.badges = checkBadges(false);
-  save(); closeSheet(); render(); window.scrollTo(0,0); syncTags();
+  save(); closeSheet(); render(); window.scrollTo(0,0);
 }
 function renderSummary(){
   const s = summary, e = s.e, w = W[e.type];
@@ -2532,15 +2528,9 @@ function settingsSheet(part){
       ${[["auto","Automatic"],["light","Light"],["dark","Dark"]].map(([k,l]) => `<button data-act="theme" data-v="${k}" aria-pressed="${st.theme===k}">${l}</button>`).join("")}</div>
       <p class="small muted" style="margin-top:6px">Automatic follows your phone's setting.</p></div>
 `],
-    push: ["Notifications", () => `
-    <div class="card" style="background:var(--bg);border:0">
-      <span class="lbl">Notifications</span>
-      <div data-push>${pushHtml()}</div>
-    </div>
-`],
     cal: ["Calendar reminders", () => `
     <div class="card" style="background:var(--bg);border:0">
-      <span class="lbl">Calendar reminders (alternative)</span>
+      <span class="lbl">Calendar reminders</span>
       <p class="small muted">Choose your training days and a time. The app turns them into weekly events with reminders for your phone calendar.</p>
       <div class="days" id="days">${WD.map((d,i) => `<button data-act="day" data-i="${i}" aria-pressed="${st.remDays.includes(i)}">${d}</button>`).join("")}</div>
       <div class="row2"><input class="inp" type="time" id="set-time" data-in="time" value="${esc(st.remTime)}" aria-label="Time"><button class="secondary" data-act="ics">Add to calendar</button></div>
@@ -4869,7 +4859,7 @@ function renderOnboard(){
       const p = S.settings.plan;
       h = `<div class="ob-top">${NF_MINI}</div><h2>You're all set${firstName() ? ", " + esc(firstName()) : ""}.</h2>
         <p class="lead">Your plan: <b style="color:var(--ink)">${esc(p ? p.name : "")}</b>. Your weekly goal is now ${p ? p.days : S.settings.goal} sessions, and the home screen shows what's next.</p>
-        <p class="note">Tip: install NOVAFit on your home screen and turn on reminders, so it can nudge you on training days.</p>
+        <p class="note">Tip: install NOVAFit on your home screen, so it opens full screen and works offline.</p>
         <div class="foot"><button class="primary" data-act="ob" data-do="finish">Start training</button></div>`;
       break;
     }
@@ -5068,9 +5058,8 @@ async function signOutSubmit(form){
 }
 async function signOutNow(){
   const wait = (p, ms) => Promise.race([p, new Promise(r => setTimeout(r, ms))]);
-  // outside services first, while we still know who this is: Strava access and push reminders
+  // outside services first, while we still know who this is: Strava access
   const t = stGet(); if(t) await wait(stFn({action:"deauth", access_token:t.access}).catch(() => {}), 1500);
-  try{ if(OS && OS.User && OS.User.PushSubscription) await wait(OS.User.PushSubscription.optOut(), 1500); }catch(e){}
   try{ if(navigator.clearAppBadge) navigator.clearAppBadge(); }catch(e){}
   if(ref){ try{ await wait(ref.set(normalize(null)), 3000); }catch(e){} ref = null; }
   // then this phone: training data, Strava login, weather, news, tour, tabs and the photos
@@ -5323,9 +5312,6 @@ document.addEventListener("click", async ev => {
     case "tmmusic": if(TM){ S.settings.yogaMusic = S.settings.yogaMusic===false; save(); if(S.settings.yogaMusic===false) medStop(false); else { try{ TM.ac && TM.ac.resume(); }catch(e){} medStart(); } drawTimer(); } break;
     case "tmskip": if(TM){ TM.end = Date.now(); if(TM.paused){ TM.paused = false; } tickTimer(); } break;
     case "tmstop": finishTimer(false); break;
-    case "pushon": enablePush(); break;
-    case "pushcopy": { const id = b.dataset.id; try{ await navigator.clipboard.writeText(id); toast("Device ID copied."); }catch(e){ toast("Copy didn't work. Select the ID and copy it by hand."); } break; }
-    case "hidepush": S.settings.hidePush = true; save(); renderHome(); break;
     case "hideinstall": S.settings.hideInstall = true; save(); renderHome(); break;
     case "themetoggle": S.settings.theme = isDark() ? "light" : "dark"; applyTheme(); save(); renderHome(); break;
     case "langsheet": langSheet(); break;
@@ -5608,159 +5594,14 @@ function applyTheme(){
 }
 try{ new MutationObserver(() => { if(!applying && (S.settings.theme==="dark"||S.settings.theme==="light") && root.getAttribute("data-theme")!==S.settings.theme) applyTheme(); }).observe(root, {attributes:true, attributeFilter:["data-theme"]}); }catch(e){}
 try{ matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { applyTheme(); if(screen==="home" && !isTyping()) renderHome(); }); }catch(e){}
-/* ================= Push-Benachrichtigungen (OneSignal, nur installierte Version) ================= */
-const ONESIGNAL_APP_ID = "94f5491b-178a-43d6-8176-bd21491da60d";   // OneSignal app "NOVAFit"
+/* ================= Installed app or browser ================= */
 const inClaude = !!window.claude;
 const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform==="MacIntel" && navigator.maxTouchPoints>1);
 const standalone = (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone===true;
-let OS = null, push = inClaude ? "claude" : "loading";   // claude | loading | install | unsupported | off | on | denied
-// Last reason why notifications failed (shown under Settings › Notifications › Check notifications)
-let PUSH_ERR = "";
-function pushState(){
-  if(inClaude) return "claude";
-  if(isIOS && !standalone) return "install";
-  if(!OS) return "loading";
-  try{
-    if(!OS.Notifications.isPushSupported()) return "unsupported";
-    if(OS.Notifications.permissionNative==="denied") return "denied";
-    return OS.Notifications.permission && OS.User.PushSubscription.optedIn!==false && OS.User.PushSubscription.id ? "on" : "off";
-  }catch(e){ return "unsupported"; }
-}
-function refreshPush(){ push = pushState(); document.querySelectorAll("[data-push]").forEach(el => el.innerHTML = pushHtml()); if(screen==="home" && !isTyping() && !$("#layer").innerHTML) renderHome(); }
-function pushHtml(){
-  switch(push){
-    case "on": return `<p class="small" style="margin:0;color:var(--good)">✓ Notifications are on.</p>${pushDiagHtml()}`;
-    case "off": return `<button class="primary" data-act="pushon">Allow notifications</button>${pushDiagHtml()}`;
-    case "denied": return `<p class="small muted" style="margin:0">Notifications are blocked. You can allow them in your iPhone settings under Notifications → NOVAFit.</p>${pushDiagHtml()}`;
-    case "install": return `<p class="small muted" style="margin:0">First add the app to your home screen (Share → Add to Home Screen) and open it from there. Then you can allow notifications.</p>${pushDiagHtml()}`;
-    case "unsupported": return `<p class="small muted" style="margin:0">This device or browser doesn't support notifications.</p>${pushDiagHtml()}`;
-    case "claude": return `<p class="small muted" style="margin:0">Push notifications are available in the installed app.</p>`;
-    default: return `<p class="small muted" style="margin:0">Loading…</p>`;
-  }
-}
-/* "Check notifications": what the app knows about this device, so a problem can be found quickly.
-   Labels are translated, the values (ids, states, error texts) stay as they are. */
-function pushInfo(){
-  const ua = navigator.userAgent, ios = (ua.match(/OS (\d+)_(\d+)/) || []);
-  let perm = "none", sub = "", opted = "";
-  try{ if("Notification" in window) perm = Notification.permission; }catch(e){}
-  try{ if(OS){ sub = OS.User.PushSubscription.id || ""; opted = String(OS.User.PushSubscription.optedIn); } }catch(e){}
-  return {
-    device: isIOS ? (standalone ? "iPhone app from the home screen" : "iPhone browser (not the installed app)") + (ios[1] ? ` · iOS ${ios[1]}.${ios[2]}` : "") : (standalone ? "installed app" : "browser"),
-    perm, onesignal: OS ? "loaded" : push==="loading" ? "loading" : "not loaded", sub, opted,
-    sw: (navigator.serviceWorker && navigator.serviceWorker.controller ? "active" : "not active") + (VAPID ? " · key ok" : " · no key yet"),
-    site: location.host, err: PUSH_ERR
-  };
-}
-function pushDiagHtml(){
-  if(inClaude) return "";
-  const i = pushInfo(), row = (l, v) => `<li><span>${l}</span> <code>${esc(v || "–")}</code></li>`;
-  return `<details class="runnote pushdiag"><summary>Check notifications</summary><ul class="pdiag">
-    ${row("Device", i.device)}${row("Permission", i.perm)}${row("OneSignal", i.onesignal)}${row("Service worker", i.sw)}
-    ${row("Subscribed", i.opted)}${row("Address", i.site)}${i.err ? row("Last problem", i.err) : ""}</ul>
-    ${i.sub ? `<p class="small" style="margin:6px 0 0">Device ID for OneSignal:</p><p style="margin:2px 0 0"><code class="pid">${esc(i.sub)}</code></p>
-      <button class="secondary" data-act="pushcopy" data-id="${esc(i.sub)}" style="margin-top:6px">Copy device ID</button>
-      <p class="small muted" style="margin:6px 0 0">To test sending: OneSignal → Audience → Subscriptions, search this ID and send a test message.</p>` : `<p class="small muted" style="margin:6px 0 0">No OneSignal subscription on this device yet.</p>`}
-  </details>`;
-}
-function syncTags(){
-  if(!OS || push!=="on") return;
-  try{
-    const last = S.history.length ? S.history[S.history.length-1] : null;
-    const st = stats();
-    // OneSignal sends each push in the language chosen in the app (en, pt, de, it), where the SDK allows it; otherwise the phone language
-    try{ if(typeof OS.User.setLanguage==="function") OS.User.setLanguage(NFI18N.getLang()); }catch(e){}
-    OS.User.addTags({ last_workout: String(last ? Math.floor((last.end||last.start)/1000) : 0), next_name: W[st.next].name });
-  }catch(e){}
-}
-function initPush(){
-  if(inClaude || !/^https:/.test(location.href)) { refreshPush(); return; }
-  if(isIOS && !standalone){ refreshPush(); return; }
-  window.OneSignalDeferred = window.OneSignalDeferred || [];
-  OneSignalDeferred.push(async function(OneSignal){
-    try{
-      await OneSignal.init({ appId: ONESIGNAL_APP_ID, serviceWorkerPath: "OneSignalSDKWorker.js", serviceWorkerParam: { scope: "/" } });
-      OS = OneSignal;
-      pushPrep();
-      OneSignal.Notifications.addEventListener("permissionChange", () => { refreshPush(); syncTags(); });
-      OneSignal.User.PushSubscription.addEventListener("change", () => { refreshPush(); syncTags(); });
-    }catch(e){ OS = null; push = "unsupported"; PUSH_ERR = "OneSignal start: " + (e && e.message || String(e)); }
-    refreshPush(); syncTags();
-  });
-  const sc = document.createElement("script"); sc.src = "https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js"; sc.defer = true;
-  sc.onerror = () => { push = "unsupported"; PUSH_ERR = "OneSignal couldn't be loaded (blocked by a content blocker or no connection)"; refreshPush(); };
-  document.head.appendChild(sc);
-}
-/* Things the tap needs at once (iPhone allows subscribing only right in the tap, before anything waits):
-   the service worker registration and the app's push key from OneSignal's public config. */
-let SWREG = null, VAPID = "";
-// OneSignal has two push keys: its own one for Safari (iPhone home-screen apps, Safari on the Mac) and the app's key for
-// Chrome, Edge and Firefox. A subscription made with the wrong key is one OneSignal can't use, so pick the one it expects.
-const SAFARI_PUSH = (() => { const ua = navigator.userAgent; return /iPhone|iPad|iPod/.test(ua) || (navigator.platform==="MacIntel" && navigator.maxTouchPoints>1) || (/Safari\//.test(ua) && !/Chrome|Chromium|CriOS|FxiOS|Edg|OPR|Firefox/.test(ua)); })();
-const VAPID_FIELD = SAFARI_PUSH ? "onesignal_vapid_public_key" : "vapid_public_key", VAPID_STORE = SAFARI_PUSH ? "nf-vapid-safari" : "nf-vapid";
-function pushPrep(){
-  try{ VAPID = localStorage.getItem(VAPID_STORE) || ""; }catch(e){}
-  if(navigator.serviceWorker) navigator.serviceWorker.getRegistration().then(r => { if(r){ SWREG = r; dropWrongKey(); } }).catch(() => {});
-  fetch(`https://api.onesignal.com/sync/${ONESIGNAL_APP_ID}/web`).then(r => r.text()).then(t => {
-    const m = t.match(new RegExp(`"${VAPID_FIELD}"\\s*:\\s*"([A-Za-z0-9_-]+)"`));
-    if(m){ VAPID = m[1]; try{ localStorage.setItem(VAPID_STORE, VAPID); }catch(e){} dropWrongKey(); }
-  }).catch(() => {});
-}
-/* A push subscription from an older version made with the other key: remove it, so the next tap makes a working one */
-async function dropWrongKey(){
-  try{
-    if(!SWREG || !SWREG.pushManager || !VAPID) return;
-    const s = await SWREG.pushManager.getSubscription(), k = s && s.options && s.options.applicationServerKey;
-    if(!k) return;
-    const want = b64u(VAPID), have = new Uint8Array(k);
-    if(have.length===want.length && have.every((v, i) => v===want[i])) return;
-    await s.unsubscribe(); PUSH_ERR = ""; refreshPush();
-  }catch(e){}
-}
-function b64u(s){ const p = "=".repeat((4 - s.length % 4) % 4), b = atob((s + p).replace(/-/g, "+").replace(/_/g, "/")); return Uint8Array.from(b, c => c.charCodeAt(0)); }
-// Gives up after ms, so a call that never answers can't freeze the button
-const within = (p, ms, what) => Promise.race([p, new Promise((_, no) => setTimeout(() => no(new Error(what + " didn't answer")), ms))]);
+// On an iPhone in Safari: suggest adding NOVAFit to the home screen (full screen, offline, own data)
+const needsInstall = !inClaude && isIOS && !standalone;
 
-async function enablePush(){
-  if(!OS){ PUSH_ERR = PUSH_ERR || "OneSignal not loaded yet"; toast("Notifications are still loading. Try again in a moment."); return; }
-  const hasN = "Notification" in window, nat = hasN ? Notification.permission : "";
-  let ask = null, native = null;
-  // Right in the tap, before anything waits: the phone's own push subscription. On an iPhone this also asks for permission.
-  try{
-    if(nat!=="denied" && SWREG && SWREG.pushManager && VAPID) native = SWREG.pushManager.subscribe({userVisibleOnly:true, applicationServerKey:b64u(VAPID)});
-    else if(nat==="default") ask = Notification.requestPermission();
-  }catch(e){ PUSH_ERR = "Push subscription: " + (e && e.message || String(e)); }
-  try{
-    if(native) await within(native, 15000, "The phone's push subscription");
-    else if(ask) await within(ask, 60000, "The permission question");
-    else if(!hasN) await within(OS.Notifications.requestPermission(), 15000, "OneSignal's permission question");
-    const granted = hasN ? Notification.permission==="granted" : OS.Notifications.permission;
-    // OneSignal finds the subscription made above and registers this device with its server
-    if(granted) await within(OS.User.PushSubscription.optIn(), 10000, "OneSignal");
-    else if(hasN && Notification.permission==="default") PUSH_ERR = "The permission question didn't appear or was closed";
-  }catch(e){ PUSH_ERR = (native ? "Push subscription: " : "Subscribing: ") + (e && e.message || String(e)); }
-  // OneSignal registers the device with its server in the background; wait a moment for the ID
-  for(let i=0; i<16 && !pushSubId(); i++) await new Promise(r => setTimeout(r, 250));
-  if(hasN && Notification.permission==="granted" && !pushSubId()) PUSH_ERR = PUSH_ERR || await pushWhyNoSub();
-  else if(pushSubId()) PUSH_ERR = "";
-  refreshPush(); syncTags();
-  if(push==="on") toast("Notifications are on.");
-  else if(push==="denied" || (hasN && Notification.permission==="denied")) toast("Notifications are blocked. Allow them in your phone's settings under Notifications → NOVAFit.");
-  else if(hasN && Notification.permission==="granted") toast("Almost there: tap “Allow notifications” once more to finish.");
-  else toast("Notifications couldn't be turned on. Open “Check notifications” below to see why.");
-}
-const pushSubId = () => { try{ return OS && OS.User.PushSubscription.id || ""; }catch(e){ return ""; } };
-// Permission is granted but OneSignal has no subscription: did the phone create a push subscription at all?
-async function pushWhyNoSub(){
-  try{
-    const reg = navigator.serviceWorker && await navigator.serviceWorker.getRegistration();
-    if(!reg) return "No service worker registered";
-    const s = reg.pushManager && await reg.pushManager.getSubscription();
-    return s ? "The phone has a push subscription, but OneSignal didn't register it yet" : "The phone didn't create a push subscription (tap “Allow notifications” again)";
-  }catch(e){ return "Push subscription: " + (e && e.message || String(e)); }
-}
-
-/* Direktlinks aus Push-Nachrichten: #woche öffnet den Wochenrückblick, #yoga startet Yoga, #studybreak die Lernpause */
+/* Direktlinks: #woche öffnet den Wochenrückblick, #yoga startet Yoga, #studybreak die Lernpause */
 function handleHash(){
   const h = location.hash.replace("#","");
   if(!h) return;
@@ -5793,7 +5634,6 @@ applyTheme();
 initLang();
 render();
 initCloud();
-initPush();
 if("serviceWorker" in navigator && !window.claude && /^https:|^http:\/\/localhost/.test(location.href)){
   navigator.serviceWorker.register("OneSignalSDKWorker.js", {scope:"/"}).catch(() => {});
 }

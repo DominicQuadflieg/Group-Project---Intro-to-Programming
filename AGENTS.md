@@ -9,7 +9,7 @@ Notes for coding agents (and new team members) working on NOVAFit.
 - Data is stored in `localStorage` under the key `po-plan-app-v2` (do not rename it, or existing users lose their data)
 - Strava connection: `netlify/functions/strava.mjs` (Netlify Function, needs `STRAVA_CLIENT_ID` and `STRAVA_CLIENT_SECRET` set in Netlify, never in the repo); Strava tokens live only in `localStorage` under `novafit-strava`, never in `S`
 - Runs near you: hand-picked routes in `app/run.js` (`NEARBY_ROUTES`, at most 4). The loop from here (openrouteservice) was removed on purpose; don't add it back
-- Service worker and push reminders: `app/OneSignalSDKWorker.js` (bump `CACHE` when files change)
+- Service worker (offline cache): `app/OneSignalSDKWorker.js`, old name kept so installed apps keep it (bump `CACHE` when files change)
 - Tests: Node.js built-in test runner; the browser tests use Playwright (the only package, a pinned dev dependency)
 
 ## Commands

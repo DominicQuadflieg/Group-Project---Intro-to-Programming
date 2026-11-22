@@ -1,5 +1,5 @@
 // The service worker keeps the app working offline and receives push messages.
-// It must never be empty and must keep its cache name and the OneSignal import.
+// It must never be empty and must keep its cache name (the file keeps its old name so installed apps keep it).
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
@@ -15,6 +15,6 @@ test("service worker has a versioned cache name", () => {
   assert.match(src, /const CACHE = "novafit-v\d+";/);
 });
 
-test("service worker still loads OneSignal", () => {
-  assert.match(src, /importScripts\(/);
+test("service worker has no push code any more (notifications were removed)", () => {
+  assert.doesNotMatch(src, /importScripts|addEventListener\("push"/);
 });
