@@ -2,6 +2,10 @@
 
 Alle Versionen der App, die neueste oben. Alle Abschnitte mit *v2.15* gehören zur Version 2.15.0 (21.–22. Nov 2026).
 
+## Unreleased – Push messages are shown
+
+The Content-Security-Policy now applies to the page only, not to the service worker that shows push messages.
+
 ## v2.15.1 – Runs near you without openrouteservice
 
 - *A loop from here* (a round trip from openrouteservice) is gone, as the team decided: no more `netlify/functions/route.mjs`, no `ORS_API_KEY`, no location sent to an outside route service. *Runs near you* shows the hand-picked routes close by (at most 4), each with directions and *Start this run*
