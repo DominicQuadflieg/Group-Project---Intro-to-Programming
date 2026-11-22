@@ -196,3 +196,21 @@ test("validateLoop checks name length and distance", () => {
   assert.ok(R.validateLoop("Loop", "80").err.km);
   assert.ok(R.validateLoop("Loop", "abc").err.km);
 });
+
+test("screenshots in Portuguese, Spanish, French and Italian, and 'Tempo' as time or pace", () => {
+  const now = new Date("2026-11-22T12:00:00").getTime();
+  const cases = {
+    "9:41\nCorrida matinal\n21 de novembro de 2026 às 08:04\nDistância\n6,21 km\nRitmo\n5:52 /km\nTempo em movimento\n36:28": [6.21, 36.47, 21, 8],
+    "Corrida\n20 de nov. de 2026 18:30\nDistância 8,42 km\nTempo 48:10\nRitmo médio 5:43 /km\nCalorias 598": [8.42, 48.17, 20, 18],
+    "Carrera matutina\n21 de noviembre de 2026 a las 8:04\nDistancia\n6,21 km\nRitmo\n5:52 /km\nTiempo en movimiento\n36:28": [6.21, 36.47, 21, 8],
+    "Course du matin\n21 novembre 2026 à 08:04\nDistance\n6,21 km\nAllure\n5:52 /km\nTemps de déplacement\n36:28": [6.21, 36.47, 21, 8],
+    "Corsa\n21 nov 2026 08:04\nDistanza 6,21 km\nTempo 36:28\nPasso medio 5:52 /km": [6.21, 36.47, 21, 8],
+    "Lauf\nDistanz 6,21 km\nZeit 36:28\nTempo 5:52 /km": [6.21, 36.47, 0, 0]
+  };
+  for (const [txt, [km, min, day, hour]] of Object.entries(cases)) {
+    const r = R.parseShot(txt, now);
+    assert.equal(r.km, km, txt.split("\n")[0]);
+    assert.equal(Math.round(r.min * 100) / 100, min, txt.split("\n")[0]);
+    if (day) { const d = new Date(r.at); assert.deepEqual([d.getDate(), d.getHours()], [day, hour], txt.split("\n")[0]); }
+  }
+});

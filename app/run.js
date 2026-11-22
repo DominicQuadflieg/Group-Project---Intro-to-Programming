@@ -9,16 +9,21 @@
   const MIN_RUN = 3, MAX_RUN = 24 * 60;          // a plausible run lasts 3 min to 24 h
   const MIN_PACE = 2.5, MAX_PACE = 20;           // plausible pace in min/km
 
+  // First letters of month names in English, German, Portuguese, Spanish, French and Italian
   const MONTHS = { jan: 0, feb: 1, mar: 2, mär: 2, mrz: 2, apr: 3, may: 4, mai: 4, jun: 5, jul: 6, aug: 7,
-    sep: 8, oct: 9, okt: 9, nov: 10, dec: 11, dez: 11 };
+    sep: 8, oct: 9, okt: 9, nov: 10, dec: 11, dez: 11,
+    ene: 0, gen: 0, fev: 1, fév: 1, abr: 3, avr: 3, mag: 4, giu: 5, lug: 6, ago: 7, aoû: 7, aou: 7,
+    set: 8, out: 9, ott: 9, dic: 11, déc: 11 };
+  const monthOf = w => { const x = w.toLowerCase(); if (x.startsWith("juin")) return 5; if (x.startsWith("juil")) return 6; const v = MONTHS[x.slice(0, 3)]; return v == null ? null : v; };
 
-  // Words that name a value on running app screens (English and German).
-  // "Tempo" means pace in German, so it counts as pace.
+  // Words that name a value on running app screens (English, German, Portuguese, Spanish, French, Italian).
+  // "Tempo" is pace in German but time in Portuguese and Italian: "Tempo em movimento" is a time, and a plain
+  // "Tempo" whose value is far too slow for a pace is read as the time too (see parseShot).
   const LABELS = [
-    ["pace", /\b(?:avg\.?\s*)?(?:pace|tempo)\b|ø\s*pace/i],
-    ["dist", /\b(?:distance|distanz|strecke|dist)\b/i],
-    ["dur", /\b(?:moving time|elapsed time|workout time|total time|time|duration|zeit|dauer|gesamtzeit|bewegungszeit|laufzeit)\b/i],
-    ["other", /\b(?:elevation|elev|höhe|calories|kcal|heart|bpm|hf|cadence|steps|schritte|power|watt)\b/i]
+    ["pace", /\b(?:avg\.?\s*)?(?:pace|tempo(?!\s+(?:em|en|de|di|total|decorrido|trascorso|in))|ritmo|allure|passo)\b|ø\s*pace/i],
+    ["dist", /\b(?:distance|distanz|strecke|dist|distancia|distanza)\b|distância/i],
+    ["dur", /\b(?:moving time|elapsed time|workout time|total time|time|duration|zeit|dauer|gesamtzeit|bewegungszeit|laufzeit|tempo (?:em|de|di|in) movimento|tempo (?:decorrido|total|trascorso)|tiempo(?: en movimiento| transcurrido)?|temps(?: de déplacement)?|durata)\b|duração|duracao|durée|duración/i],
+    ["other", /\b(?:elevation|elev|höhe|calories|kcal|heart|bpm|hf|cadence|steps|schritte|power|watt|calorias|calorías|pasos|passos|dislivello)\b|elevação|elevación|dénivelé|frequência|cadência/i]
   ];
 
   const toNum = v => { const n = parseFloat(String(v == null ? "" : v).replace(",", ".")); return isFinite(n) ? n : 0; };
@@ -105,11 +110,11 @@
         d = +m[1]; mo = +m[3] - 1; y = +m[4];
         if (m[2] === "/" && +m[3] > 12) { d = +m[3]; mo = +m[1] - 1; }      // US style 11/17/2026
       }
-      else if ((m = l.match(/\b([A-Za-zÄäÖöÜü]{3})[a-zäöü]*\.?\s+(\d{1,2}),?\s*(\d{4})?\b/)) && MONTHS[m[1].toLowerCase()] != null) {
-        mo = MONTHS[m[1].toLowerCase()]; d = +m[2]; y = m[3] ? +m[3] : 0;
+      else if ((m = l.match(/(?:^|[^A-Za-zÀ-ÿ])([A-Za-zÀ-ÿ]{3,})\.?\s+(\d{1,2}),?\s*(\d{4})?\b/)) && monthOf(m[1]) != null) {
+        mo = monthOf(m[1]); d = +m[2]; y = m[3] ? +m[3] : 0;
       }
-      else if ((m = l.match(/\b(\d{1,2})\.?\s+([A-Za-zÄäÖöÜü]{3})[a-zäöü]*\.?,?\s*(\d{4})?\b/)) && MONTHS[m[2].toLowerCase()] != null) {
-        d = +m[1]; mo = MONTHS[m[2].toLowerCase()]; y = m[3] ? +m[3] : 0;
+      else if ((m = l.match(/\b(\d{1,2})\.?\s+(?:de\s+)?([A-Za-zÀ-ÿ]{3,})\.?,?\s*(?:de\s+)?(\d{4})?\b/)) && monthOf(m[2]) != null) {
+        d = +m[1]; mo = monthOf(m[2]); y = m[3] ? +m[3] : 0;
       }
       else if ((m = l.match(/\b(today|heute)\b/i))) { y = today.getFullYear(); mo = today.getMonth(); d = today.getDate(); }
       else if ((m = l.match(/\b(yesterday|gestern)\b/i))) { const t = new Date(now - 864e5); y = t.getFullYear(); mo = t.getMonth(); d = t.getDate(); }
@@ -156,14 +161,17 @@
         const end = j + 1 < lab.length ? lab[j + 1].at : l.length;
         let txt = l.slice(x.at, end).replace(LABELS.find(L => L[0] === x.k)[1], " ");
         if (!/\d/.test(txt) && lab.length === 1) txt = next;
-        set(x.k, readValue(x.k, txt));
+        const v = readValue(x.k, txt);
+        if (x.k === "pace" && v > MAX_PACE && !/\/\s*(?:km|mi)/i.test(txt)) set("dur", readValue("dur", txt));
+        else set(x.k, v);
       });
     });
 
     // 2. Values without a label
     if (!found.dist) for (const l of lines) { const d = distWithUnit(l); if (d) { found.dist = d; break; } }
-    const dateLine = l => /\b\d{1,2}[./]\d{1,2}[./]\d{2,4}\b|\b\d{4}-\d{2}-\d{2}\b|\b(?:today|heute|yesterday|gestern)\b|\bat\b|\bum\b/i.test(l)
-      || /\b(?:jan|feb|mar|mär|apr|may|mai|jun|jul|aug|sep|oct|okt|nov|dec|dez)[a-z]*\.?\s+\d/i.test(l);
+    const dateLine = l => /\b\d{1,2}[./]\d{1,2}[./]\d{2,4}\b|\b\d{4}-\d{2}-\d{2}\b|\b(?:today|heute|yesterday|gestern|hoje|ontem|hoy|ayer|aujourd'hui|hier|oggi|ieri)\b|\bat\b|\bum\b|\bàs\b|(?:^|\s)às\s|\ba las\b|(?:^|\s)à\s|\balle\b/i.test(l)
+      || /(?:^|[^A-Za-zÀ-ÿ])([A-Za-zÀ-ÿ]{3,})\.?\s+\d/.test(l) && monthOf(l.match(/(?:^|[^A-Za-zÀ-ÿ])([A-Za-zÀ-ÿ]{3,})\.?\s+\d/)[1]) != null
+      || /\b\d{1,2}\.?\s+(?:de\s+)?([A-Za-zÀ-ÿ]{3,})/.test(l) && monthOf(l.match(/\b\d{1,2}\.?\s+(?:de\s+)?([A-Za-zÀ-ÿ]{3,})/)[1]) != null;
     const all = [];
     let barSeen = false;
     lines.forEach((l, i) => timeTokens(l).forEach(t => {
