@@ -8,6 +8,10 @@ Alle Versionen der App, die neueste oben. Alle Abschnitte mit *v2.15* gehören z
 - Removed with it: the loop helpers in `run.js` (`validLoopKm`, `loopMapsUrl`, `loopSvg`), their styles, texts and translations, and the tests for the route function. README (external services, credits), docs and `netlify.toml` no longer mention it
 - An `ORS_API_KEY` left in Netlify's environment variables isn't used any more and can be deleted
 
+## v2.15.1 – iPhone push works
+
+On iPhone and Safari the app now subscribes with OneSignal's Safari key, so OneSignal can register the device; an old subscription with the wrong key is removed. The app only shows notifications as on when OneSignal knows the device. The reminder card is translated and matches the real push times.
+
 ## v2.15 – Usability check: no impossible numbers, and Undo
 
 A walk through the whole app with nonsense inputs (−3 km, 80 % incline, 600 min of yoga, 99 999 km per month, a 5-second loop goal) and every action that deletes or replaces something.
