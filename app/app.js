@@ -457,6 +457,20 @@ function pickAvatar(){
   };
   inp.click();
 }
+/* ---- iPhone: Safari and the Home Screen app keep separate data, so install before signing up ---- */
+const MOVE_TAG = "NOVAFIT-DATA:";
+function iosSafari(){ return isIOS && !standalone; }
+function installSheet(){
+  const share = `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5"/><path d="M6 11H5v10h14V11h-1"/></svg>`;
+  const plus = `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M12 8v8M8 12h8"/></svg>`;
+  sheet(`<h3>Add NOVAFit to your Home Screen</h3><p class="muted small" style="margin:4px 0 0">It opens full screen, works offline and can remind you to train.</p>
+    <ol class="instep"><li><span class="n">1</span><span class="ic">${share}</span><span><b>Tap Share</b><small>at the bottom of Safari</small></span></li>
+    <li><span class="n">2</span><span class="ic">${plus}</span><span><b>Add to Home Screen</b><small>then tap Add</small></span></li>
+    <li><span class="n">3</span><span class="ic dark">N</span><span><b>Open NOVAFit</b><small>from your Home Screen and create your account there</small></span></li></ol>
+    <p class="whyline">Why first? On iPhone, Safari and the app keep their data apart. An account made here would not be in the app.</p>
+    <button class="secondary" data-act="installskip" style="margin-top:12px">Skip, continue in Safari</button>
+    <p class="sharehint" aria-hidden="true">Share is down here <b>↓</b></p>`);
+}
 function footerHtml(){
   return `<footer class="pfoot"><div class="pf-in">${NF_MINI}<div class="pf-cols">
     <div><h4>Training</h4><button data-act="runplan">Running plan</button><button data-act="calopen">Calendar &amp; history</button><button data-act="badgesopen">Badges</button></div>
@@ -531,7 +545,7 @@ function examNoteHtml(){
 function todayTabHtml(st){
   let h = heroHtml(st);
   if(push==="install" && !S.settings.hideInstall){
-    h += `<section class="card nudge"><b>Install as an app</b><p class="small muted" style="margin:0">In Safari, tap <b>Share</b> at the bottom and then <b>“Add to Home Screen”</b>. The app then opens full screen and can remind you to train.</p><button class="addset" data-act="hideinstall" style="align-self:flex-end">Hide</button></section>`;
+    h += `<section class="card nudge"><b>Install as an app</b><p class="small muted" style="margin:0">In Safari, tap <b>Share</b> at the bottom and then <b>“Add to Home Screen”</b>. The app then opens full screen and can remind you to train.</p>${S.history.length || S.settings.profile ? `<p class="small" style="margin:6px 0 0">Signed up here already? <button class="linkbtn" data-act="copydata" style="text-decoration:underline">Copy my data</button> and paste it in the app.</p>` : ""}<button class="addset" data-act="hideinstall" style="align-self:flex-end">Hide</button></section>`;
   }else if(push==="off" && !S.settings.hidePush){
     h += `<section class="card nudge"><b>Turn on reminders</b><p class="small muted" style="margin:0">The app reminds you to train on Wednesdays at 18:40, Fridays at 14:00 and Saturdays at 10:00, checks in in the evening if you haven't trained yet, and sends your weekly review on Sundays.</p>
       <div class="row2"><button class="secondary" data-act="hidepush">Later</button><button class="primary" style="height:48px;font-size:17px" data-act="pushon">Allow</button></div></section>`;
@@ -4424,7 +4438,8 @@ function renderOnboard(){
     case "welcome":
       h = `<section class="ob-hero">${NF_MINI}<h1>Train like<br>you study.</h1></section>
         <p class="lead">Strength, running and yoga in one plan. Built around your goals and your week at Nova.</p>
-        <div class="foot"><button class="primary" data-act="ob" data-do="go" data-to="signup">Create account</button>
+        ${standalone && !S.settings.profile ? `<p class="obok">✓ NOVAFit is on your Home Screen. Now create your account.</p>` : ""}
+        <div class="foot"><button class="primary" ${iosSafari() ? 'data-act="installfirst"' : 'data-act="ob" data-do="go" data-to="signup"'}>Create account</button>
         <button class="secondary" data-act="ob" data-do="go" data-to="restore">I already have an account</button></div>`;
       break;
     case "signup": {
@@ -4442,9 +4457,10 @@ function renderOnboard(){
     }
     case "restore":
       h = obHead("welcome") + `<h2>Welcome back</h2>
-        <p class="lead">NOVAFit keeps your account and training on your phone, not on a server. To continue on this phone, load the backup file you created under Settings → Back up.</p>
+        <p class="lead">NOVAFit keeps your account and training on your phone, not on a server. Signed up in Safari first? Paste your data. Coming from another phone? Load the backup file you created under Settings › Back up.</p>
         <input type="file" id="importf" accept=".json,application/json" hidden>
-        <div class="foot"><button class="primary" data-act="import">Load backup file</button>
+        <div class="foot"><button class="primary" data-act="pastedata">📋 Paste from Safari</button>
+        <button class="secondary" data-act="import">Load backup file</button>
         <button class="secondary" data-act="ob" data-do="go" data-to="signup">Create a new account instead</button></div>`;
       break;
     case "login": {
@@ -5043,21 +5059,37 @@ document.addEventListener("click", async ev => {
     case "backuplater": S.settings.backupSnooze = Date.now() + 3*864e5; save(); render(); toast("We'll remind you in 3 days."); break;
     case "backupremind": S.settings.backupRemind = !!b.checked; if(b.checked) S.settings.backupSnooze = 0; save(); break;
     case "import": $("#importf").click(); break;
+    case "installfirst": installSheet(); break;
+    case "installskip": closeSheet(); obGo("signup"); break;
+    case "copydata": {
+      try{ await navigator.clipboard.writeText(MOVE_TAG + JSON.stringify(S)); toast("Copied ✓ Now add NOVAFit to your Home Screen, open it and tap “I already have an account”."); }
+      catch(e){ toast("Copying didn't work. Use Settings › Back up instead."); }
+      break;
+    }
+    case "pastedata": {
+      let t = ""; try{ t = await navigator.clipboard.readText(); }catch(e){}
+      if(!t || !t.startsWith(MOVE_TAG)){ toast("Nothing to paste yet. In Safari, open NOVAFit and tap “Copy my data”."); break; }
+      loadBackupText(t.slice(MOVE_TAG.length));
+      break;
+    }
   }
 });
 document.addEventListener("change", ev => {
   if(ev.target.id==="phfile"){ const fs = ev.target.files; if(fs && fs.length) addPhotos(fs).then(() => { ev.target.value = ""; }); return; }
   if(ev.target.id!=="importf" || !ev.target.files[0]) return;
   const f = ev.target.files[0], rd = new FileReader();
-  rd.onload = () => {
-    try{
-      const d = JSON.parse(rd.result);
-      if(!d || !Array.isArray(d.history)) throw 0;
-      S = merge(S, d); addCustomToEXN(); registerOwn(); checkBadges(true); save(); applyTheme(); closeSheet(); screen = "home"; render(); toast(`${d.history.length} sessions loaded.`);
-    }catch(e){ toast("That's not a valid backup."); }
-  };
+  rd.onload = () => loadBackupText(rd.result);
   rd.readAsText(f);
 });
+// A backup file or data pasted from Safari: checked and cleaned like everything that comes from storage
+function loadBackupText(text){
+  try{
+    const d = JSON.parse(text);
+    if(!d || typeof d!=="object" || !Array.isArray(d.history)) throw 0;
+    S = merge(S, d); addCustomToEXN(); registerOwn(); checkBadges(true); save(); applyTheme(); closeSheet(); screen = "home"; render(); toast(`${d.history.length} sessions loaded.`);
+    return true;
+  }catch(e){ toast("That's not a valid backup."); return false; }
+}
 /* Texterkennung schon beim Antippen laden, während die Fotoauswahl offen ist */
 document.addEventListener("pointerdown", ev => { if(ev.target.closest && ev.target.closest(".shotcta") && navigator.onLine!==false) ocrWorker().catch(() => {}); });
 document.addEventListener("change", ev => { if(ev.target.id==="runshot"){ const f = ev.target.files && ev.target.files[0]; ev.target.value = ""; runShot(f); } });
