@@ -25,7 +25,7 @@ Group project for *Introduction to Programming* at Nova SBE, 2026/27.
 
 1. Build a complete, usable application from scratch in plain HTML, CSS and JavaScript, without a framework.
 2. Model real data (plans, sessions, sets, runs, yoga) and keep it safe on the device: validation of every input, a hashed password, no secrets in the code.
-3. Keep the logic testable: pure functions in their own files, 217 unit tests and 13 browser tests that run on every push.
+3. Keep the logic testable: pure functions in their own files, with unit tests and browser tests that run on every push.
 4. Work as a team with Git: every change in its own pull request, a changelog and a version history.
 5. Use AI coding assistants responsibly, with us deciding what gets built and reviewing what gets merged (see [How we worked](#how-we-worked)).
 
@@ -45,7 +45,7 @@ Group project for *Introduction to Programming* at Nova SBE, 2026/27.
 **Train**
 - A week line in the colour of each sport and today's session on top
 - *Gym:* plan days, own templates, ready-made workouts, 124 exercises with drawings; sets filled in from last time, a suggestion when to add weight, rest timer, guided warm-up, swap or add exercises, records
-- *Running:* outdoor or treadmill; read a run from a watch screenshot, import GPX, FIT and TCX files or the whole history from Garmin and Strava; optionally connect Strava directly (needs a Strava API app, see [docs/setup.md](docs/setup.md)); interval timer; goal plans for 10 km, a half marathon or your own loop
+- *Running:* outdoor or treadmill; read a run from a watch screenshot, import GPX, FIT and TCX files or the whole history from Garmin and Strava; a direct Strava connection is built and tested, but not switched on in our live version, because the Strava API needs a Strava subscription that none of us has (see [docs/setup.md](docs/setup.md#strava-connection)); interval timer; goal plans for 10 km, a half marathon or your own loop
 - *Yoga:* 7 guided sessions read aloud, 5-minute study breaks, a tension check before and after, a flexibility check every two weeks
 - *Edit what's on Train:* switch sports on or off; everything else follows
 
@@ -83,10 +83,10 @@ Then open http://localhost:8000 and create an account. Everything works locally 
 Needs Node.js 18 or newer:
 
 ```
-node --test                 # 217 unit tests, no packages needed
+node --test                 # unit tests, no packages needed
 npm ci                      # once, installs Playwright (the only package)
 npx playwright install chromium
-npm run e2e                 # 13 tests that drive the real app in a browser
+npm run e2e                 # browser tests that drive the real app
 ```
 
 The unit tests cover sign-up and questionnaire validation, plan suggestions, the exercise library, running files and screenshots, imports, yoga, Progress cards, badges and the tour's example data. The browser tests sign up, log strength sessions, runs and yoga, import files, restore backups and walk through the whole guided tour. GitHub runs both on every push and pull request (`.github/workflows/test.yml`).
@@ -108,7 +108,7 @@ More detail: [docs/architecture.md](docs/architecture.md) · [docs/security.md](
 
 ## How we worked
 
-Every change went through its own branch and pull request into `main`, with a short description and an entry in [CHANGELOG.md](CHANGELOG.md). The tests run on every pull request. 52 pull requests so far.
+Every change went through its own branch and pull request into `main`, with a short description and an entry in [CHANGELOG.md](CHANGELOG.md). The tests run on every pull request. All of them are listed under [Pull requests](https://github.com/juveith/Group-Project---Intro-to-Programming/pulls?q=is%3Apr).
 
 **Who did what** (pull requests as listed on GitHub; we discussed and tested together):
 

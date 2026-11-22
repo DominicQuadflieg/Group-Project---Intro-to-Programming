@@ -16,6 +16,10 @@ The keys never go into the repository: only the functions in `netlify/functions/
 
 ## Strava connection
 
+> **Not switched on in our live version.** Using the Strava API needs a Strava subscription, and none of us has one. So the live NOVAFit runs without the two Strava keys, and the “Connect Strava” button doesn't show. Nothing else depends on it: runs still come in by **screenshot**, by **watch file** (GPX, FIT, TCX, also the ZIP from Garmin Connect) and through **Bring your training history** with the Garmin list or the **Strava archive**, which every Strava account can download for free.
+>
+> The connection itself is complete: the function `netlify/functions/strava.mjs`, the sign-in and the import in the app. It is checked by tests that replace Strava with a fake (`tests/strava.test.js`). With a subscription, the steps below switch it on, and nothing in the code has to change.
+
 Garmin, Polar, Coros, Suunto and Apple Watch can send runs to Strava automatically. Connected to Strava, NOVAFit picks up those runs whenever the app is opened.
 
 Strava gives each app a public client ID and a secret. The secret must never be in the app or in this repository, so a small Netlify Function (`netlify/functions/strava.mjs`) talks to Strava for the app.
@@ -41,7 +45,7 @@ New users can bring their runs from other apps right after choosing a plan (“B
 |---|---|---|
 | Garmin Connect | the activity list (CSV) | connect.garmin.com → *Activities → All Activities* → scroll until the year is loaded → *Export CSV* |
 | Strava | the archive (ZIP) or `activities.csv` from it | strava.com → *Settings → My Account → Download or Delete Your Account → Request Your Archive* |
-| Strava (connected) | nothing, NOVAFit gets the runs since 1 January | needs the Strava connection below |
+| Strava (connected) | nothing, NOVAFit gets the runs since 1 January | needs the Strava connection above (not switched on in our live version) |
 | Polar, Coros, Suunto, Apple Watch … | several GPX, FIT or TCX files at once | export from the app of the watch |
 
 A preview shows the number of runs and kilometres, with the time range (this year, last 12 months, everything), walks on or off, and kilometres or miles for Garmin files. Rides and other sports are left out, runs that are already in NOVAFit are skipped, and an import can be undone right away. Everything is read on the phone; big Strava archives are not loaded completely, only the activity list inside.
@@ -79,4 +83,4 @@ The photos in `app/img/pack/` are © Nova SBE and used only for this course proj
 
 ## Older ready-made download
 
-`releases/NOVAFit 2.8.2.zip` is a snapshot from 17 November (v2.8.2). It is kept for the version history; for the current app use the `app` folder or the live link.
+A snapshot from 17 November (v2.8.2) is kept in the Git history: [download NOVAFit 2.8.2.zip](https://github.com/juveith/Group-Project---Intro-to-Programming/raw/32b7c146c4acaca2b35766e82a0b43dc069e77da/releases/NOVAFit%202.8.2.zip). For the current app use the `app` folder or the live link.

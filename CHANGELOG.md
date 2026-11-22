@@ -9,6 +9,12 @@ Alle Versionen der App, die neueste oben.
 - Wrong or empty password: an error next to the field; after 5 wrong tries a 30-second pause, like unlocking
 - In all four languages; one unit test and three browser tests (wrong password, only lock, full sign out)
 
+## Unreleased – README and docs for the submission
+
+- README and `docs/setup.md` say clearly that the direct Strava connection is built and tested but not switched on in the live version: the Strava API needs a Strava subscription, which none of us has. Runs still come in by screenshot, watch file and the free Strava archive
+- The README no longer names fixed numbers of tests and pull requests (they went out of date with every change); it links to the list of pull requests instead
+- The old ready-made `releases/NOVAFit 2.8.2.zip` is no longer part of the current files; `docs/setup.md` links to it in the Git history, so it can still be downloaded
+
 ## Unreleased – Allow notifications on iPhone
 
 - Tapping Allow notifications in the installed iPhone app now shows the question right away (it was asked too late, so iOS ignored the tap).
