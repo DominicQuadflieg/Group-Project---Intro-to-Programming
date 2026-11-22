@@ -741,6 +741,7 @@ function renderSport(){
     if(ses.length) h += spSec("Your plan", `${nd} of ${ses.length} done`) + `<div class="splist">${ses.map(x => spRow(`data-act="runout"`, D[x.day], x.title || "Run", x.min ? x.min + " min" : "", planRight(x), done.has(x.day))).join("")}</div>`;
     h += spSec("Your goal") + (rp ? `<button class="spgoal" data-act="runplan"><span><b>${esc(planTitle(rp))}</b>${pg.n ? `<small>week ${pg.i+1} of ${pg.n}</small>` : ""}</span><i aria-hidden="true"><i style="width:${Math.round(pg.f*100)}%"></i></i></button>`
       : `<div class="splist">${spRow(`data-act="runplan"`, "", "Set a running goal", "10 km, half marathon or your loop, with a plan")}</div>`);
+    h += spSec("Where to run") + `<div class="splist">${spRow(`data-act="near"`, "", "Runs near you", "Nearby routes and loops")}</div>`;
     h += `<div class="splist">${spRow(`data-act="impsheet"`, "", "Import runs", "Garmin, Strava, files")}</div>`;
   }else{
     const sug = ySuggest() || "vinyasa", sg = NFYoga.byId(sug) || NFYoga.byId("vinyasa");

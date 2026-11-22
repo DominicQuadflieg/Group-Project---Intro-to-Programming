@@ -1972,5 +1972,8 @@ NFI18N.load([
 ["📍 Show the weather where I am", "📍 Mostrar o tempo onde estou", "📍 Wetter für meinen Standort zeigen", "📍 Mostra il meteo dove sono"],
 ["📤 Share", "📤 Partilhar", "📤 Teilen", "📤 Condividi"],
 ["🗑 Delete session", "🗑 Apagar treino", "🗑 Einheit löschen", "🗑 Elimina allenamento"],
-["🧘‍♀️ Start yoga", "🧘‍♀️ Começar yoga", "🧘‍♀️ Yoga starten", "🧘‍♀️ Inizia yoga"]
+["🧘‍♀️ Start yoga", "🧘‍♀️ Começar yoga", "🧘‍♀️ Yoga starten", "🧘‍♀️ Inizia yoga"],
+["Where to run", "Onde correr", "Wo laufen", "Dove correre"],
+["Nearby routes and loops", "Percursos e voltas por perto", "Strecken und Runden in der Nähe", "Percorsi e giri vicini"],
+["week {0} of {1}", "semana {0} de {1}", "Woche {0} von {1}", "settimana {0} di {1}"]
 ]);
