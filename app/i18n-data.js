@@ -1,6 +1,12 @@
 /* NOVAFit · translations: English, Portuguese (Portugal), German, Italian.
    One row per text. {0}, {1} … are numbers, {a}, {b} … names, months or weekdays (see i18n.js). Generated from the app's texts; edit by hand. */
 NFI18N.load([
+["Choose an option", "Escolhe uma opção", "Wähl eine Option", "Scegli un'opzione"],
+["Enter a height between {0} and {1} cm", "Introduz uma altura entre {0} e {1} cm", "Gib eine Größe zwischen {0} und {1} cm ein", "Inserisci un'altezza tra {0} e {1} cm"],
+["Enter a weight between {0} and {1} kg", "Introduz um peso entre {0} e {1} kg", "Gib ein Gewicht zwischen {0} und {1} kg ein", "Inserisci un peso tra {0} e {1} kg"],
+["Enter your age in whole years", "Introduz a tua idade em anos completos", "Gib dein Alter in ganzen Jahren ein", "Inserisci la tua età in anni interi"],
+["Enter your height in cm, e.g. {0}", "Introduz a tua altura em cm, p. ex. {0}", "Gib deine Größe in cm ein, z. B. {0}", "Inserisci la tua altezza in cm, ad es. {0}"],
+["Enter your weight in kg, e.g. {0} or {1}", "Introduz o teu peso em kg, p. ex. {0} ou {1}", "Gib dein Gewicht in kg ein, z. B. {0} oder {1}", "Inserisci il tuo peso in kg, ad es. {0} o {1}"],
 ["Enter a valid date", "Introduz uma data válida", "Gib ein gültiges Datum ein", "Inserisci una data valida"],
 ["Enter the distance as a number, e.g. {0}", "Introduz a distância como número, p. ex. {0}", "Gib die Distanz als Zahl ein, z. B. {0}", "Inserisci la distanza come numero, ad es. {0}"],
 ["Enter the time like {0}:{1} or {2}:{3}:{4}", "Introduz o tempo como {0}:{1} ou {2}:{3}:{4}", "Gib die Zeit so ein: {0}:{1} oder {2}:{3}:{4}", "Inserisci il tempo così: {0}:{1} o {2}:{3}:{4}"],
