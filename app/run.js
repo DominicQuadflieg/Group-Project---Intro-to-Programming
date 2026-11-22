@@ -204,6 +204,16 @@
 
   /* Checks the values the runner confirms after reading a screenshot.
      km may be empty, time is required ("42:38", "1:05:10" or minutes), date optional. */
+  /* A target time for a race of `km` km: empty is fine (some goals make it optional),
+     otherwise the pace has to be one a person can run (2:30 to 20 min per km). */
+  function checkTarget(km, min) {
+    if (!(min > 0) || !(km > 0)) return "";
+    const p = min / km;
+    if (p < MIN_PACE) return "That target is faster than the world record. Check the time.";
+    if (p > MAX_PACE) return "That target is slower than walking. Check the time.";
+    return "";
+  }
+
   function validateRun(input, now) {
     now = now || Date.now();
     const errors = {}, value = {};
@@ -800,7 +810,7 @@
     return { d: "M" + P.map(p => p.join(" ")).join("L"), start: { x: P[0][0], y: P[0][1] } };
   }
 
-  const api = { KM_PER_MI, MAX_FILE_MB, cleanText, timeTokens, parseDate, parseShot, validateRun,
+  const api = { KM_PER_MI, MAX_FILE_MB, cleanText, timeTokens, parseDate, parseShot, validateRun, checkTarget,
     parseCsv, numLoose, durMin, parseStamp, sportKind, historyEntry, readHistoryCsv, fileItem, rangeStart, planImport,
     zipEnd, zipList, zipDataOffset,
     gpsDist, parseGpx, parseTcx, parseFit, isPolarCsv, parsePolarCsv, zipEntry, fileKind, parseActivity, findDuplicate, isRunSport,

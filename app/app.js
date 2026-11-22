@@ -220,7 +220,8 @@ function parseMin(v){
   return num(t);
 }
 function mmss(min){ if(!(min>0)) return "–"; let m = Math.floor(min), s = Math.round((min-m)*60); if(s===60){m++;s=0;} return m+":"+String(s).padStart(2,"0"); }
-function hms(min){ if(min>=60){ const h = Math.floor(min/60); return h+":"+mmss(min-h*60).padStart(5,"0"); } return mmss(min); }
+// full hours too: 60 → "1:00:00" (mmss(0) is "–", which turned a 60-minute target into "1:0000–", read as 1 minute)
+function hms(min){ if(min>=60){ let h = Math.floor(min/60), r = min-h*60, m = Math.floor(r), sec = Math.round((r-m)*60); if(sec===60){ m++; sec = 0; } if(m===60){ h++; m = 0; } return h+":"+String(m).padStart(2,"0")+":"+String(sec).padStart(2,"0"); } return mmss(min); }
 const paceOf = (km,min) => km>0 && min>0 ? min/km : 0;
 function durTxt(ms){ const m = Math.max(0, Math.round(ms/60000)); return m<60 ? m+" min" : Math.floor(m/60)+" h "+String(m%60).padStart(2,"0")+" min"; }
 /* Gym-Uhr stoppt automatisch nach 60 Minuten (falls das Beenden vergessen wird) */
@@ -1237,6 +1238,15 @@ function fmtTimeDigits(v){
   return d.slice(0,-4) + ":" + d.slice(-4,-2) + ":" + d.slice(-2);
 }
 function runDateTxt(a){ const t = a.runAt || Date.now(); return new Date(t).toLocaleDateString("en-GB", {weekday:"long", day:"numeric", month:"long"}) + (a.runAt ? ", " + new Date(t).toLocaleTimeString("en-GB", {hour:"2-digit", minute:"2-digit"}) : ""); }
+/* Errors of a run typed in by hand, right below the time and distance fields */
+function runErrShow(err){
+  [["min", err.time], ["km", err.km]].forEach(([f, m]) => {
+    const el = $(`#run-${f}-err`), inp = $(`#run-${f}`); if(el) el.textContent = m || "";
+    if(inp){ if(m) inp.setAttribute("aria-invalid", "true"); else inp.removeAttribute("aria-invalid"); }
+  });
+  const first = err.km ? $("#run-km") : err.time ? $("#run-min") : null;
+  if(first){ first.focus(); const l = first.closest(".runtime, .runkm"); if(l){ l.classList.remove("shake"); void l.offsetWidth; l.classList.add("shake"); } }
+}
 function runInfoHtml(){
   const r = S.active.run, min = parseMin(r.min), km = num(r.km), st = stats();
   const isAl = r.mode!=="band" && km>0 && Math.abs(km - alsterKm()) < 1.2, lr = isAl ? lastRun("alster") : lastRun(r.mode);
@@ -1254,8 +1264,8 @@ function runInfoHtml(){
 function runBlock(){
   wxLoad();
   const a = S.active, r = a.run, band = r.mode==="band", inf = runInfoHtml(), nx = band ? null : planNext();
-  const timeBox = `<label class="runtime" for="run-min"><small>${band ? "Time" : "Your time"}</small><input id="run-min" inputmode="numeric" autocomplete="off" data-in="run" data-f="min" value="${esc(r.min)}" placeholder="00:00" aria-label="Time"><span class="ri tnum" id="runinfo">${inf.line}</span></label>`;
-  const kmBox = `<label class="runkm" for="run-km"><small>Distance</small><span><input id="run-km" inputmode="decimal" data-in="run" data-f="km" value="${esc(r.km)}" placeholder="${band?"e.g. 3":"e.g. 7.7"}"><em>km</em></span>${band ? "" : `<button type="button" class="kmchip" data-act="kmalster">${esc(LN())} ${fmt(alsterKm())} km</button>`}</label>`;
+  const timeBox = `<label class="runtime" for="run-min"><small>${band ? "Time" : "Your time"}</small><input id="run-min" inputmode="numeric" autocomplete="off" data-in="run" data-f="min" value="${esc(r.min)}" placeholder="00:00" aria-label="Time" aria-describedby="run-min-err"><span class="ri tnum" id="runinfo">${inf.line}</span></label><p class="err runerr" id="run-min-err" role="alert"></p>`;
+  const kmBox = `<label class="runkm" for="run-km"><small>Distance</small><span><input id="run-km" inputmode="decimal" data-in="run" data-f="km" aria-describedby="run-km-err" value="${esc(r.km)}" placeholder="${band?"e.g. 3":"e.g. 7.7"}"><em>km</em></span>${band ? "" : `<button type="button" class="kmchip" data-act="kmalster">${esc(LN())} ${fmt(alsterKm())} km</button>`}</label><p class="err runerr" id="run-km-err" role="alert"></p>`;
   const note = `<details class="runnote"${r.note?" open":""}><summary>+ Add note</summary><textarea id="run-note" data-in="run" data-f="note" placeholder="e.g. easy pace, headwind, lovely sunset …">${esc(r.note)}</textarea></details>`;
   const incBox = `<label class="runkm" for="run-inc"><small>Incline · number from the display</small><span><input id="run-inc" inputmode="decimal" data-in="run" data-f="incline" value="${esc(r.incline||"")}" placeholder="0"><em>%</em></span></label>`;
   if(band) return `<div class="runwrap"><p class="runlead">Enter what the treadmill shows.</p>${kmBox}${timeBox}${incBox}<div id="runwin">${inf.win}</div>
@@ -2482,6 +2492,7 @@ function settingsSheet(part){
       <label class="small" style="display:flex;gap:10px;align-items:center;margin:0 0 10px"><input type="checkbox" data-act="backupremind" ${S.settings.backupRemind===false ? "" : "checked"} style="width:20px;height:20px;accent-color:var(--ink)"> Remind me to back up every 2 weeks</label>
       <div class="row2"><button class="secondary" data-act="export">Back up</button><button class="secondary" data-act="import">Load backup</button></div>
       <button class="secondary" style="margin-top:8px;width:100%" data-act="impsheet">Import runs from other apps</button>
+      ${hasDemo() ? `<button class="secondary rm" style="margin-top:8px;width:100%" data-act="demorm">Remove demo data</button>` : ""}
       <input type="file" id="importf" accept=".json,application/json" hidden>
       <p class="small" style="margin:8px 0 0" data-sync>${syncHtml()}</p></div>
 `],
@@ -2711,8 +2722,8 @@ const BADGES = [
   {id:"ht50", g:"gym", l:"50", u:"HIP THRUST", t:"Hip thrust 50 kg", d:"Hip thrust with 50 kg.", ok:f => f.hipMax>=50},
   {id:"ht80", g:"gym", l:"80", u:"HIP THRUST", t:"Hip thrust 80 kg", d:"Hip thrust with 80 kg.", ok:f => f.hipMax>=80},
   {id:"pr50", g:"gym", tier:2, l:"50", u:"RECORDS", t:"50 records", d:"Set a new best weight 50 times.", ok:f => f.prs>=50},
-  {id:"vol50t", g:"gym", tier:2, l:"50t", u:"MOVED", t:"50 tonnes", d:"Moved 50,000 kg in total.", ok:f => f.vol>=50000},
-  {id:"vol250t", g:"gym", tier:3, l:"250t", u:"MOVED", t:"250 tonnes", d:"Moved 250,000 kg in total. That's a blue whale and a half.", ok:f => f.vol>=250000},
+  {id:"vol100t", g:"gym", tier:2, l:"100t", u:"MOVED", t:"100 tonnes", d:"Moved 100,000 kg in total.", ok:f => f.vol>=100000},
+  {id:"vol500t", g:"gym", tier:3, l:"500t", u:"MOVED", t:"500 tonnes", d:"Moved 500,000 kg in total. That's about three blue whales.", ok:f => f.vol>=500000},
   {id:"ht100", g:"gym", tier:2, l:"100", u:"HIP THRUST", t:"Hip thrust 100 kg", d:"Hip thrust with 100 kg.", ok:f => f.hipMax>=100},
   {id:"benchbw", g:"gym", tier:3, l:"1×", u:"BODYWEIGHT", t:"Bench your bodyweight", d:"Bench press your own bodyweight (set it under Profile and body).", ok:f => f.bodyKg>0 && f.benchMax>=f.bodyKg},
   {id:"wpull10", g:"gym", tier:2, l:"+10", u:"PULL-UP", t:"Weighted pull-up +10 kg", d:"A pull-up with 10 kg extra.", ok:f => f.wpullMax>=10},
@@ -2754,7 +2765,7 @@ function badgeProg(b){
   const T = {first:[f.total,1],t10:[f.total,10],t25:[f.total,25],t50:[f.total,50],goal1:[f.goalWeeks,1],streak4:[f.streakMax,4," weeks"],streak8:[f.streakMax,8," weeks"],
     km10:[f.km,10," km"],km50:[f.km,50," km"],km100:[f.km,100," km"],ht50:[f.hipMax,50," kg"],ht80:[f.hipMax,80," kg"],pr5:[f.prs,5],pr20:[f.prs,20],vol10t:[f.vol/1000,10," t"],yoga1:[f.yoga,1],yoga10:[f.yoga,10],
     breaks:[f.breaks,10], t100:[f.total,100], t250:[f.total,250], streak12:[f.streakMax,12," weeks"], streak26:[f.streakMax,26," weeks"], year1:[f.span,365," days"],
-    pr50:[f.prs,50], vol50t:[f.vol/1000,50," t"], vol250t:[f.vol/1000,250," t"], ht100:[f.hipMax,100," kg"], wpull10:[f.wpullMax,10," kg"],
+    pr50:[f.prs,50], vol100t:[f.vol/1000,100," t"], vol500t:[f.vol/1000,500," t"], ht100:[f.hipMax,100," kg"], wpull10:[f.wpullMax,10," kg"],
     km250:[f.km,250," km"], km500:[f.km,500," km"], km1000:[f.km,1000," km"], long10:[f.longRun,10," km"], long21:[f.longRun,21.1," km"], long42:[f.longRun,42.2," km"],
     yoga25:[f.yoga,25], yoga100:[f.yoga,100], mat10h:[f.yogaMin/60,10," h"]};
   if(id==="al45" || id==="al40"){
@@ -5049,6 +5060,8 @@ document.addEventListener("click", async ev => {
       const w = PLW, tgt = parseMin(w.target), dt = w.date ? new Date(w.date + "T20:00").getTime() : 0;
       if((w.goal==="k10" || w.goal==="alster") && !(tgt>0)){ toast("Enter your target time."); break; }
       if((w.goal==="k10" || w.goal==="hm") && !(dt > Date.now() + 2*WEEK)){ toast("Choose a race day at least 3 weeks away."); break; }
+      { const km = {k10:10, alster:alsterKm(), hm:21.0975, mar:42.195}[w.goal], e = km ? NFRun.checkTarget(km, tgt) : "";
+        if(e){ toast(e); const f = $('#app [data-in="plw"][data-f="target"]'); if(f){ f.setAttribute("aria-invalid", "true"); f.focus(); } break; } }
       if(w.days.length < w.perWeek){ toast(`Choose ${w.perWeek} running days.`); break; }
       S.settings.runPlan = {goal:w.goal, target:tgt||0, date:w.goal==="fit" ? 0 : (dt || (w.goal==="alster" ? Date.now() + 8*WEEK : 0)), perWeek:w.perWeek, days:w.days.slice(), created:Date.now()};
       PLW = null; save(); render(); window.scrollTo(0,0); toast("Your running plan is ready"); break;
@@ -5090,6 +5103,9 @@ document.addEventListener("click", async ev => {
       const e = buildEntry(), pend = pendingCount(), w = W[S.active.type];
       if(w.kind==="run"){
         if(!(parseMin(S.active.run.min)>0)){ const f = $("#run-min"); if(f){ f.focus(); const l = f.closest(".runtime"); l.classList.remove("shake"); void l.offsetWidth; l.classList.add("shake"); } toast("Enter your time 🙂"); return; }
+        // the same check as for a screenshot or a watch file: no negative or impossible distance, no 10 km in 5 seconds
+        const v = NFRun.validateRun({km:S.active.run.km, time:S.active.run.min});
+        if(!v.ok){ runErrShow(v.errors); return; }
         finishSession(); return;
       }
       if(pend>0){
@@ -5323,6 +5339,7 @@ document.addEventListener("click", async ev => {
     case "backuplater": S.settings.backupSnooze = Date.now() + 3*864e5; save(); render(); toast("We'll remind you in 3 days."); break;
     case "backupremind": S.settings.backupRemind = !!b.checked; if(b.checked) S.settings.backupSnooze = 0; save(); break;
     case "import": $("#importf").click(); break;
+    case "demorm": removeDemo(); break;
     case "installfirst": installSheet(); break;
     case "installskip": closeSheet(); obGo("signup"); break;
     case "copydata": {
@@ -5350,9 +5367,26 @@ function loadBackupText(text){
   try{
     const d = JSON.parse(text);
     if(!d || typeof d!=="object" || !Array.isArray(d.history)) throw 0;
-    S = merge(S, d); addCustomToEXN(); registerOwn(); checkBadges(true); save(); applyTheme(); closeSheet(); screen = "home"; render(); toast(`${d.history.length} sessions loaded.`);
+    if(d.demo===true) demoShift(d);
+    S = merge(S, d); addCustomToEXN(); registerOwn(); checkBadges(true); save(); applyTheme(); closeSheet(); screen = "home"; render();
+    toast(d.demo===true ? T(`Demo data loaded: ${d.history.length} sessions. Settings › Your data removes it again.`) : `${d.history.length} sessions loaded.`);
     return true;
   }catch(e){ toast("That's not a valid backup."); return false; }
+}
+/* Demo file (app/demo/novafit-demo.json): move every date forward by whole weeks, so the last demo
+   session lies in the past week and weekdays stay the same. Only entries with a "demo-" id are kept. */
+const WEEK_MS = 7*864e5;
+function demoShift(d){
+  d.history = d.history.filter(e => e && typeof e.id==="string" && e.id.startsWith("demo-") && isFinite(e.start));
+  delete d.settings; delete d.active; delete d.badges;
+  const last = Math.max(...d.history.map(e => e.end || e.start)), shift = Math.max(0, Math.floor((Date.now() - last)/WEEK_MS))*WEEK_MS;
+  d.history.forEach(e => { e.start += shift; if(isFinite(e.end)) e.end += shift; });
+}
+function hasDemo(){ return S.history.some(e => typeof e.id==="string" && e.id.startsWith("demo-")); }
+function removeDemo(){
+  const n = S.history.length; S.history = S.history.filter(e => !(typeof e.id==="string" && e.id.startsWith("demo-")));
+  const f = facts(); BADGES.forEach(b => { if(S.badges && S.badges[b.id] && !b.ok(f)) delete S.badges[b.id]; });   // badges only the demo earned go again
+  FCACHE = {k:"", v:null}; save(); closeSheet(); render(); toast(T(`${n - S.history.length} demo sessions removed.`));
 }
 /* Texterkennung schon beim Antippen laden, während die Fotoauswahl offen ist */
 document.addEventListener("pointerdown", ev => { if(ev.target.closest && ev.target.closest(".shotcta") && navigator.onLine!==false) ocrWorker().catch(() => {}); });
@@ -5389,6 +5423,7 @@ document.addEventListener("input", ev => {
     });
   }else if(k==="run"){
     if(t.id==="run-min"){ const f = fmtTimeDigits(t.value); if(f!==t.value) t.value = f; }
+    if(t.id==="run-min" || t.id==="run-km") runErrShow({});   // typing again clears the message
     S.active.run[t.dataset.f] = t.value;
     const inf = runInfoHtml(), el = $("#runinfo"), wn = $("#runwin"); if(el) el.textContent = inf.line; if(wn && wn.innerHTML!==inf.win) wn.innerHTML = inf.win;
   }else if(k==="tread"){ S.active.tread[t.dataset.f] = t.value; }
