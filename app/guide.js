@@ -23,7 +23,8 @@ function guideSteps(kinds){
     {ch:"Today", t:"News from campus", b:"The latest from Nova SBE, right where you train.", el:() => $q("#newsec")},
     {ch:"Today", t:"Your settings", b:"Tap the menu to see what you can set up.", el:() => $q("[data-act=menu]"), tap:true, noscroll:true},
     {pause:"Menu"},
-    {ch:"Today", t:"Make it yours", b:"Your profile, plan and weekly goal, push reminders, dark mode, your own photos and a backup of all your data. This tour lives here too.", el:() => $q(".megrp"), block:"start", maxh:330},
+    {ch:"Today", t:"Your plan and reminders", b:"Your plan, weekly goal and running goal. Below: a nudge on your training days and the weather for your runs.", el:() => $q("#me-plan"), block:"start", spanTo:"#me-remind"},
+    {ch:"Today", t:"Make it yours", b:"Your own photos, dark mode, your history and badges, and a backup of everything. Every line says what it is for; this tour lives here too.", el:() => $q("#me-look"), block:"start", spanTo:"#me-data"},
     {ch:"Train", t:"On to training", b:"Tap Train.", el:() => $q(".tabbar [data-t=train]"), tap:true, noscroll:true},
     {pause:"Train"},
     {ch:"Train", t:"Your week at a glance", b:"The coloured line shows what's done. Today's session is always on top.", el:() => $q(".trrow") || $q(".trhead"), noscroll:true}
@@ -192,7 +193,10 @@ function guideShow(tries){
     return guideNext();
   }
   if(!st.noscroll && !el.closest(".sheet") && el.id!=="app") el.scrollIntoView({block:st.block || "center"});
-  const r = el.getBoundingClientRect(), pad = 6, h = Math.min(r.height, st.maxh || 1e5);
+  const r = el.getBoundingClientRect(), pad = 6, to = st.spanTo && $q(st.spanTo);
+  let h = to ? to.getBoundingClientRect().bottom - r.top : r.height;
+  h = Math.min(h, st.maxh || 1e5);
+  if(to) h = Math.min(h, window.innerHeight - Math.max(r.top, 0) - 250);   // leave room for the card below
   const box = `left:${r.left-pad}px;top:${r.top-pad}px;width:${r.width+2*pad}px;height:${h+2*pad}px`;
   const tabbar = document.querySelector(".tabbar"), low = tabbar && tabbar.getClientRects().length && !STORY && !TM && screen!=="session";
   const mid = r.top + h/2, onTop = st.nospot ? false : mid > window.innerHeight*0.5;

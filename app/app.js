@@ -97,6 +97,7 @@ function normalize(s){
   const st = Object.assign(d.settings, (s.settings && typeof s.settings==="object") ? s.settings : {});
   // Text from storage, a backup file or the cloud sync is cleaned before it can reach the screen
   st.custom = NFEx.safeCustom(st.custom);
+  if(st.avatar!=null && !(typeof st.avatar==="string" && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(st.avatar) && st.avatar.length < 150000)) delete st.avatar;   // profile photo: only a small image, nothing else
   if(st.pcards && typeof st.pcards==="object") ["s","r","y"].forEach(k => { const l = st.pcards[k]; st.pcards[k] = Array.isArray(l) ? l.filter(x => typeof x==="string" && /^[a-z]{1,12}$/.test(x)).slice(0, 5) : undefined; }); else delete st.pcards;
   if(st.ownW && typeof st.ownW==="object") Object.keys(st.ownW).forEach(k => { const w = st.ownW[k]; if(!w || typeof w!=="object" || !/^[A-Za-z0-9_-]{1,40}$/.test(k)) delete st.ownW[k]; else w.name = NFEx.safeText(w.name, 40, "Own workout"); });
   if(st.loopName != null) st.loopName = NFEx.safeText(st.loopName, 24);
@@ -400,18 +401,61 @@ function renderMe(){
   const sp = k => `data-act="setp" data-p="${k}"`;
   const nPh = (PHOTOS||[]).length;
   let h = nfHeadHtml();
-  h += `<section class="mehead"><span class="meav" role="img" aria-label="${st.thisWeek} of ${st.goal} sessions this week"><svg viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="33" class="trk"/><circle cx="36" cy="36" r="33" class="val" stroke-dasharray="${(C*pct).toFixed(1)} ${C.toFixed(1)}"/></svg><b>${esc(initials(name))}</b></span>
+  h += `<section class="mehead"><button class="meav" data-act="avatar" aria-label="${set.avatar ? "Change profile photo" : "Add a profile photo"}. ${st.thisWeek} of ${st.goal} sessions this week"><svg viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="33" class="trk"/><circle cx="36" cy="36" r="33" class="val" stroke-dasharray="${(C*pct).toFixed(1)} ${C.toFixed(1)}"/></svg>${set.avatar ? `<img src="${set.avatar}" alt="">` : `<b>${esc(initials(name))}</b><i class="meplus" aria-hidden="true">+</i>`}</button>
     <div><h1>${esc(name)}</h1><p>Nova SBE${set.plan ? " · " + esc(set.plan.name) : ""}</p><button class="linkbtn" data-act="ob" data-do="edit">Edit profile and plan</button></div></section>`;
   h += countersHtml([[`${st.thisWeek}/${st.goal}`, "this week"], [st.streak, st.streak===1 ? "week in a row" : "weeks in a row"], [got, got===1 ? "badge" : "badges"]]);
-  h += grp("You", row(sp("account"), "Account", pr.email || "") + row(sp("profile"), "Profile and body", [num(set.bodyKg)>0 ? fmt(num(set.bodyKg)) + " kg" : "", set.body && set.body.cm ? set.body.cm + " cm" : ""].filter(Boolean).join(" · ")) + row(sp("goal"), "Weekly goal", `${set.goal}×`) + row('data-act="ob" data-do="edit"', "My plan", set.plan ? set.plan.name : "Not set") + row('data-act="runplan"', "Running plan", set.runPlan ? "Active" : "Not set"));
-  h += grp("Training", row('data-act="library"', "Exercise library", `${NFEx.LIBRARY.filter(e => !e.hidden).length + customList().length}`) + row('data-act="workouts"', "All workouts", "") + row('data-act="calopen"', "Calendar & history", "") + row('data-act="badgesopen"', "Badges", `${got} / ${visibleBadges().length}`) + row('data-act="tourstart"', "Guided tour", "5 min"));
-  h += grp("Connected", (stravaSettings() ? row(sp("strava"), "Strava", stGet() ? "Connected" : "Not connected") : "") + row(sp("push"), "Notifications", push==="on" ? "On" : "Off") + row(sp("cal"), "Calendar reminders", ""));
-  h += grp("App", row(sp("theme"), "Appearance", {auto:"Automatic", light:"Light", dark:"Dark"}[set.theme] || "Automatic") + row(sp("sound"), "Sound", set.restSound===false ? "Off" : "On") + row(sp("weather"), "Running weather", set.wxGeo===true ? "Where I am" : NFRun.WX_HOME.place) + row(sp("photos"), "Your photos", nPh ? `${nPh} ${nPh===1?"photo":"photos"}` : "Nova photos"));
-  h += grp("Your data", row('data-act="impsheet"', "Import runs from other apps", "Garmin, Strava, files") + row(sp("data"), "Back up and restore", ""));
-  h += footerHtml() + tabBarHtml();
+  const row2 = (attrs, label, why, val, warn) => `<button class="merow two" ${attrs}><span><b>${label}</b><em>${why}</em></span>${val!=null && val!=="" ? `<small class="${warn?"warn":""}">${esc(String(val))}</small>` : ""}<span class="chev" aria-hidden="true">›</span></button>`;
+  const grp2 = (id, t, note, rows) => `<section class="megrp two" id="${id}"><h2>${t}${note ? `<small>${note}</small>` : ""}</h2><div>${rows}</div></section>`;
+  const bk = S.settings.backupAt ? new Date(S.settings.backupAt).toLocaleDateString("en-GB",{day:"numeric",month:"short"}) : "Never";
+  h += grp2("me-plan", "You and your plan", "",
+    row2(sp("profile"), "Profile and body", "For calories and starting weights", [num(set.bodyKg)>0 ? fmt(num(set.bodyKg)) + " kg" : "", set.body && set.body.cm ? set.body.cm + " cm" : ""].filter(Boolean).join(" · ")) +
+    row2(sp("goal"), "Weekly goal", "Sessions that make a good week", `${set.goal}×`) +
+    row2('data-act="ob" data-do="edit"', "My plan", "Your days for gym, run and yoga", set.plan ? set.plan.name : "Not set", !set.plan) +
+    row2('data-act="runplan"', "Running goal", "Towards 10 km or a half marathon", set.runPlan ? planTitle(set.runPlan) : "Not set") +
+    row2(sp("account"), "Account", "Name, email, password", pr.email || ""));
+  h += grp2("me-remind", "Reminders and weather", "",
+    row2(sp("push"), "Push notifications", "A nudge on your training days", push==="on" ? "On" : "Off", push!=="on") +
+    row2(sp("cal"), "Add to my calendar", "Training days in your calendar", "") +
+    row2(sp("weather"), "Running weather", "Forecast for your runs, where you are", set.wxGeo===true ? "Where I am" : NFRun.WX_HOME.place) +
+    (stravaSettings() ? row2(sp("strava"), "Strava", "New runs come in by themselves", stGet() ? "Connected" : "Not connected") : ""));
+  h += grp2("me-look", "Look and feel", "",
+    row2(sp("photos"), "Your photos", "On Today and in your stories", nPh ? `${nPh} ${nPh===1?"photo":"photos"}` : "Nova default pack") +
+    row2(sp("theme"), "Appearance", "Light, dark or like your phone", {auto:"Automatic", light:"Light", dark:"Dark"}[set.theme] || "Automatic") +
+    row2(sp("sound"), "Sound", "Rest timer bell, yoga voice", set.restSound===false ? "Off" : "On"));
+  h += grp2("me-train", "Training", "",
+    row2('data-act="calopen"', "Calendar and history", "Every session, day by day", "") +
+    row2('data-act="badgesopen"', "Badges", "What you've earned so far", `${got} / ${visibleBadges().length}`) +
+    row2('data-act="library"', "Exercise library", "With drawings and tips", `${NFEx.LIBRARY.filter(e => !e.hidden).length + customList().length}`) +
+    row2('data-act="workouts"', "My workouts", "Your own templates", "") +
+    row2('data-act="tourstart"', "Guided tour", "5 minutes through the app", ""));
+  h += grp2("me-data", "Your data", "stays on this phone",
+    row2(sp("data"), "Back up and restore", "Save a copy or move phones", bk, !S.settings.backupAt) +
+    row2('data-act="impsheet"', "Import runs", "From Garmin, Strava or your watch", ""));
+  h += tabBarHtml();   // no footer here: everything it links to is in the list above
   $("#app").innerHTML = h;
   nfMount();
   if(!PHOTOS) photoUrls().then(ps => { if(ps.length && screen==="me") renderMe(); }).catch(() => {});
+}
+/* ---- Profile photo: a small square JPEG (192 px) kept in the settings, so it is only on this phone and in backups ---- */
+function avatarSheet(){
+  sheet(`<div style="display:flex;gap:14px;align-items:center;margin-bottom:14px"><img src="${S.settings.avatar}" alt="" style="width:64px;height:64px;border-radius:50%;object-fit:cover"><div><h3 style="margin:0">Profile photo</h3><p class="muted small" style="margin:2px 0 0">Only on this phone.</p></div></div>
+    <button class="primary" data-act="avatarnew">Choose a new photo</button><button class="secondary" style="margin-top:8px" data-act="avatardel">Remove photo</button><button class="secondary" style="margin-top:8px;border:0" data-act="closesheet">Cancel</button>`);
+}
+function pickAvatar(){
+  const inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*";
+  inp.onchange = async () => {
+    const f = inp.files && inp.files[0]; if(!f) return;
+    if(!/^image\//.test(f.type || "image/")) return toast("Please choose a photo.");
+    try{
+      const url = URL.createObjectURL(f), img = await new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = url; });
+      const n = 192, c = document.createElement("canvas"); c.width = c.height = n;
+      const sq = Math.min(img.naturalWidth, img.naturalHeight), x = c.getContext("2d");
+      x.drawImage(img, (img.naturalWidth-sq)/2, (img.naturalHeight-sq)/2, sq, sq, 0, 0, n, n);
+      URL.revokeObjectURL(url);
+      S.settings.avatar = c.toDataURL("image/jpeg", .85); save(); render(); toast("Profile photo saved.");
+    }catch(e){ toast("This photo can't be read. Try another one."); }
+  };
+  inp.click();
 }
 function footerHtml(){
   return `<footer class="pfoot"><div class="pf-in">${NF_MINI}<div class="pf-cols">
@@ -4827,6 +4871,9 @@ document.addEventListener("click", async ev => {
     case "menu": closeSheet(); screen = screen==="me" ? "home" : "me"; render(); window.scrollTo(0,0); break;
     case "tab": { closeSheet(); TAB = ["today","train","progress"].includes(b.dataset.t) ? b.dataset.t : "today"; try{ sessionStorage.setItem("nf-tab", TAB); }catch(e){} screen = "home"; render(); window.scrollTo(0,0); break; }
     case "setp": settingsSheet(b.dataset.p); break;
+    case "avatar": if(S.settings.avatar) avatarSheet(); else pickAvatar(); break;
+    case "avatarnew": closeSheet(); pickAvatar(); break;
+    case "avatardel": delete S.settings.avatar; save(); closeSheet(); render(); toast("Photo removed."); break;
     case "ob": obAct(b); break;
     case "menutheme": closeSheet(); S.settings.theme = isDark() ? "light" : "dark"; applyTheme(); save(); render(); break;
     case "goto": {

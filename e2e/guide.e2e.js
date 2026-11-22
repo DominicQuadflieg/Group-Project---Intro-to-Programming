@@ -57,3 +57,22 @@ test("skipping the tour keeps the account as it was", async () => {
   assert.deepEqual(await page.evaluate(() => ({ n: S.history.length, seen: S.settings.guideSeen, open: !!TOUR })), { n: 0, seen: true, open: false });
   assert.deepEqual(await page.done(), []);
 });
+
+test("profile photo: add with the + on the menu, change or remove it by tapping the photo", async () => {
+  const page = await app.open();
+  await signedIn(page);
+  await page.evaluate(() => { screen = "me"; render(); });
+  assert.ok(await page.$(".meav .meplus"));
+  const [chooser] = await Promise.all([page.waitForEvent("filechooser"), page.click("[data-act=avatar]")]);
+  await chooser.setFiles(require("path").join(__dirname, "..", "app", "icon-192.png"));
+  await page.waitForSelector(".meav img");
+  assert.match(await page.evaluate(() => S.settings.avatar.slice(0, 23)), /^data:image\/jpeg;base64/);
+  assert.equal(await page.$(".meav .meplus"), null);
+  await page.click("[data-act=avatar]");
+  await page.click("[data-act=avatardel]");
+  await page.waitForSelector(".meav .meplus");
+  assert.equal(await page.evaluate(() => S.settings.avatar), undefined);
+  // something else stored as a photo is thrown away when the data is loaded
+  assert.equal(await page.evaluate(() => normalize({ settings: { avatar: "javascript:alert(1)" } }).settings.avatar), undefined);
+  assert.deepEqual(await page.done(), []);
+});
