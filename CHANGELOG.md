@@ -8,7 +8,7 @@ A walk through the whole app with nonsense inputs (−3 km, 100 km in 30 minutes
 
 - **Runs and treadmill**: distance and time typed in by hand are checked before saving, with a message under the fields: more than 0 and up to 300 km, 3 minutes to 24 hours, seconds up to 59, a pace between world record and walking (2:30 to 30:00 /km), incline 0 to 30 %. Until now such typos were saved, became records and unlocked badges
 - **Yoga**: 1 to 300 minutes. **Body weight**: 30 to 250 kg, **height** 120 to 230 cm, with a message instead of saving any text (old invalid weights are cleared)
-- **Running goals and plan**: the loop target and the plan's target time must be a pace someone can run, kilometres per month 1 to 1000. This also found a bug: a one-hour target was shown as “1:0000–” and read as 1 minute
+- **Running goals**: the loop target must be a pace someone can run, kilometres per month 1 to 1000 (the race target check came with *Runs and race targets are checked*)
 - **Edit a saved session** (history › Edit): fix reps, weights, distance, time or yoga minutes, with the same checks. Empty reps remove a set
 - **Undo** after deleting a session, saving an edit, loading a backup, removing a progress photo or the profile photo, and deleting an own exercise
 - **Badges** that only the deleted or edited session had earned are taken back (and come back with Undo)
@@ -16,7 +16,19 @@ A walk through the whole app with nonsense inputs (−3 km, 100 km in 30 minutes
 - **Own exercises** can be edited (name, body part, equipment; the log type only while it was never logged) and deleted. Past workouts keep the name; an exercise still in an own workout or the running session can't be deleted
 - **Skip this exercise** (optional exercises) asks first when sets are already ticked off, like *Remove from today*
 - Removed the *Send a test notification* button
-- Checks are pure functions with unit tests (`run.js`: `checkIncline`, `checkTarget`, `checkKmMonth`, `validateRun`; `yoga.js`: `checkMinutes`); 8 new browser tests in `e2e/usability.e2e.js`; all new texts in four languages
+- Checks are pure functions with unit tests (`run.js`: `checkIncline`, `checkKmMonth`, a slowest pace in `validateRun`; `yoga.js`: `checkMinutes`); 8 new browser tests in `e2e/usability.e2e.js`; all new texts in four languages
+
+## Unreleased – Demo data to try the app
+
+Optional demo file (app/demo/novafit-demo.json, made by demo/make_demo.py): 16 weeks of gym, runs and yoga, loaded via Load backup and moved to recent weeks. Remove demo data takes it out again. README explains it. Tonnage badges raised to 100 t and 500 t.
+
+## Unreleased – Runs and race targets are checked
+
+- A run typed in by hand gets the same check as a screenshot or a watch file: distance 0 to 300 km, time 3 minutes to 24 hours, and no pace faster than a world record. Until now −5 km, 900 km in 30 minutes or 10 km in 5 seconds were saved. The message shows right below the field
+- Running goal: the target time has to be a pace a person can run (2:30 to 20 min per km); a 10 km target of 10 seconds made a plan before
+- Fixed: without earlier runs, the 10 km goal suggested “1:0000–” as target time, which counted as 1 minute. Full hours now show as 1:00:00
+- The error messages of the screenshot and file check are translated now too
+- `checkTarget` in `run.js` with unit tests; two new browser tests
 
 ## Unreleased – Set numbers are checked
 

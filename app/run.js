@@ -207,6 +207,16 @@
 
   /* Checks the values the runner confirms after reading a screenshot.
      km may be empty, time is required ("42:38", "1:05:10" or minutes), date optional. */
+  /* A target time for a race of `km` km: empty is fine (some goals make it optional),
+     otherwise the pace has to be one a person can run (2:30 to 20 min per km). */
+  function checkTarget(km, min) {
+    if (!(min > 0) || !(km > 0)) return "";
+    const p = min / km;
+    if (p < MIN_PACE) return "That target is faster than the world record. Check the time.";
+    if (p > MAX_PACE) return "That target is slower than walking. Check the time.";
+    return "";
+  }
+
   function validateRun(input, now) {
     now = now || Date.now();
     const errors = {}, value = {};
@@ -250,17 +260,6 @@
     if (!t) return "";
     const n = /^\d{1,2}([.,]\d)?$/.test(t) ? toNum(t) : NaN;
     return n >= 0 && n <= MAX_INCLINE ? "" : "Incline: 0 to " + MAX_INCLINE + " %";
-  }
-
-  /* A target time for a distance (running plan, loop goal): the pace must be one a person can run.
-     km > 0, min in minutes. Returns an error text or "". */
-  function checkTarget(km, min) {
-    if (!(min > 0)) return "Enter your target time.";
-    if (!(km > 0)) return "";
-    const p = min / km;
-    if (p < MIN_PACE) return "That's faster than the world record – please check the time.";
-    if (p > MAX_PACE) return "That's slower than 20 min per km – please check the time.";
-    return "";
   }
 
   /* Kilometres per month: a whole number from 1 to 1000. Returns an error text or "". */

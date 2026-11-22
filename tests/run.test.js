@@ -215,6 +215,25 @@ test("screenshots in Portuguese, Spanish, French and Italian, and 'Tempo' as tim
   }
 });
 
+/* ---------- a run typed in by hand, and target times ---------- */
+test("validateRun refuses what the QA run could type by hand", () => {
+  assert.ok(R.validateRun({ km: "-5", time: "30:00" }, NOW).errors.km);            // negative distance
+  assert.ok(R.validateRun({ km: "900", time: "30:00" }, NOW).errors.km);           // 900 km
+  assert.ok(R.validateRun({ km: "10", time: "0:05" }, NOW).errors.time);           // 5 seconds
+  assert.ok(R.validateRun({ km: "10", time: "20:00" }, NOW).errors.km);            // 2:00 /km: faster than a world record
+  assert.equal(R.validateRun({ km: "5,2", time: "31:40" }, NOW).ok, true);
+  assert.equal(R.validateRun({ km: "", time: "1:05:10" }, NOW).ok, true);          // treadmill time only
+});
+
+test("checkTarget only accepts a pace a person can run", () => {
+  assert.equal(R.checkTarget(10, 0), "");                                          // no target (optional)
+  assert.equal(R.checkTarget(10, 52), "");
+  assert.equal(R.checkTarget(42.195, 3 * 60 + 30), "");
+  assert.match(R.checkTarget(10, 10 / 60), /faster than the world record/);        // 10 seconds
+  assert.match(R.checkTarget(10, 24), /faster/);                                    // 2:24 /km
+  assert.match(R.checkTarget(21.0975, 9 * 60), /slower than walking/);
+});
+
 /* ---------- typed-in runs, goals and plan targets (usability check, Nov 2026) ---------- */
 test("a typed-in run must be one a person can run", () => {
   assert.equal(R.validateRun({ km: "10", time: "55:00" }).ok, true);
@@ -235,15 +254,6 @@ test("treadmill incline: empty or 0 to 30 %", () => {
   assert.ok(R.checkIncline("80"));
   assert.ok(R.checkIncline("-5"));
   assert.ok(R.checkIncline("abc"));
-});
-
-test("target times: a pace between world record and 20 min per km", () => {
-  assert.equal(R.checkTarget(10, 50), "");
-  assert.equal(R.checkTarget(42.2, 4 * 60), "");
-  assert.match(R.checkTarget(10, 1 / 60), /world record/);
-  assert.match(R.checkTarget(5, 0.0833), /world record/);
-  assert.match(R.checkTarget(5, 999), /slower/);
-  assert.match(R.checkTarget(10, 0), /target time/);
 });
 
 test("kilometres per month: 1 to 1000", () => {

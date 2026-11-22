@@ -17,13 +17,13 @@ test("run: 100 km in 30 minutes is refused with a message, a real run is saved",
   await page.evaluate(() => startSession("lauf", "out"));
   await typeRun(page, "100", "3000");
   await page.click('[data-act="finish"] >> nth=0');
-  assert.match(await text(page, "#run-err"), /world record/);
+  assert.match(await text(page, "#run-km-err"), /world record/);
   assert.equal(await page.$eval("#run-km", i => i.getAttribute("aria-invalid")), "true");
   assert.equal(await page.evaluate(() => S.history.length), 0);
   assert.equal(await page.evaluate(() => Object.keys(S.badges || {}).length), 0);
 
   await typeRun(page, "5", "2800");
-  assert.equal(await text(page, "#run-err"), "", "the message goes away once the numbers fit");
+  assert.equal(await text(page, "#run-km-err"), "", "the message goes away once the numbers fit");
   await page.click('[data-act="finish"] >> nth=0');
   await page.waitForFunction(() => S.history.length === 1);
   assert.deepEqual(await page.evaluate(() => ({ km: S.history[0].run.km, min: S.history[0].run.min })), { km: 5, min: 28 });
