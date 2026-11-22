@@ -120,8 +120,13 @@ function syncHtml(){
   return `<span class="muted">Checking storage…</span>`;
 }
 function setSync(v){ sync = v; document.querySelectorAll("[data-sync]").forEach(el => el.innerHTML = syncHtml()); }
+let SAVE_WARNED = false;
 function save(){
-  try{ localStorage.setItem(LS, JSON.stringify(S)); }catch(e){}
+  try{ localStorage.setItem(LS, JSON.stringify(S)); SAVE_WARNED = false; }
+  catch(e){
+    // the browser's storage for NOVAFit is full: say so once, so nothing gets lost without a word
+    if(!SAVE_WARNED){ SAVE_WARNED = true; setTimeout(() => { if(typeof toast==="function") toast("Your phone's storage for NOVAFit is full, so this change isn't kept. Back up your data in the menu under Your data, then free some space."); }, 0); }
+  }
   if(!ref) return;
   clearTimeout(saveTimer); saveTimer = setTimeout(flush, 800);
 }
@@ -939,6 +944,13 @@ function yogaCard(id){
   return null;
 }
 function sportBlock(k, st){
+  const none = k==="r" ? !S.history.some(e => kmOf(e)>0) : k==="y" ? !ofKind(k).length && !NFYoga.flexList(S.settings.flex).length : !ofKind(k).length;
+  if(none){
+    const t = {s:["Your gym numbers start here", "Strength score, records and the balance of your muscles show up after your first workout."],
+      r:["Your running numbers start here", "Kilometres per week, your pace and what you could run today show up after your first run."],
+      y:["Your yoga numbers start here", "What yoga does for your tension and your flexibility shows up after your first session."]}[k];
+    return `<section class="pblock2" id="sec-${k}"><div class="sechead"><h2 class="sec">${PK_NAME[k]}</h2></div><div class="pc k-${k}"><p class="lab">Nothing yet</p><p class="big" style="font-size:26px">${t[0]}</p><p class="psm">${t[1]}</p><button class="pbtn" data-act="sport" data-k="${k}">Go to ${PK_NAME[k]==="Running" ? "Run" : PK_NAME[k]}</button></div></section>`;
+  }
   const ids = NFProg.cardsFor(S.settings.pcards, k), fn = {s:gymCard, r:runCard, y:yogaCard}[k];
   const cards = ids.map(id => fn(id, st)).filter(Boolean);
   return `<section class="pblock2" id="sec-${k}"><div class="sechead"><h2 class="sec">${PK_NAME[k]}</h2><button class="pedit" data-act="pcards" data-k="${k}">Edit cards</button></div>${cards.map(c => `<div class="pc k-${k}"><p class="lab">${c.lab}</p>${c.h}</div>`).join("")}</section>`;
