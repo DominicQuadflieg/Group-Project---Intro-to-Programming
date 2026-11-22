@@ -2,6 +2,10 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Menu, profile photo, install first on iPhone
+
+A compact menu: five groups, one line per setting that says what it is for, missing things in red, a profile photo (tap + to add, tap the photo to change or remove it), Nova default pack for photos, no footer; the guided tour explains the sections. On an iPhone in Safari, Create account first shows how to add NOVAFit to the Home Screen (Safari and the app keep separate data); anyone who signed up in Safari moves everything with Copy my data and Paste from Safari.
+
 ## Unreleased – Today takes turns, backups, README
 
 The big card on Today now takes turns every 5 seconds between the day's message, the week or month review and a reminder to back up (after 5 sessions, then every 2 weeks). Backups open the phone's share sheet, Settings shows the last backup, and the browser is asked to keep NOVAFit's data. New README with objectives, features, how to run and test, team and AI use; setup, architecture and security notes in docs/.

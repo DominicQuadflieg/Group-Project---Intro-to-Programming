@@ -60,7 +60,7 @@ Group project for *Introduction to Programming* at Nova SBE, 2026/27.
 
 ## Run the application
 
-**Easiest: the live version.** Open the link above on a phone or computer. On a phone choose *Share › Add to Home Screen*: NOVAFit then starts full screen and works offline.
+**Easiest: the live version.** Open the link above on a phone or computer. On a phone choose *Share › Add to Home Screen*: NOVAFit then starts full screen and works offline. On an iPhone, add it to the Home Screen *before* creating the account: Safari and the Home Screen app keep separate data (the app shows how; anyone who signed up in Safari can move everything with *Copy my data* and *Paste from Safari*).
 
 **Locally on your computer** (needs Python 3, nothing to install):
 

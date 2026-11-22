@@ -97,6 +97,7 @@ function normalize(s){
   const st = Object.assign(d.settings, (s.settings && typeof s.settings==="object") ? s.settings : {});
   // Text from storage, a backup file or the cloud sync is cleaned before it can reach the screen
   st.custom = NFEx.safeCustom(st.custom);
+  if(st.avatar!=null && !(typeof st.avatar==="string" && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(st.avatar) && st.avatar.length < 150000)) delete st.avatar;   // profile photo: only a small image, nothing else
   if(st.pcards && typeof st.pcards==="object") ["s","r","y"].forEach(k => { const l = st.pcards[k]; st.pcards[k] = Array.isArray(l) ? l.filter(x => typeof x==="string" && /^[a-z]{1,12}$/.test(x)).slice(0, 5) : undefined; }); else delete st.pcards;
   if(st.ownW && typeof st.ownW==="object") Object.keys(st.ownW).forEach(k => { const w = st.ownW[k]; if(!w || typeof w!=="object" || !/^[A-Za-z0-9_-]{1,40}$/.test(k)) delete st.ownW[k]; else w.name = NFEx.safeText(w.name, 40, "Own workout"); });
   if(st.loopName != null) st.loopName = NFEx.safeText(st.loopName, 24);
@@ -400,18 +401,75 @@ function renderMe(){
   const sp = k => `data-act="setp" data-p="${k}"`;
   const nPh = (PHOTOS||[]).length;
   let h = nfHeadHtml();
-  h += `<section class="mehead"><span class="meav" role="img" aria-label="${st.thisWeek} of ${st.goal} sessions this week"><svg viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="33" class="trk"/><circle cx="36" cy="36" r="33" class="val" stroke-dasharray="${(C*pct).toFixed(1)} ${C.toFixed(1)}"/></svg><b>${esc(initials(name))}</b></span>
+  h += `<section class="mehead"><button class="meav" data-act="avatar" aria-label="${set.avatar ? "Change profile photo" : "Add a profile photo"}. ${st.thisWeek} of ${st.goal} sessions this week"><svg viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="33" class="trk"/><circle cx="36" cy="36" r="33" class="val" stroke-dasharray="${(C*pct).toFixed(1)} ${C.toFixed(1)}"/></svg>${set.avatar ? `<img src="${set.avatar}" alt="">` : `<b>${esc(initials(name))}</b><i class="meplus" aria-hidden="true">+</i>`}</button>
     <div><h1>${esc(name)}</h1><p>Nova SBE${set.plan ? " · " + esc(set.plan.name) : ""}</p><button class="linkbtn" data-act="ob" data-do="edit">Edit profile and plan</button></div></section>`;
   h += countersHtml([[`${st.thisWeek}/${st.goal}`, "this week"], [st.streak, st.streak===1 ? "week in a row" : "weeks in a row"], [got, got===1 ? "badge" : "badges"]]);
-  h += grp("You", row(sp("account"), "Account", pr.email || "") + row(sp("profile"), "Profile and body", [num(set.bodyKg)>0 ? fmt(num(set.bodyKg)) + " kg" : "", set.body && set.body.cm ? set.body.cm + " cm" : ""].filter(Boolean).join(" · ")) + row(sp("goal"), "Weekly goal", `${set.goal}×`) + row('data-act="ob" data-do="edit"', "My plan", set.plan ? set.plan.name : "Not set") + row('data-act="runplan"', "Running plan", set.runPlan ? "Active" : "Not set"));
-  h += grp("Training", row('data-act="library"', "Exercise library", `${NFEx.LIBRARY.filter(e => !e.hidden).length + customList().length}`) + row('data-act="workouts"', "All workouts", "") + row('data-act="calopen"', "Calendar & history", "") + row('data-act="badgesopen"', "Badges", `${got} / ${visibleBadges().length}`) + row('data-act="tourstart"', "Guided tour", "5 min"));
-  h += grp("Connected", (stravaSettings() ? row(sp("strava"), "Strava", stGet() ? "Connected" : "Not connected") : "") + row(sp("push"), "Notifications", push==="on" ? "On" : "Off") + row(sp("cal"), "Calendar reminders", ""));
-  h += grp("App", row(sp("theme"), "Appearance", {auto:"Automatic", light:"Light", dark:"Dark"}[set.theme] || "Automatic") + row(sp("sound"), "Sound", set.restSound===false ? "Off" : "On") + row(sp("weather"), "Running weather", set.wxGeo===true ? "Where I am" : NFRun.WX_HOME.place) + row(sp("photos"), "Your photos", nPh ? `${nPh} ${nPh===1?"photo":"photos"}` : "Nova photos"));
-  h += grp("Your data", row('data-act="impsheet"', "Import runs from other apps", "Garmin, Strava, files") + row(sp("data"), "Back up and restore", ""));
-  h += footerHtml() + tabBarHtml();
+  const row2 = (attrs, label, why, val, warn) => `<button class="merow two" ${attrs}><span><b>${label}</b><em>${why}</em></span>${val!=null && val!=="" ? `<small class="${warn?"warn":""}">${esc(String(val))}</small>` : ""}<span class="chev" aria-hidden="true">›</span></button>`;
+  const grp2 = (id, t, note, rows) => `<section class="megrp two" id="${id}"><h2>${t}${note ? `<small>${note}</small>` : ""}</h2><div>${rows}</div></section>`;
+  const bk = S.settings.backupAt ? new Date(S.settings.backupAt).toLocaleDateString("en-GB",{day:"numeric",month:"short"}) : "Never";
+  h += grp2("me-plan", "You and your plan", "",
+    row2(sp("profile"), "Profile and body", "For calories and starting weights", [num(set.bodyKg)>0 ? fmt(num(set.bodyKg)) + " kg" : "", set.body && set.body.cm ? set.body.cm + " cm" : ""].filter(Boolean).join(" · ")) +
+    row2(sp("goal"), "Weekly goal", "Sessions that make a good week", `${set.goal}×`) +
+    row2('data-act="ob" data-do="edit"', "My plan", "Your days for gym, run and yoga", set.plan ? set.plan.name : "Not set", !set.plan) +
+    row2('data-act="runplan"', "Running goal", "Towards 10 km or a half marathon", set.runPlan ? planTitle(set.runPlan) : "Not set") +
+    row2(sp("account"), "Account", "Name, email, password", pr.email || ""));
+  h += grp2("me-remind", "Reminders and weather", "",
+    row2(sp("push"), "Push notifications", "A nudge on your training days", push==="on" ? "On" : "Off", push!=="on") +
+    row2(sp("cal"), "Add to my calendar", "Training days in your calendar", "") +
+    row2(sp("weather"), "Running weather", "Forecast for your runs, where you are", set.wxGeo===true ? "Where I am" : NFRun.WX_HOME.place) +
+    (stravaSettings() ? row2(sp("strava"), "Strava", "New runs come in by themselves", stGet() ? "Connected" : "Not connected") : ""));
+  h += grp2("me-look", "Look and feel", "",
+    row2(sp("photos"), "Your photos", "On Today and in your stories", nPh ? `${nPh} ${nPh===1?"photo":"photos"}` : "Nova default pack") +
+    row2(sp("theme"), "Appearance", "Light, dark or like your phone", {auto:"Automatic", light:"Light", dark:"Dark"}[set.theme] || "Automatic") +
+    row2(sp("sound"), "Sound", "Rest timer bell, yoga voice", set.restSound===false ? "Off" : "On"));
+  h += grp2("me-train", "Training", "",
+    row2('data-act="calopen"', "Calendar and history", "Every session, day by day", "") +
+    row2('data-act="badgesopen"', "Badges", "What you've earned so far", `${got} / ${visibleBadges().length}`) +
+    row2('data-act="library"', "Exercise library", "With drawings and tips", `${NFEx.LIBRARY.filter(e => !e.hidden).length + customList().length}`) +
+    row2('data-act="workouts"', "My workouts", "Your own templates", "") +
+    row2('data-act="tourstart"', "Guided tour", "5 minutes through the app", ""));
+  h += grp2("me-data", "Your data", "stays on this phone",
+    row2(sp("data"), "Back up and restore", "Save a copy or move phones", bk, !S.settings.backupAt) +
+    row2('data-act="impsheet"', "Import runs", "From Garmin, Strava or your watch", ""));
+  h += tabBarHtml();   // no footer here: everything it links to is in the list above
   $("#app").innerHTML = h;
   nfMount();
   if(!PHOTOS) photoUrls().then(ps => { if(ps.length && screen==="me") renderMe(); }).catch(() => {});
+}
+/* ---- Profile photo: a small square JPEG (192 px) kept in the settings, so it is only on this phone and in backups ---- */
+function avatarSheet(){
+  sheet(`<div style="display:flex;gap:14px;align-items:center;margin-bottom:14px"><img src="${S.settings.avatar}" alt="" style="width:64px;height:64px;border-radius:50%;object-fit:cover"><div><h3 style="margin:0">Profile photo</h3><p class="muted small" style="margin:2px 0 0">Only on this phone.</p></div></div>
+    <button class="primary" data-act="avatarnew">Choose a new photo</button><button class="secondary" style="margin-top:8px" data-act="avatardel">Remove photo</button><button class="secondary" style="margin-top:8px;border:0" data-act="closesheet">Cancel</button>`);
+}
+function pickAvatar(){
+  const inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*";
+  inp.onchange = async () => {
+    const f = inp.files && inp.files[0]; if(!f) return;
+    if(!/^image\//.test(f.type || "image/")) return toast("Please choose a photo.");
+    try{
+      const url = URL.createObjectURL(f), img = await new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = url; });
+      const n = 192, c = document.createElement("canvas"); c.width = c.height = n;
+      const sq = Math.min(img.naturalWidth, img.naturalHeight), x = c.getContext("2d");
+      x.drawImage(img, (img.naturalWidth-sq)/2, (img.naturalHeight-sq)/2, sq, sq, 0, 0, n, n);
+      URL.revokeObjectURL(url);
+      S.settings.avatar = c.toDataURL("image/jpeg", .85); save(); render(); toast("Profile photo saved.");
+    }catch(e){ toast("This photo can't be read. Try another one."); }
+  };
+  inp.click();
+}
+/* ---- iPhone: Safari and the Home Screen app keep separate data, so install before signing up ---- */
+const MOVE_TAG = "NOVAFIT-DATA:";
+function iosSafari(){ return isIOS && !standalone; }
+function installSheet(){
+  const share = `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5"/><path d="M6 11H5v10h14V11h-1"/></svg>`;
+  const plus = `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M12 8v8M8 12h8"/></svg>`;
+  sheet(`<h3>Add NOVAFit to your Home Screen</h3><p class="muted small" style="margin:4px 0 0">It opens full screen, works offline and can remind you to train.</p>
+    <ol class="instep"><li><span class="n">1</span><span class="ic">${share}</span><span><b>Tap Share</b><small>at the bottom of Safari</small></span></li>
+    <li><span class="n">2</span><span class="ic">${plus}</span><span><b>Add to Home Screen</b><small>then tap Add</small></span></li>
+    <li><span class="n">3</span><span class="ic dark">N</span><span><b>Open NOVAFit</b><small>from your Home Screen and create your account there</small></span></li></ol>
+    <p class="whyline">Why first? On iPhone, Safari and the app keep their data apart. An account made here would not be in the app.</p>
+    <button class="secondary" data-act="installskip" style="margin-top:12px">Skip, continue in Safari</button>
+    <p class="sharehint" aria-hidden="true">Share is down here <b>↓</b></p>`);
 }
 function footerHtml(){
   return `<footer class="pfoot"><div class="pf-in">${NF_MINI}<div class="pf-cols">
@@ -487,7 +545,7 @@ function examNoteHtml(){
 function todayTabHtml(st){
   let h = heroHtml(st);
   if(push==="install" && !S.settings.hideInstall){
-    h += `<section class="card nudge"><b>Install as an app</b><p class="small muted" style="margin:0">In Safari, tap <b>Share</b> at the bottom and then <b>“Add to Home Screen”</b>. The app then opens full screen and can remind you to train.</p><button class="addset" data-act="hideinstall" style="align-self:flex-end">Hide</button></section>`;
+    h += `<section class="card nudge"><b>Install as an app</b><p class="small muted" style="margin:0">In Safari, tap <b>Share</b> at the bottom and then <b>“Add to Home Screen”</b>. The app then opens full screen and can remind you to train.</p>${S.history.length || S.settings.profile ? `<p class="small" style="margin:6px 0 0">Signed up here already? <button class="linkbtn" data-act="copydata" style="text-decoration:underline">Copy my data</button> and paste it in the app.</p>` : ""}<button class="addset" data-act="hideinstall" style="align-self:flex-end">Hide</button></section>`;
   }else if(push==="off" && !S.settings.hidePush){
     h += `<section class="card nudge"><b>Turn on reminders</b><p class="small muted" style="margin:0">The app reminds you to train on Wednesdays at 18:40, Fridays at 14:00 and Saturdays at 10:00, checks in in the evening if you haven't trained yet, and sends your weekly review on Sundays.</p>
       <div class="row2"><button class="secondary" data-act="hidepush">Later</button><button class="primary" style="height:48px;font-size:17px" data-act="pushon">Allow</button></div></section>`;
@@ -4380,7 +4438,8 @@ function renderOnboard(){
     case "welcome":
       h = `<section class="ob-hero">${NF_MINI}<h1>Train like<br>you study.</h1></section>
         <p class="lead">Strength, running and yoga in one plan. Built around your goals and your week at Nova.</p>
-        <div class="foot"><button class="primary" data-act="ob" data-do="go" data-to="signup">Create account</button>
+        ${standalone && !S.settings.profile ? `<p class="obok">✓ NOVAFit is on your Home Screen. Now create your account.</p>` : ""}
+        <div class="foot"><button class="primary" ${iosSafari() ? 'data-act="installfirst"' : 'data-act="ob" data-do="go" data-to="signup"'}>Create account</button>
         <button class="secondary" data-act="ob" data-do="go" data-to="restore">I already have an account</button></div>`;
       break;
     case "signup": {
@@ -4398,9 +4457,10 @@ function renderOnboard(){
     }
     case "restore":
       h = obHead("welcome") + `<h2>Welcome back</h2>
-        <p class="lead">NOVAFit keeps your account and training on your phone, not on a server. To continue on this phone, load the backup file you created under Settings → Back up.</p>
+        <p class="lead">NOVAFit keeps your account and training on your phone, not on a server. Signed up in Safari first? Paste your data. Coming from another phone? Load the backup file you created under Settings › Back up.</p>
         <input type="file" id="importf" accept=".json,application/json" hidden>
-        <div class="foot"><button class="primary" data-act="import">Load backup file</button>
+        <div class="foot"><button class="primary" data-act="pastedata">📋 Paste from Safari</button>
+        <button class="secondary" data-act="import">Load backup file</button>
         <button class="secondary" data-act="ob" data-do="go" data-to="signup">Create a new account instead</button></div>`;
       break;
     case "login": {
@@ -4827,6 +4887,9 @@ document.addEventListener("click", async ev => {
     case "menu": closeSheet(); screen = screen==="me" ? "home" : "me"; render(); window.scrollTo(0,0); break;
     case "tab": { closeSheet(); TAB = ["today","train","progress"].includes(b.dataset.t) ? b.dataset.t : "today"; try{ sessionStorage.setItem("nf-tab", TAB); }catch(e){} screen = "home"; render(); window.scrollTo(0,0); break; }
     case "setp": settingsSheet(b.dataset.p); break;
+    case "avatar": if(S.settings.avatar) avatarSheet(); else pickAvatar(); break;
+    case "avatarnew": closeSheet(); pickAvatar(); break;
+    case "avatardel": delete S.settings.avatar; save(); closeSheet(); render(); toast("Photo removed."); break;
     case "ob": obAct(b); break;
     case "menutheme": closeSheet(); S.settings.theme = isDark() ? "light" : "dark"; applyTheme(); save(); render(); break;
     case "goto": {
@@ -4996,21 +5059,37 @@ document.addEventListener("click", async ev => {
     case "backuplater": S.settings.backupSnooze = Date.now() + 3*864e5; save(); render(); toast("We'll remind you in 3 days."); break;
     case "backupremind": S.settings.backupRemind = !!b.checked; if(b.checked) S.settings.backupSnooze = 0; save(); break;
     case "import": $("#importf").click(); break;
+    case "installfirst": installSheet(); break;
+    case "installskip": closeSheet(); obGo("signup"); break;
+    case "copydata": {
+      try{ await navigator.clipboard.writeText(MOVE_TAG + JSON.stringify(S)); toast("Copied ✓ Now add NOVAFit to your Home Screen, open it and tap “I already have an account”."); }
+      catch(e){ toast("Copying didn't work. Use Settings › Back up instead."); }
+      break;
+    }
+    case "pastedata": {
+      let t = ""; try{ t = await navigator.clipboard.readText(); }catch(e){}
+      if(!t || !t.startsWith(MOVE_TAG)){ toast("Nothing to paste yet. In Safari, open NOVAFit and tap “Copy my data”."); break; }
+      loadBackupText(t.slice(MOVE_TAG.length));
+      break;
+    }
   }
 });
 document.addEventListener("change", ev => {
   if(ev.target.id==="phfile"){ const fs = ev.target.files; if(fs && fs.length) addPhotos(fs).then(() => { ev.target.value = ""; }); return; }
   if(ev.target.id!=="importf" || !ev.target.files[0]) return;
   const f = ev.target.files[0], rd = new FileReader();
-  rd.onload = () => {
-    try{
-      const d = JSON.parse(rd.result);
-      if(!d || !Array.isArray(d.history)) throw 0;
-      S = merge(S, d); addCustomToEXN(); registerOwn(); checkBadges(true); save(); applyTheme(); closeSheet(); screen = "home"; render(); toast(`${d.history.length} sessions loaded.`);
-    }catch(e){ toast("That's not a valid backup."); }
-  };
+  rd.onload = () => loadBackupText(rd.result);
   rd.readAsText(f);
 });
+// A backup file or data pasted from Safari: checked and cleaned like everything that comes from storage
+function loadBackupText(text){
+  try{
+    const d = JSON.parse(text);
+    if(!d || typeof d!=="object" || !Array.isArray(d.history)) throw 0;
+    S = merge(S, d); addCustomToEXN(); registerOwn(); checkBadges(true); save(); applyTheme(); closeSheet(); screen = "home"; render(); toast(`${d.history.length} sessions loaded.`);
+    return true;
+  }catch(e){ toast("That's not a valid backup."); return false; }
+}
 /* Texterkennung schon beim Antippen laden, während die Fotoauswahl offen ist */
 document.addEventListener("pointerdown", ev => { if(ev.target.closest && ev.target.closest(".shotcta") && navigator.onLine!==false) ocrWorker().catch(() => {}); });
 document.addEventListener("change", ev => { if(ev.target.id==="runshot"){ const f = ev.target.files && ev.target.files[0]; ev.target.value = ""; runShot(f); } });

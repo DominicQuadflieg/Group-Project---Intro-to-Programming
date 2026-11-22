@@ -1339,6 +1339,27 @@ button.cday{cursor:pointer;border-color:transparent;color:#fff}
 .tg-ghost{display:block;width:100%;border:0;background:none;color:#fff;font:600 14px var(--body);text-decoration:underline;padding:10px;cursor:pointer;min-height:44px}
 /* Today: several messages in the big card take turns */
 .heroset>section.hero:not(.on){display:none}
+/* Menu: compact groups, a line per setting that says what it is for */
+#app > section.megrp.two{margin-top:6px;padding-top:0;padding-bottom:0}
+#app .megrp.two h2{display:flex;align-items:baseline;gap:10px;margin:0 0 4px;font:700 19px/1.2 var(--display);color:var(--ink)}
+.megrp.two h2 small{font:400 12px var(--body);color:var(--muted)}
+.megrp.two > div{border-top:2px solid var(--ink)}
+.merow.two{min-height:0;padding:9px 2px;text-align:left}
+.merow.two > span:first-child{min-width:0}
+.merow.two b{display:block;font:600 14.5px var(--body)}
+.merow.two em{display:block;font-style:normal;font-size:12px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.merow.two small{font:600 13px var(--body);color:var(--ink);white-space:nowrap;max-width:46%;overflow:hidden;text-overflow:ellipsis}
+.merow.two small.warn{color:#ED1B34}
+button.meav{border:0;padding:0;background:none;cursor:pointer}
+.meav img{width:58px;height:58px;border-radius:50%;object-fit:cover;position:relative}
+.meplus{position:absolute;right:-2px;bottom:-2px;width:24px;height:24px;border-radius:50%;background:#ED1B34;color:#fff;display:grid;place-items:center;border:2px solid var(--bg);font:700 15px/1 var(--body);font-style:normal}
+/* iPhone: install before signing up, and moving data from Safari */
+.instep{list-style:none;margin:14px 0 0;padding:0}.instep li{display:flex;gap:14px;align-items:center;padding:12px 0;border-top:1px solid var(--line);font-size:15px}.instep li:last-child{border-bottom:1px solid var(--line)}
+.instep .n{font:700 13px var(--body);color:#ED1B34;width:14px}.instep .ic{width:42px;height:42px;border:1.5px solid var(--ink);display:grid;place-items:center;flex:none}
+.instep .ic.dark{background:var(--ink);color:var(--bg);font:800 19px var(--body)}.instep small{display:block;color:var(--muted);font-size:12.5px}
+.whyline{margin:12px 0 0;padding:10px 12px;background:var(--accent-soft);font-size:13px}
+.sharehint{margin:12px 0 0;text-align:center;color:#ED1B34;font:700 12px var(--body);letter-spacing:.08em;text-transform:uppercase}.sharehint b{display:block;font-size:24px;line-height:1}
+.obok{margin:10px 0 0;padding:10px 12px;border-left:4px solid #1e7b3a;background:var(--accent-soft);font-size:14px;font-weight:600}
 </style>
 </head>
 <body>
