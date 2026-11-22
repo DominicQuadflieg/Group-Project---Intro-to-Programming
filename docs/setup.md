@@ -79,4 +79,4 @@ The photos in `app/img/pack/` are © Nova SBE and used only for this course proj
 
 ## Older ready-made download
 
-`releases/NOVAFit 2.8.2.zip` is a snapshot from 17 November (v2.8.2). It is kept for the version history; for the current app use the `app` folder or the live link.
+A snapshot from 17 November (v2.8.2) is kept in the Git history: [download NOVAFit 2.8.2.zip](https://github.com/juveith/Group-Project---Intro-to-Programming/raw/32b7c146c4acaca2b35766e82a0b43dc069e77da/releases/NOVAFit%202.8.2.zip). For the current app use the `app` folder or the live link.

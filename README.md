@@ -25,7 +25,7 @@ Group project for *Introduction to Programming* at Nova SBE, 2026/27.
 
 1. Build a complete, usable application from scratch in plain HTML, CSS and JavaScript, without a framework.
 2. Model real data (plans, sessions, sets, runs, yoga) and keep it safe on the device: validation of every input, a hashed password, no secrets in the code.
-3. Keep the logic testable: pure functions in their own files, 217 unit tests and 13 browser tests that run on every push.
+3. Keep the logic testable: pure functions in their own files, with unit tests and browser tests that run on every push.
 4. Work as a team with Git: every change in its own pull request, a changelog and a version history.
 5. Use AI coding assistants responsibly, with us deciding what gets built and reviewing what gets merged (see [How we worked](#how-we-worked)).
 
@@ -81,10 +81,10 @@ Then open http://localhost:8000 and create an account. Everything works locally 
 Needs Node.js 18 or newer:
 
 ```
-node --test                 # 217 unit tests, no packages needed
+node --test                 # unit tests, no packages needed
 npm ci                      # once, installs Playwright (the only package)
 npx playwright install chromium
-npm run e2e                 # 13 tests that drive the real app in a browser
+npm run e2e                 # browser tests that drive the real app
 ```
 
 The unit tests cover sign-up and questionnaire validation, plan suggestions, the exercise library, running files and screenshots, imports, yoga, Progress cards, badges and the tour's example data. The browser tests sign up, log strength sessions, runs and yoga, import files, restore backups and walk through the whole guided tour. GitHub runs both on every push and pull request (`.github/workflows/test.yml`).
@@ -106,7 +106,7 @@ More detail: [docs/architecture.md](docs/architecture.md) · [docs/security.md](
 
 ## How we worked
 
-Every change went through its own branch and pull request into `main`, with a short description and an entry in [CHANGELOG.md](CHANGELOG.md). The tests run on every pull request. 52 pull requests so far.
+Every change went through its own branch and pull request into `main`, with a short description and an entry in [CHANGELOG.md](CHANGELOG.md). The tests run on every pull request. All of them are listed under [Pull requests](https://github.com/juveith/Group-Project---Intro-to-Programming/pulls?q=is%3Apr).
 
 **Who did what** (pull requests as listed on GitHub; we discussed and tested together):
 

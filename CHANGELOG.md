@@ -2,6 +2,11 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – README tidy-up
+
+- The README no longer names fixed numbers of tests and pull requests (they went out of date with every change); it links to the list of pull requests instead
+- The old ready-made `releases/NOVAFit 2.8.2.zip` is no longer part of the current files; `docs/setup.md` links to it in the Git history, so it can still be downloaded
+
 ## Unreleased – Edge cases
 
 - Screenshots in Portuguese, Spanish, French and Italian are read correctly (dates, labels, "Tempo" as time).
