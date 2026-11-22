@@ -2,6 +2,14 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Runs and race targets are checked
+
+- A run typed in by hand gets the same check as a screenshot or a watch file: distance 0 to 300 km, time 3 minutes to 24 hours, and no pace faster than a world record. Until now −5 km, 900 km in 30 minutes or 10 km in 5 seconds were saved. The message shows right below the field
+- Running goal: the target time has to be a pace a person can run (2:30 to 20 min per km); a 10 km target of 10 seconds made a plan before
+- Fixed: without earlier runs, the 10 km goal suggested “1:0000–” as target time, which counted as 1 minute. Full hours now show as 1:00:00
+- The error messages of the screenshot and file check are translated now too
+- `checkTarget` in `run.js` with unit tests; two new browser tests
+
 ## Unreleased – Badges that take longer
 
 21 new long-term badges (★★ months, ★★★ a year or more), sorted easy to hard per group. Triple week now says 3× SPORTS. No more NEW tags in the Progress card editor.

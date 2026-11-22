@@ -47,3 +47,25 @@ test("in German nothing on the goal wizard and the plan stays English", async ()
   assert.deepEqual(left, []);
   assert.deepEqual(await page.done(), []);
 });
+
+test("a 10 km target of 10 seconds is refused, a real one makes the plan", async () => {
+  const page = await app.open();
+  await page.evaluate(() => { S.settings.profile = { name: "T" }; S.settings.guideDone = true; delete S.settings.runPlan; save(); PLW = null; screen = "home"; render(); runSheet(); });
+  await page.click('.run-menu [data-act="runplan"]');
+  await page.click('#app [data-act="plgoal"][data-g="k10"]');
+  const target = '#app input[data-in="plw"][data-f="target"]';
+  await page.waitForSelector(target);
+  await page.fill(target, "0:10");
+  for (let i = 0; i < 6 && !(await page.$('#app [data-act="plcreate"]')); i++) await page.click("#app .primary");
+  await page.click('#app [data-act="plcreate"]');
+  await page.waitForSelector(".toast");
+  assert.match(await page.textContent(".toast"), /faster than the world record/);
+  assert.equal(await page.evaluate(() => !!S.settings.runPlan), false);
+  assert.equal(await page.getAttribute(target, "aria-invalid"), "true");
+
+  await page.fill(target, "52:00");
+  await page.click('#app [data-act="plcreate"]');
+  await page.waitForFunction(() => !!S.settings.runPlan);
+  assert.equal(await page.evaluate(() => S.settings.runPlan.target), 52);
+  assert.deepEqual(await page.done(), []);
+});
