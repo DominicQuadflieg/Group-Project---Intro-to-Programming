@@ -4,6 +4,7 @@ Alle Versionen der App, die neueste oben.
 
 ## Unreleased – README and docs for the submission
 
+- The README links to the live app on Netlify: https://inquisitive-pegasus-dbcd63.netlify.app
 - README and `docs/setup.md` say clearly that the direct Strava connection is built and tested but not switched on in the live version: the Strava API needs a Strava subscription, which none of us has. Runs still come in by screenshot, watch file and the free Strava archive
 - The README no longer names fixed numbers of tests and pull requests (they went out of date with every change); it links to the list of pull requests instead
 - The old ready-made `releases/NOVAFit 2.8.2.zip` is no longer part of the current files; `docs/setup.md` links to it in the Git history, so it can still be downloaded
