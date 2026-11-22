@@ -46,7 +46,7 @@ New users can bring their runs from other apps right after choosing a plan (“B
 | Garmin Connect | the activity list (CSV) | connect.garmin.com → *Activities → All Activities* → scroll until the year is loaded → *Export CSV* |
 | Strava | the archive (ZIP) or `activities.csv` from it | strava.com → *Settings → My Account → Download or Delete Your Account → Request Your Archive* |
 | Strava (connected) | nothing, NOVAFit gets the runs since 1 January | needs the Strava connection above (not switched on in our live version) |
-| Polar, Coros, Suunto, Apple Watch … | several GPX, FIT or TCX files at once | export from the app of the watch |
+| Polar, Coros, Suunto, Apple Watch … | several GPX, FIT or TCX files at once (Polar also CSV) | export from the app of the watch, Polar on flow.polar.com → session → Export |
 
 A preview shows the number of runs and kilometres, with the time range (this year, last 12 months, everything), walks on or off, and kilometres or miles for Garmin files. Rides and other sports are left out, runs that are already in NOVAFit are skipped, and an import can be undone right away. Everything is read on the phone; big Strava archives are not loaded completely, only the activity list inside.
 

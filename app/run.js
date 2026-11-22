@@ -419,6 +419,34 @@
     return 30 + dv.getUint16(26, true) + dv.getUint16(28, true);
   }
 
+  /* Polar Flow's CSV export of one session: a summary header and row, then one row per second.
+     Line 1: Name,Sport,Date,Start time,Duration,Total distance (km),… (German export: Sportart, Datum, Startzeit, Dauer). */
+  function isPolarCsv(text) {
+    const first = String(text || "").replace(/^\uFEFF/, "").split(/\r?\n/, 1)[0].toLowerCase();
+    const cells = first.split(/[;,]/).map(c => c.trim());
+    const has = names => names.some(n => cells.includes(n));
+    return has(["sport", "sportart"]) && has(["start time", "startzeit"]) && has(["duration", "dauer"]) && cells.some(c => /^(total distance|gesamtdistanz|distanz|distance)/.test(c));
+  }
+  /* Reads a Polar CSV into the same shape as parseGpx: {km, min, at, sport, name} */
+  function parsePolarCsv(text) {
+    if (!isPolarCsv(text)) throw new Error("This is not a Polar Flow CSV file.");
+    const rows = parseCsv(text);
+    if (rows.length < 2) throw new Error("This Polar file has no session in it.");
+    const col = headerIndex(rows[0]), r = rows[1], get = names => { const i = col(names); return i >= 0 ? r[i] : ""; };
+    let km = numLoose(get(["total distance (km)", "gesamtdistanz (km)", "distanz (km)", "distance (km)"]));
+    // no distance in the summary (e.g. without GPS): take the last value of the per-second distances
+    if (!(km > 0) && rows.length > 3) {
+      const sc = headerIndex(rows[2])(["distances (m)", "distanzen (m)"]);
+      if (sc >= 0) for (let i = rows.length - 1; i > 2; i--) { const m = numLoose(rows[i][sc]); if (m > 0) { km = m / 1000; break; } }
+    }
+    const date = get(["date", "datum"]), time = get(["start time", "startzeit"]);
+    const at = parseStamp(`${date} ${time}`, false);
+    const min = durMin(get(["duration", "dauer"]));
+    if (!at) throw new Error("The date of this Polar session can't be read.");
+    const sport = String(get(["sport", "sportart"]) || "").trim().toLowerCase();
+    return { km: round2(km), min, at, sport, name: "" };
+  }
+
   /* What kind of file is it? Looks at the content, not only the name. */
   function fileKind(name, u8) {
     const head = String.fromCharCode(...u8.subarray(0, 512));
@@ -427,6 +455,7 @@
     if (u8.length > 12 && String.fromCharCode(u8[8], u8[9], u8[10], u8[11]) === ".FIT") return "fit";
     if (/<gpx\b/i.test(head)) return "gpx";
     if (/<TrainingCenterDatabase\b/i.test(head)) return "tcx";
+    if (isPolarCsv(head)) return "polarcsv";
     const ext = (String(name).match(/\.(\w+)$/) || [])[1];
     return ext ? ext.toLowerCase() : "";
   }
@@ -438,7 +467,8 @@
     if (kind === "gpx") r = parseGpx(txt());
     else if (kind === "tcx") r = parseTcx(txt());
     else if (kind === "fit") r = parseFit(u8);
-    else throw new Error("NOVAFit can read GPX, TCX and FIT files (also in a ZIP). Export your run as one of these.");
+    else if (kind === "polarcsv") r = parsePolarCsv(txt());
+    else throw new Error("NOVAFit can read GPX, TCX and FIT files (also in a ZIP) and Polar Flow CSV files. Export your run as one of these.");
     if (!isRunSport(r.sport)) throw new Error(`This is a ${String(r.sport).replace(/_/g, " ")} activity, not a run.`);
     if (!(r.min > 0) && !(r.km > 0)) throw new Error("No time or distance found in this file.");
     return r;
@@ -581,6 +611,13 @@
   /* Reads an activity list. Returns {source, items, other, bad}. opts.miles: Garmin distances are in miles. */
   function readHistoryCsv(text, opts) {
     opts = opts || {};
+    if (isPolarCsv(text)) {
+      // one Polar session per file
+      const p = parsePolarCsv(text), sk = sportKind(p.sport);
+      if (sk.kind === "other") return { source: "polar", items: [], other: 1, bad: 0 };
+      if (!(p.min > 0 || p.km > 0) || p.km > 300 || p.min > MAX_RUN) return { source: "polar", items: [], other: 0, bad: 1 };
+      return { source: "polar", items: [{ kind: sk.kind, entry: historyEntry(Object.assign(sk, { start: p.at, km: p.km, min: p.min, name: "" }), opts.alsterKm) }], other: 0, bad: 0 };
+    }
     const rows = parseCsv(text);
     if (rows.length < 2) throw new Error("This file has no activities in it.");
     const col = headerIndex(rows[0]);
@@ -604,7 +641,7 @@
       elapsed: col(["elapsed time", "verstrichene zeit", "gesamtzeit"])
     };
     const source = S.id >= 0 && S.date >= 0 && S.type >= 0 ? "strava" : G.type >= 0 && G.date >= 0 && G.dist >= 0 ? "garmin" : "";
-    if (!source) throw new Error("This doesn't look like an activity list from Garmin Connect or Strava. Choose the CSV file you exported.");
+    if (!source) throw new Error("This doesn't look like an activity list from Garmin Connect or Strava, or a Polar Flow session. Choose the CSV file you exported.");
     const items = [];
     let other = 0, bad = 0;
     rows.slice(1).forEach(r => {
@@ -766,7 +803,7 @@
   const api = { KM_PER_MI, MAX_FILE_MB, cleanText, timeTokens, parseDate, parseShot, validateRun,
     parseCsv, numLoose, durMin, parseStamp, sportKind, historyEntry, readHistoryCsv, fileItem, rangeStart, planImport,
     zipEnd, zipList, zipDataOffset,
-    gpsDist, parseGpx, parseTcx, parseFit, zipEntry, fileKind, parseActivity, findDuplicate, isRunSport,
+    gpsDist, parseGpx, parseTcx, parseFit, isPolarCsv, parsePolarCsv, zipEntry, fileKind, parseActivity, findDuplicate, isRunSport,
     STRAVA_SCOPE, stravaAuthUrl, stravaScopeOk, stravaEntry, stravaNew, stravaItems,
     WX_HOME, LOOP_DEFAULT, LOOP_KM, LOOP_NAME_MAX, wxUrl, samePlace, placeName, loopName, validateLoop,
     NEARBY_ROUTES, MAX_SUGGESTIONS, nearbyRoutes, validLoopKm, loopMapsUrl, loopSvg };

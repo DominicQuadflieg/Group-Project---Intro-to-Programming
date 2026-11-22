@@ -2,6 +2,12 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Polar Flow CSV
+
+- Runs exported from Polar Flow as **CSV** can now be imported, as a single run (Log a run → watch file) and in “Bring your training history”, several files at once. NOVAFit reads date, start time, duration and distance; without a distance it uses the watch's per-second distances
+- Recognised by the content, so `.CSV` in capitals works too; other Polar sports (e.g. cycling) are skipped, treadmill runs count as treadmill
+- Clear error messages in all four languages; 5 new unit tests and a browser check with a real Polar export
+
 ## Unreleased – Runs near you in the new design
 
 - *Runs near you* is now built from the same parts as the running and yoga menus: two sections with a small heading, a serif title and a short line (“Close by · Routes near you”, “From where you are · A loop from here”)
