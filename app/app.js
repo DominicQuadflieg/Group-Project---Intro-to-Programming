@@ -3564,7 +3564,8 @@ function libNewSheet(err, val){
       <div class="row2"><button type="button" class="secondary" data-act="libback">‹ Back</button><button class="primary" type="submit">Create</button></div>
     </form>`);
   const first = document.querySelector('#cx-form [aria-invalid="true"]') || (!val.name ? document.getElementById("cx-name") : null);
-  if(first) setTimeout(() => { try{ first.focus({preventScroll:true}); }catch(e){} }, 50);
+  // like the onboarding: don't take the cursor away from a field the user already chose
+  if(first) setTimeout(() => { const a = document.activeElement; if(a && a!==first && a.closest && a.closest("#cx-form")) return; try{ first.focus({preventScroll:true}); }catch(e){} }, 50);
 }
 function libCreate(form){
   const val = {name:form.name.value, part:form.part.value, eq:form.eq.value, type:form.type.value};
@@ -4645,7 +4646,15 @@ function renderOnboard(){
     }
   }
   app.innerHTML = h;
-  const f = app.querySelector("input:not([hidden])"); if(f && !f.value) setTimeout(() => { try{ f.focus({preventScroll:true}); }catch(e){} }, 50);
+  // Put the cursor in the first empty field, but never take it away from a field the user already chose
+  // (on a slow phone the timer can fire after they tapped the next field, and their typing would land in the wrong one)
+  const f = app.querySelector("input:not([hidden])");
+  if(f && !f.value) setTimeout(() => {
+    const a = document.activeElement;
+    if(a && a!==document.body && a!==f && app.contains(a) && /INPUT|TEXTAREA|SELECT/.test(a.tagName)) return;
+    if(!f.isConnected || f.value) return;
+    try{ f.focus({preventScroll:true}); }catch(e){}
+  }, 50);
 }
 
 function obError(id, msg){
