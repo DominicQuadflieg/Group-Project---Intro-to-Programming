@@ -17,9 +17,11 @@ Group project for *Introduction to Programming* at Nova SBE, 2026/27.
 
 ## Team
 
-- Tassilo Mylius
-- Dominic Quadflieg
-- Julius Veith
+| Name | Student ID | GitHub |
+|---|---|---|
+| Dominic Quadflieg | 78581 | [@DominicQuadflieg](https://github.com/DominicQuadflieg) |
+| Tassilo von Mylius | 65328 | [@Tassilomy](https://github.com/Tassilomy) |
+| Julius Veith | 78867 | [@juveith](https://github.com/juveith) |
 
 ## Objectives
 
@@ -145,7 +147,7 @@ Every change went through its own branch and pull request into `main`, with a sh
 **Who did what** (pull requests as listed on GitHub; we discussed and tested together):
 
 - **Julius Veith:** the first version of the app and the Nova redesign (v1.0, v2.0), the English app with sign-up, questionnaire and personal plans, goals and body data, the exercise library with 124 drawings, strength splits and mobility add-ons
-- **Tassilo Mylius:** running: screenshots, GPX/FIT/TCX files, the Strava connection, importing a training history from Garmin and Strava, runs near you; yoga goals and the flexibility check; security headers and protected functions; the browser tests
+- **Tassilo von Mylius:** running: screenshots, GPX/FIT/TCX files, the Strava connection, importing a training history from Garmin and Strava, runs near you; yoga goals and the flexibility check; security headers and protected functions; the browser tests
 - **Dominic Quadflieg:** the Nova design system, header, photo pack and icon; calories; build-your-own plans; the workout page; weather; yoga sessions with voice and the tension check; the Today · Train · Progress layout, Nova news, sport pages, reviews by sport, Progress cards, badges and the guided tour; the rotating Today messages and backups; the compact menu and profile photo; installing first on an iPhone; edge cases (full storage, empty Progress, dark mode, screenshots in more languages); the four languages; sets in own templates, the workout overview and Profile and body
 
 **Use of AI.** We used AI coding assistants throughout, mainly Claude (Anthropic) through Claude Code, as encouraged in the course. We decided what to build, described features and designs, reviewed the results on real phones, asked for changes and merged each pull request ourselves. Commits written by the assistant are marked with the author “Claude” or a `Co-Authored-By: Claude` line, so the history shows which code was generated. The tests were part of every change, so generated code had to pass the same checks as our own.
