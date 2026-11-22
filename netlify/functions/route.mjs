@@ -1,6 +1,6 @@
 /* NOVAFit · "Make me a loop from here" (Netlify Function)
    Asks openrouteservice for a round trip on foot paths (OpenStreetMap data) that starts and ends where you are.
-   Set ORS_API_KEY in Netlify → Site configuration → Environment variables (free key: openrouteservice.org).
+   Set ORS_API_KEY in Netlify → Site configuration → Environment variables (free key: sign up at https://account.heigit.org, copy the Basic Key from the API Key tab).
 
    GET                         → {ok:true} when the key is set (the app only shows the button then)
    POST {lat, lon, km, seed}   → {km, coords:[[lon, lat], …]}   seed 1–99 gives a different loop of the same length
@@ -9,7 +9,8 @@
 
 import { guard, makeLimiter, readJson } from "../lib/guard.mjs";
 
-const ORS = "https://api.openrouteservice.org/v2/directions/foot-walking/geojson";
+// openrouteservice moved to api.heigit.org in November 2026; the old api.openrouteservice.org host was retired
+const ORS = "https://api.heigit.org/openrouteservice/v2/directions/foot-walking/geojson";
 const MAX_POINTS = 400;
 
 // At most 20 requests per 10 minutes per IP address: each loop is one request to the free route service
