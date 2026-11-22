@@ -18,9 +18,17 @@ const fakePush = (page, answer) => page.evaluate(answer => {
   let opted = false;
   OS = { Notifications: { isPushSupported: () => true, get permission(){ return perm === "granted"; }, get permissionNative(){ return perm; },
                           requestPermission: async () => { window.__log.push("onesignal-ask"); } },
-         User: { PushSubscription: { get optedIn(){ return opted; }, optIn: async () => { window.__log.push("optin"); opted = true; } }, addTags(){} } };
+         User: { PushSubscription: { get optedIn(){ return opted; }, get id(){ return opted && window.__noId !== true ? "test-sub-id" : null; },
+                                     optIn: async () => { window.__log.push("optin"); opted = true; } }, addTags(){} } };
   refreshPush();
 }, answer);
+// Permission was already given earlier (iPhone: Settings, or a first tap that only asked)
+const grantedBefore = page => page.evaluate(() => {
+  Object.defineProperty(window, "Notification", { configurable: true, value: { permission: "granted", requestPermission: () => Promise.resolve("granted") } });
+  Object.defineProperty(OS.Notifications, "permission", { configurable: true, get: () => true });
+  Object.defineProperty(OS.Notifications, "permissionNative", { configurable: true, get: () => "granted" });
+  refreshPush();
+});
 
 test("the permission question starts right in the tap, then OneSignal subscribes", async () => {
   const page = await app.open();
@@ -73,5 +81,30 @@ test("Check notifications shows the state and the last problem", async () => {
   assert.match(t, /Last problem/);
   assert.match(t, /Can only be used on: https:\/\/old\.example/);
   assert.match(t, /No OneSignal subscription/);
+  assert.deepEqual(await page.done(), []);
+});
+
+test("permission already granted: subscribing starts right in the tap (iPhone needs that)", async () => {
+  const page = await app.open();
+  await signedIn(page);
+  await fakePush(page, "granted");
+  await grantedBefore(page);
+  await page.evaluate(() => { enablePush(); window.__sync = window.__log.slice(); });
+  assert.deepEqual(await page.evaluate(() => window.__sync), ["optin"]);   // no waiting before subscribing
+  await page.waitForSelector(".toast");
+  assert.match(await text(page, ".toast"), /Notifications are on/);
+  assert.deepEqual(await page.done(), []);
+});
+
+test("granted but no subscription: the app says to tap once more and names the reason", async () => {
+  const page = await app.open();
+  await signedIn(page);
+  await fakePush(page, "granted");
+  await grantedBefore(page);
+  await page.evaluate(() => { window.__noId = true; OS.User.PushSubscription.optIn = async () => { window.__log.push("optin"); }; });
+  await page.evaluate(() => enablePush());
+  await page.waitForSelector(".toast", { timeout: 8000 });
+  assert.match(await text(page, ".toast"), /once more/);
+  assert.match(await page.evaluate(() => PUSH_ERR), /subscription|service worker/i);
   assert.deepEqual(await page.done(), []);
 });
