@@ -1049,7 +1049,7 @@ function progressTabHtml(st){
   h += `<section id="sec-cal"><h2 class="sec">Calendar &amp; history</h2><button class="pbox" data-act="calopen"><span class="pbt"><b>This week</b><span>${MONTHS[now.getMonth()]}: ${mr.n} ${mr.n===1?"session":"sessions"}</span></span><span class="pweek">${[0,1,2,3,4,5,6].map(cell).join("")}</span>${last ? `<span class="pses"><i class="k-${kindOfW(last.type)}"></i><span><b>${esc(W[last.type].name)}</b><small>Last session · ${dShort(last.start)}</small></span></span>` : ""}</button><button class="pmore" data-act="calopen"><span>Open calendar &amp; history</span><span>›</span></button></section>`;
   // Badges preview
   const vis = visibleBadges(), got = vis.filter(b => S.badges && S.badges[b.id]).sort((a,b) => S.badges[b.id]-S.badges[a.id]), nb = nextBadge();
-  h += `<section id="sec-badges"><h2 class="sec">Badges</h2><div class="pbox"><span class="pbt"><b>${got.length} of ${vis.length} earned</b><span>${got.length ? "last: " + esc(got[0].t) : ""}</span></span><span class="pbrow">${got.slice(0,3).map(b => badgeEl(b, true)).join("")}${nb ? `<span class="pbn"><b>Almost: ${esc(nb.b.t)}</b><small>${esc(nb.p.txt)}</small><span class="btrack"><i style="width:${Math.round(nb.p.pct*100)}%"></i></span></span>` : ""}</span></div><button class="pmore" data-act="badgesopen"><span>All badges</span><span>›</span></button></section>`;
+  h += `<section id="sec-badges"><h2 class="sec">Badges</h2><div class="pbox"><span class="pbt"><b>${got.length} of ${vis.length} earned</b><span>${got.length ? "last: <span>" + esc(got[0].t) + "</span>" : ""}</span></span><span class="pbrow">${got.slice(0,3).map(b => badgeEl(b, true)).join("")}${nb ? `<span class="pbn"><b>Almost: ${esc(nb.b.t)}</b><small>${esc(nb.p.txt)}</small><span class="btrack"><i style="width:${Math.round(nb.p.pct*100)}%"></i></span></span>` : ""}</span></div><button class="pmore" data-act="badgesopen"><span>All badges</span><span>›</span></button></section>`;
   return h;
 }
 function pcardsSheet(k){
@@ -3825,7 +3825,8 @@ function heroMain(st){
     if(gains[0]) what += ` · new record: ${esc(gains[0].n)} ${fmt(gains[0].to)} kg`;
     const tail = left===0 ? "Weekly goal reached! 🏆" : `${left} more ${left===1?"session":"sessions"} this week.`;
     prepShare(entryShareSpec(e));
-    return card("gold", "Already trained today 🎉", `${what}. ${tail}`, `<button class="herobtn" data-act="share">📤 Share result</button>`);
+    return card("gold", "Already trained today 🎉", `${what}. <span>${tail}</span>`,   // two text nodes, so each half is translated
+      `<button class="herobtn" data-act="share">📤 Share result</button>`);
   }
   // 4) Sonntag tagsüber: Yoga
   if(d===0) return card("yoga", "Sunday is yoga day 🧘‍♀️", "Up for 30 minutes of vinyasa? Or 10 minutes of glute mobility to unwind.", `<button class="herobtn" data-act="yogaflow">🧘‍♀️ Start yoga</button>`, `<span class="heroalt">or <button class="linkbtn" data-act="mobility">Glute Mobility</button></span>`);
@@ -5348,7 +5349,7 @@ function loadBackupText(text){
   try{
     const d = JSON.parse(text);
     if(!d || typeof d!=="object" || !Array.isArray(d.history)) throw 0;
-    S = merge(S, d); addCustomToEXN(); registerOwn(); checkBadges(true); save(); applyTheme(); closeSheet(); screen = "home"; render(); toast(`${d.history.length} sessions loaded.`);
+    S = merge(S, d); addCustomToEXN(); registerOwn(); checkBadges(true); save(); applyTheme(); closeSheet(); screen = "home"; render(); toast(`${d.history.length} ${d.history.length===1 ? "session" : "sessions"} loaded.`);
     return true;
   }catch(e){ toast("That's not a valid backup."); return false; }
 }

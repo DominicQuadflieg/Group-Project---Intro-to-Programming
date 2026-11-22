@@ -2,6 +2,13 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Translation gaps closed
+
+- A test user clicked through every screen in German and listed what stayed English. About 100 texts now have a row in Portuguese, German and Italian: the yoga page (“A little space for yourself”, “Find your flow.” …), the empty Progress cards, “Back to top”, “Already trained today”, the flexibility check result, *added* / *your exercise* in the library, the sign-up and own-exercise errors, and many short messages (Strava, weather, import undo, running goal, calendar, backup)
+- Two places mixed a sentence and a number in one text and could not be translated; they are now two parts (“Already trained today” card, *last:* badge)
+- Fixed: “1 sessions loaded.” is now “1 session loaded.”
+- One new browser test in German
+
 ## Unreleased – Set numbers are checked
 
 - Reps and weights in a gym session are checked while you type: reps a whole number from 1 to 200, weight 0 to 500 kg (assistance 0 to 200 kg), timed exercises 1 to 3600 seconds or 0.5 to 300 minutes. Until now −5 reps, letters or 99 999 kg were saved and spoiled records and totals
