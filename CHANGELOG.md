@@ -9,6 +9,10 @@ Alle Versionen der App, die neueste oben.
 - Saving leaves out any set with impossible numbers, also with *I did all, save them all*
 - The check is a pure function in `exercises.js` (`checkSet`) with unit tests; one new browser test
 
+## Unreleased – Badges that take longer
+
+21 new long-term badges (★★ months, ★★★ a year or more), sorted easy to hard per group. Triple week now says 3× SPORTS. No more NEW tags in the Progress card editor.
+
 ## Unreleased – Own gym days and templates
 
 - Choose my own at sign-up: every exercise starts at 0 sets; set 1 to 10 with + and −. Exercises without a set are marked red.
