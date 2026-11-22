@@ -493,7 +493,7 @@ function todayTabHtml(st){
       <div class="row2"><button class="secondary" data-act="hidepush">Later</button><button class="primary" style="height:48px;font-size:17px" data-act="pushon">Allow</button></div></section>`;
   }
 
-  h += weekCardHtml() + recapCardHtml() + yearCardHtml();
+  h += yearCardHtml();   // week and month reviews are slides in the big card now (heroExtras)
   const lr = S.history.filter(e => e.run && num(e.run.km)>0).slice(-1)[0];
   h += countersHtml([
     [`${st.thisWeek}/${st.goal}`, "sessions this week", `data-act="week" data-ws="${mondayOf(Date.now())}" aria-label="This week: ${st.thisWeek} of ${st.goal} sessions. Open weekly review"`],
@@ -2286,7 +2286,9 @@ function settingsSheet(part){
     </div>
 `],
     data: ["Your data", () => `
-    <div><span class="lbl">Your data</span><div class="row2"><button class="secondary" data-act="export">Back up</button><button class="secondary" data-act="import">Load backup</button></div>
+    <div><span class="lbl">Your data</span><p class="small" style="margin:0 0 8px" data-backupline>${backupLine()}</p>
+      <label class="small" style="display:flex;gap:10px;align-items:center;margin:0 0 10px"><input type="checkbox" data-act="backupremind" ${S.settings.backupRemind===false ? "" : "checked"} style="width:20px;height:20px;accent-color:var(--ink)"> Remind me to back up every 2 weeks</label>
+      <div class="row2"><button class="secondary" data-act="export">Back up</button><button class="secondary" data-act="import">Load backup</button></div>
       <button class="secondary" style="margin-top:8px;width:100%" data-act="impsheet">Import runs from other apps</button>
       <input type="file" id="importf" accept=".json,application/json" hidden>
       <p class="small" style="margin:8px 0 0" data-sync>${syncHtml()}</p></div>
@@ -2653,20 +2655,6 @@ function weekSheet(ws){
   if(r.badges.length) h += `<p class="exn" style="margin:6px 0 0;font-weight:600">New badges</p><div class="badges">${r.badges.map(x => badgeEl(x)).join("")}</div>`;
   h += `<div class="row2"><button class="secondary" data-act="week" data-ws="${ws-WEEK}">‹ Previous week</button>${cur?`<button class="secondary" data-act="closesheet">Close</button>`:`<button class="secondary" data-act="week" data-ws="${ws+WEEK}">Next week ›</button>`}</div>`;
   sheet(h);
-}
-function weekCardHtml(){
-  const d = new Date().getDay(); if(d!==0 && d!==1) return "";
-  const ws = d===0 ? mondayOf(Date.now()) : mondayOf(Date.now())-WEEK;
-  if(S.settings.weekSeen===ws) return "";
-  if(!rangeData(ws, ws+WEEK).n) return "";
-  return `<button class="resume recap" data-act="week" data-ws="${ws}" data-seen="${ws}"><div><span>New</span><b>Your weekly review</b></div><span class="go">View</span></button>`;
-}
-function recapCardHtml(){
-  const now = new Date(); if(now.getDate()>7 || now.getDate()<=3) return "";
-  const p = new Date(now.getFullYear(), now.getMonth()-1, 1), key = p.getFullYear()+"-"+p.getMonth();
-  if(S.settings.recapSeen===key) return "";
-  if(!recapData(p.getFullYear(), p.getMonth()).n) return "";
-  return `<button class="resume recap" data-act="recap" data-y="${p.getFullYear()}" data-m="${p.getMonth()}" data-seen="${key}"><div><span>New</span><b>Your ${MONTHS[p.getMonth()]} review</b></div><span class="go">View</span></button>`;
 }
 
 /* ================= Lauf-Ziele ================= */
@@ -3520,7 +3508,68 @@ function entryShareSpec(e){
   const nSets = Object.values(e.sets||{}).reduce((x,a) => x+a.length, 0);
   return summaryShareSpec({e, ups:g.map(x => ({n:x.n, rec:true, chips:[`${fmt(x.to)} kg`]})), nSets, vol:volOf(e), weekCount:stats().thisWeek});
 }
+/* The big card on Today: the message for today, plus the week or month review and a backup reminder
+   when they are due. Several messages take turns every 5 seconds (heroPhotos). */
 function heroHtml(st){
+  const main = heroMain(st);
+  if(S.active) return main;
+  const all = [main].concat(heroExtras());
+  if(all.length===1) return main;
+  return `<div class="heroset">${all.map((h,i) => h.replace('<section class="hero', `<section data-slide="${i}" class="${i ? "" : "on "}hero`)).join("")}</div>`;
+}
+function heroExtras(){
+  const now = new Date(), d = now.getDay(), hr = now.getHours(), out = [];
+  const date = now.toLocaleDateString("en-GB", {weekday:"long", day:"numeric", month:"long"});
+  const card = (cls, h2, p, btn, alt, extra) => `<section class="hero ${cls||""}"${extra||""}><small>${hiShort()} · ${date}</small><h2>${h2}</h2>${p?`<p>${p}</p>`:""}${btn||""}${alt||""}</section>`;
+  // Week review: all of Sunday and Monday, until it is opened
+  const ws0 = mondayOf(Date.now()), rws = d===0 ? ws0 : d===1 ? ws0-WEEK : null;
+  if(rws!==null && S.settings.weekSeen!==rws){
+    const wr = rangeData(rws, rws+WEEK);
+    if(wr.n){
+      const bits = [`${wr.n} ${wr.n===1?"session":"sessions"}`]; if(wr.km) bits.push(`${fmt(wr.km)} km`); if(wr.vol) bits.push(`${fmt(Math.round(wr.vol),0)} kg moved`);
+      out.push(card("yoga big", rws===ws0 ? "Your week in review ✨" : "Your last week in review ✨", `${bits.join(" · ")}. See everything you achieved.`, `<button class="herobtn" data-act="week" data-ws="${rws}" data-seen="${rws}">▶ Watch your week</button>`));
+    }
+  }
+  // Month review: from the evening of the last day until the 7th, until it is opened
+  const md = now.getDate(), lastD = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+  const mref = md===lastD && hr>=18 ? [now.getFullYear(), now.getMonth()] : md<=7 ? (p => [p.getFullYear(), p.getMonth()])(new Date(now.getFullYear(), now.getMonth()-1, 1)) : null;
+  if(mref && S.settings.recapSeen!==mref[0]+"-"+mref[1]){
+    const mr = recapData(mref[0], mref[1]), key = mref[0]+"-"+mref[1];
+    if(mr.n){
+      const bits = [`${mr.n} ${mr.n===1?"session":"sessions"}`]; if(mr.km) bits.push(`${fmt(mr.km)} km`); if(mr.vol) bits.push(`${tons(mr.vol)} moved`);
+      out.push(card("big", `Your ${MONTHS[mref[1]]} in review ✨`, `${bits.join(" · ")}. With calendar, strength curve and your muscles.`, `<button class="herobtn" data-act="recap" data-y="${mref[0]}" data-m="${mref[1]}" data-seen="${key}">▶ Watch your month</button>`));
+    }
+  }
+  if(backupDue()){
+    const n = backupLeft();
+    out.push(card("", "Back up your training", `${n} ${n===1?"session lives":"sessions live"} only on this phone. One tap saves a copy to iCloud, Google Drive or your email.`, `<button class="herobtn" data-act="export">☁️ Back up now</button>`, `<span class="heroalt">or <button class="linkbtn" data-act="backuplater">remind me later</button></span>`));
+  }
+  return out;
+}
+/* ---- Backup reminder: after the first 5 sessions, then every 2 weeks with new sessions ---- */
+const backupLeft = () => { const t = S.settings.backupAt || 0; return S.history.filter(e => e.start > t).length; };
+function backupDue(){
+  const st = S.settings; if(st.backupRemind===false) return false;
+  if(st.backupSnooze && Date.now() < st.backupSnooze) return false;
+  if(!st.backupAt) return S.history.length >= 5;
+  return backupLeft() >= 1 && Date.now() - st.backupAt >= 14*864e5;
+}
+function backupLine(){
+  const st = S.settings, n = backupLeft();
+  return st.backupAt ? `<b>Last backup:</b> ${new Date(st.backupAt).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})} · ${n} ${n===1?"session":"sessions"} since then`
+    : `<b>No backup yet</b> · ${n} ${n===1?"session lives":"sessions live"} only on this phone`;
+}
+// Share sheet where the phone has one (iCloud, Google Drive, mail …); the caller falls back to a download
+async function shareFile(name, text, mime){
+  try{
+    if(!navigator.canShare || !navigator.share) return "unsupported";
+    const f = new File([text], name, {type:mime});
+    if(!navigator.canShare({files:[f]})) return "unsupported";
+    await navigator.share({files:[f], title:"NOVAFit backup"});
+    return "ok";
+  }catch(e){ return e && e.name==="AbortError" ? "cancel" : "unsupported"; }
+}
+function heroMain(st){
   const now = new Date(), d = now.getDay(), hr = now.getHours();
   const date = now.toLocaleDateString("en-GB", {weekday:"long", day:"numeric", month:"long"});
   const card = (cls, h2, p, btn, alt, extra) => `<section class="hero ${cls||""}"${extra||""}><small>${hiShort()} · ${date}</small><h2>${h2}</h2>${p?`<p>${p}</p>`:""}${btn||""}${alt||""}</section>`;
@@ -3529,23 +3578,6 @@ function heroHtml(st){
   if(S.active){
     const a = S.active;
     return card(heroCls(a.type), `${W[a.type].name} in progress`, `⏱ <b class="tnum" data-elapsed>${elapsedTxt(a)}</b> · Keep going, you've got this!`, `<button class="herobtn" data-act="resume">▶ Resume</button>`);
-  }
-  // 2) Sonntagabend: Rückblick
-  const ws = mondayOf(Date.now());
-  const md = now.getDate(), lastD = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
-  const mref = md===lastD && hr>=18 ? [now.getFullYear(), now.getMonth()] : md<=3 ? (p => [p.getFullYear(), p.getMonth()])(new Date(now.getFullYear(), now.getMonth()-1, 1)) : null;
-  if(mref && S.settings.recapSeen!==mref[0]+"-"+mref[1]){
-    const mr = recapData(mref[0], mref[1]), key = mref[0]+"-"+mref[1];
-    if(mr.n){
-      const bits = [`${mr.n} ${mr.n===1?"session":"sessions"}`]; if(mr.km) bits.push(`${fmt(mr.km)} km`); if(mr.vol) bits.push(`${tons(mr.vol)} moved`);
-      return card("big", `Your ${MONTHS[mref[1]]} in review ✨`, `${bits.join(" · ")}. With calendar, strength curve and your muscles.`, `<span class="hplay" aria-hidden="true">▶</span><button class="herobtn" data-act="recap" data-y="${mref[0]}" data-m="${mref[1]}" data-seen="${key}">▶ View review</button>`, "", ` data-act="recap" data-y="${mref[0]}" data-m="${mref[1]}" data-seen="${key}" role="button"`);
-    }
-  }
-  const rws = d===0 && hr>=18 ? ws : (d===1 && hr<12 && S.settings.weekSeen!==ws-WEEK) ? ws-WEEK : null;
-  const wr = rws!==null ? rangeData(rws, rws+WEEK) : null;
-  if(wr && wr.n){
-    const bits = [`${wr.n} ${wr.n===1?"session":"sessions"}`]; if(wr.km) bits.push(`${fmt(wr.km)} km`); if(wr.vol) bits.push(`${fmt(Math.round(wr.vol),0)} kg moved`);
-    return card("yoga big", rws===ws ? "Your week in review ✨" : "Your last week in review ✨", `${bits.join(" · ")}. See everything you achieved.`, `<span class="hplay" aria-hidden="true">▶</span><button class="herobtn" data-act="week" data-ws="${rws}" data-seen="${rws}">▶ View review</button>`, "", ` data-act="week" data-ws="${rws}" data-seen="${rws}" role="button"`);
   }
   // 3) Heute schon trainiert
   const todayK = dkey(Date.now()), today = S.history.filter(e => dkey(e.start)===todayK);
@@ -3581,11 +3613,38 @@ function heroHtml(st){
 
 /* ================= Fotos in der Begrüßungskarte ================= */
 let HERO_ROT = null;
+let HERO_FIRST = null;   // shows the first message again (used by the guided tour)
 function heroPhotos(){
-  clearInterval(HERO_ROT);
-  const hero = document.querySelector("#app section.hero"); if(!hero) return;
-  const go = ps => { if(!ps || !ps.length) ps = CAMPUS_PHOTOS; if(hero.isConnected && !hero.querySelector(".hph")) mountHeroPhotos(hero, ps); };
+  clearInterval(HERO_ROT); HERO_FIRST = null;
+  const set = document.querySelector("#app .heroset"), hero = set ? null : document.querySelector("#app section.hero");
+  if(!set && !hero) return;
+  const go = ps => {
+    if(!ps || !ps.length) ps = CAMPUS_PHOTOS;
+    if(set){ if(set.isConnected && !set.querySelector(".hph")) mountHeroSet(set, ps); }
+    else if(hero.isConnected && !hero.querySelector(".hph")) mountHeroPhotos(hero, ps);
+  };
   defaultPhotos().then(go).catch(() => go(null));
+}
+// Several messages: each gets its own photo, they take turns every 5 seconds, the arrows switch by hand
+function mountHeroSet(set, ps){
+  const slides = [...set.children].filter(x => x.matches("section.hero")), n = slides.length;
+  const now = new Date(), start = Math.floor((now - new Date(now.getFullYear(),0,0))/864e5) % ps.length;
+  slides.forEach((h,i) => {
+    const p = ps[(start+i) % ps.length], box = document.createElement("div");
+    box.className = "hph"; box.setAttribute("aria-hidden", "true");
+    box.innerHTML = `<img src="${p.url}" alt="" class="on" style="animation-name:kb${i%3}${p.pos?`;object-position:${p.pos}`:""}"><div class="hblur"></div><div class="hov"></div>`;
+    h.prepend(box); h.classList.add("photo");
+    const dots = document.createElement("div"); dots.className = "hdots"; dots.innerHTML = slides.map((_,j) => `<i class="${j===i?"on":""}"></i>`).join("");
+    h.querySelector("h2").before(dots);
+    h.insertAdjacentHTML("beforeend", `<div class="harr"><button data-act="herostep" data-d="-1" aria-label="Previous message">‹</button><button data-act="herostep" data-d="1" aria-label="Next message">›</button></div>`);
+  });
+  let k = 0;
+  const show = j => { slides[k].classList.remove("on"); k = ((j % n) + n) % n; slides[k].classList.add("on"); };
+  const paused = () => { try{ return !!TOUR; }catch(e){ return false; } };
+  const tick = () => { if(!set.isConnected){ clearInterval(HERO_ROT); return; } if(!paused()) show(k+1); };
+  HERO_ROT = setInterval(tick, 5000);
+  HERO_STEP = d => { show(k+d); clearInterval(HERO_ROT); HERO_ROT = setInterval(tick, 5000); };
+  HERO_FIRST = () => show(0);
 }
 function mountHeroPhotos(hero, ps){
   const now = new Date(), doy = Math.floor((now - new Date(now.getFullYear(),0,0))/864e5);
@@ -4927,10 +4986,15 @@ document.addEventListener("click", async ev => {
       break;
     }
     case "export": {
-      const r = await offerFile(`novafit-backup-${new Date().toISOString().slice(0,10)}.json`, JSON.stringify(S), "application/json");
-      if(r==="ok") toast("Backup created."); else if(r==="fail") toast("Backup didn't work.");
+      const name = `novafit-backup-${new Date().toISOString().slice(0,10)}.json`, text = JSON.stringify(S);
+      let r = await shareFile(name, text, "application/json");
+      if(r==="unsupported") r = await offerFile(name, text, "application/json");
+      if(r==="ok"){ S.settings.backupAt = Date.now(); S.settings.backupSnooze = 0; save(); toast("Backup saved."); if(screen==="home") render(); const l = $("[data-backupline]"); if(l) l.innerHTML = backupLine(); }
+      else if(r==="fail") toast("Backup didn't work.");
       break;
     }
+    case "backuplater": S.settings.backupSnooze = Date.now() + 3*864e5; save(); render(); toast("We'll remind you in 3 days."); break;
+    case "backupremind": S.settings.backupRemind = !!b.checked; if(b.checked) S.settings.backupSnooze = 0; save(); break;
     case "import": $("#importf").click(); break;
   }
 });
@@ -5119,3 +5183,6 @@ initPush();
 if("serviceWorker" in navigator && !window.claude && /^https:|^http:\/\/localhost/.test(location.href)){
   navigator.serviceWorker.register("OneSignalSDKWorker.js", {scope:"/"}).catch(() => {});
 }
+
+// Ask the browser to keep NOVAFit's data even when space runs low (all data lives on the phone)
+try{ if(navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); }catch(e){}

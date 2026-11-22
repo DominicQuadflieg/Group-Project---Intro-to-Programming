@@ -2,9 +2,9 @@
 
 Alle Versionen der App, die neueste oben.
 
-## Unreleased – README for the submission
+## Unreleased – Today takes turns, backups, README
 
-New README with objectives, features, how to run the app and the tests, who did what and how we used AI. Setup, architecture and security notes moved to `docs/`, with four screenshots in `docs/img/`.
+The big card on Today now takes turns every 5 seconds between the day's message, the week or month review and a reminder to back up (after 5 sessions, then every 2 weeks). Backups open the phone's share sheet, Settings shows the last backup, and the browser is asked to keep NOVAFit's data. New README with objectives, features, how to run and test, team and AI use; setup, architecture and security notes in docs/.
 
 ## Unreleased – Guided tour
 

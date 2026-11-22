@@ -39,12 +39,13 @@ Group project for *Introduction to Programming* at Nova SBE, 2026/27.
 **Today**
 - The next session from the plan, one tap to start
 - The week ahead, with a heads-up before exams
-- Nova SBE news, the last session, a weekly review on Sunday evenings
+- Nova SBE news and the last session
+- On Sundays the week review, at the start of a month the month review, and a reminder to back up: they take turns with the day's message every 5 seconds
 
 **Train**
 - A week line in the colour of each sport and today's session on top
 - *Gym:* plan days, own templates, ready-made workouts, 124 exercises with drawings; sets filled in from last time, a suggestion when to add weight, rest timer, guided warm-up, swap or add exercises, records
-- *Running:* outdoor or treadmill; read a run from a watch screenshot, import GPX, FIT and TCX files or the whole history from Garmin and Strava, or connect Strava; interval timer; goal plans for 10 km, a half marathon or your own loop
+- *Running:* outdoor or treadmill; read a run from a watch screenshot, import GPX, FIT and TCX files or the whole history from Garmin and Strava; optionally connect Strava directly (needs a Strava API app, see [docs/setup.md](docs/setup.md)); interval timer; goal plans for 10 km, a half marathon or your own loop
 - *Yoga:* 7 guided sessions read aloud, 5-minute study breaks, a tension check before and after, a flexibility check every two weeks
 - *Edit what's on Train:* switch sports on or off; everything else follows
 
@@ -53,7 +54,9 @@ Group project for *Introduction to Programming* at Nova SBE, 2026/27.
 - Weekly, monthly and yearly reviews as stories with your own photos, shareable as an image
 - Calendar and full history, 27 badges including special Nova badges
 
-**Make it yours:** own photos, dark mode, push reminders, backup and restore, app lock.
+**Make it yours:** own photos, dark mode, push reminders, app lock.
+
+**Your data stays yours:** everything is stored on the phone, not on a server. You create an account once and are never asked to log in again on that phone, unless you lock the app. A backup file saves everything (iCloud Drive, Google Drive, email via the share sheet), the app reminds you every 2 weeks, and *Welcome back › Load backup file* restores it on a new phone.
 
 ## Run the application
 

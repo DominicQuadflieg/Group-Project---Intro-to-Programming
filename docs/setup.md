@@ -29,9 +29,9 @@ One-time setup:
 
 Notes:
 
-- New Strava API apps can only be used by a few athletes at first. If more people want to connect, ask Strava for more capacity on the API settings page.
+- **Optional, and limited:** a new Strava API app starts in “Single Player Mode”: only the athlete who created it can connect. It can be raised to 10 athletes in the API settings (this needs a Strava subscription); more needs a review by Strava that can take weeks. Without the two keys the “Connect Strava” button simply doesn't show, and everyone can still bring their runs by screenshot, watch file or the Strava archive.
 - NOVAFit only asks for read access to activities. The login stays on the phone under its own storage key, so it isn't part of backups or the cloud sync. *Settings → Strava → Disconnect* removes it and the access on Strava.
-- Strava allows 100 requests per 15 minutes per app. NOVAFit checks at most every 15 minutes per phone.
+- Strava allows 200 requests per 15 minutes and 2,000 per day per app. NOVAFit checks at most every 15 minutes per phone.
 
 ## Bring your training history
 
