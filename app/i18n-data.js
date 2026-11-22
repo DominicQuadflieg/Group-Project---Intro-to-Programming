@@ -68,6 +68,8 @@ NFI18N.load([
 ["All exercises ({0})", "Todos os exercícios ({0})", "Alle Übungen ({0})", "Tutti gli esercizi ({0})"],
 ["All news ›", "Todas as notícias ›", "Alle News ›", "Tutte le notizie ›"],
 ["All workouts", "Todos os treinos", "Alle Workouts", "Tutti gli allenamenti"],
+["Allow notifications", "Permitir notificações", "Benachrichtigungen erlauben", "Consenti notifiche"],
+["Almost there: tap “Allow notifications” once more to finish.", "Quase: toca mais uma vez em “Permitir notificações” para terminar.", "Fast geschafft: Tippe noch einmal auf „Benachrichtigungen erlauben“, um es abzuschließen.", "Ci siamo quasi: tocca ancora una volta “Consenti notifiche” per finire."],
 ["Almost there: Yogi", "Quase lá: Yogi", "Fast geschafft: Yogi", "Quasi fatto: Yogi"],
 ["Almost: Yogi", "Quase: Yogi", "Fast: Yogi", "Quasi: Yogi"],
 ["Already in this session", "Já está neste treino", "Schon in dieser Einheit", "Già in questo allenamento"],

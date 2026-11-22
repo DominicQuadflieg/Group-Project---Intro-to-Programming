@@ -5436,20 +5436,43 @@ function initPush(){
 }
 async function enablePush(){
   if(!OS){ PUSH_ERR = PUSH_ERR || "OneSignal not loaded yet"; toast("Notifications are still loading. Try again in a moment."); return; }
-  // On an iPhone the question "Allow notifications?" only appears if it is asked right in the tap,
-  // before anything else waits. OneSignal's own request waits for its setup first, so iOS ignored the tap.
-  let ask = null;
-  try{ if("Notification" in window && Notification.permission==="default") ask = Notification.requestPermission(); }catch(e){ PUSH_ERR = "Permission question: " + (e && e.message || String(e)); }
+  // iPhone (WebKit) only lets a page ask for permission AND create the push subscription right in the tap,
+  // before anything else waits. So: permission already granted → subscribe immediately; otherwise ask first.
+  // OneSignal's own request waits for its setup first, so iOS ignored the tap.
+  const hasN = "Notification" in window, nat = hasN ? Notification.permission : "";
+  let ask = null, sub = null;
   try{
-    if(ask) await ask; else await OS.Notifications.requestPermission();
-    const granted = "Notification" in window ? Notification.permission==="granted" : OS.Notifications.permission;
-    if(granted){ await OS.User.PushSubscription.optIn(); PUSH_ERR = ""; }
-    else if("Notification" in window && Notification.permission==="default") PUSH_ERR = "The permission question didn't appear or was closed";
+    if(nat==="granted") sub = OS.User.PushSubscription.optIn();
+    else if(nat==="default") ask = Notification.requestPermission();
+  }catch(e){ PUSH_ERR = (nat==="granted" ? "Subscribing: " : "Permission question: ") + (e && e.message || String(e)); }
+  try{
+    if(sub) await sub;
+    else{
+      if(ask) await ask; else if(!hasN) await OS.Notifications.requestPermission();
+      const granted = hasN ? Notification.permission==="granted" : OS.Notifications.permission;
+      if(granted) await OS.User.PushSubscription.optIn();
+      else if(hasN && Notification.permission==="default") PUSH_ERR = "The permission question didn't appear or was closed";
+    }
   }catch(e){ PUSH_ERR = "Subscribing: " + (e && e.message || String(e)); }
+  // OneSignal registers the device with its server in the background; wait a moment for the ID
+  for(let i=0; i<12 && !pushSubId(); i++) await new Promise(r => setTimeout(r, 250));
+  if(hasN && Notification.permission==="granted" && !pushSubId()) PUSH_ERR = await pushWhyNoSub();
+  else if(pushSubId()) PUSH_ERR = "";
   refreshPush(); syncTags();
   if(push==="on") toast("Notifications are on.");
   else if(push==="denied") toast("Notifications are blocked. Allow them in your phone's settings under Notifications → NOVAFit.");
+  else if(hasN && Notification.permission==="granted") toast("Almost there: tap “Allow notifications” once more to finish.");
   else toast("Notifications couldn't be turned on. Open “Check notifications” below to see why.");
+}
+const pushSubId = () => { try{ return OS && OS.User.PushSubscription.id || ""; }catch(e){ return ""; } };
+// Permission is granted but OneSignal has no subscription: did the phone create a push subscription at all?
+async function pushWhyNoSub(){
+  try{
+    const reg = navigator.serviceWorker && await navigator.serviceWorker.getRegistration();
+    if(!reg) return "No service worker registered";
+    const s = reg.pushManager && await reg.pushManager.getSubscription();
+    return s ? "The phone has a push subscription, but OneSignal didn't register it yet" : "The phone didn't create a push subscription (tap “Allow notifications” again)";
+  }catch(e){ return "Push subscription: " + (e && e.message || String(e)); }
 }
 
 /* Direktlinks aus Push-Nachrichten: #woche öffnet den Wochenrückblick, #yoga startet Yoga, #studybreak die Lernpause */

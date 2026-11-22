@@ -2,6 +2,12 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – iPhone notifications subscribe
+
+- On the iPhone, permission could be granted while OneSignal never created a subscription, so Notifications stayed “Off”. When permission is already granted, “Allow notifications” now starts the subscription right in the tap (iPhone only allows it there); otherwise it asks first and a second tap finishes
+- The app waits a moment for OneSignal's device ID and, if it is still missing, says why in “Check notifications” (no push subscription on the phone, or OneSignal hasn't registered it yet)
+- “Allow notifications” is translated now; two new browser tests
+
 ## Unreleased – Check notifications
 
 - *Settings › Notifications* has **Send a test notification** (shown straight from the device, without OneSignal: if it appears, the phone or laptop is fine and a missing reminder is a OneSignal question)
