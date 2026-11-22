@@ -20,7 +20,7 @@ Notes for coding agents (and new team members) working on NOVAFit.
 
 ## Conventions
 
-- The app UI is in English
+- The app UI is written in English and shown in English, Portuguese, German or Italian (`app/i18n.js`, table in `app/i18n-data.js`): a new on-screen text needs a row there with all three translations (numbers as `{0}`, exercise names and months as `{a}`; `tests/i18n.test.js` checks the placeholders), otherwise it simply stays English
 - Keep logic that can be tested in `app/plan.js`, `app/exercises.js`, `app/run.js`, `app/yoga.js`, `app/progress.js` or `app/tour.js` as pure functions and add tests in `tests/`
 - Validate all user input and show a clear error next to the field
 - Never store passwords or other secrets in plain text or in the repository
