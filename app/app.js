@@ -5357,7 +5357,7 @@ function pushHtml(){
   switch(push){
     case "on": return `<p class="small" style="margin:0;color:var(--good)">✓ Notifications are on.</p>
       <button class="secondary" data-act="pushtest" style="margin-top:10px">Send a test notification</button>${pushDiagHtml()}`;
-    case "off": return `<button class="primary" data-act="pushon">Allow notifications</button>${pushDiagHtml()}`;
+    case "off": return `<button class="primary" data-act="pushon">Allow notifications</button>${(() => { try{ return Notification.permission==="granted"; }catch(e){ return false; } })() ? `<button class="secondary" data-act="pushtest" style="margin-top:10px">Send a test notification</button>` : ""}${pushDiagHtml()}`;
     case "denied": return `<p class="small muted" style="margin:0">Notifications are blocked. You can allow them in your iPhone settings under Notifications → NOVAFit.</p>${pushDiagHtml()}`;
     case "install": return `<p class="small muted" style="margin:0">First add the app to your home screen (Share → Add to Home Screen) and open it from there. Then you can allow notifications.</p>${pushDiagHtml()}`;
     case "unsupported": return `<p class="small muted" style="margin:0">This device or browser doesn't support notifications.</p>${pushDiagHtml()}`;
@@ -5375,7 +5375,7 @@ function pushInfo(){
   return {
     device: isIOS ? (standalone ? "iPhone app from the home screen" : "iPhone browser (not the installed app)") + (ios[1] ? ` · iOS ${ios[1]}.${ios[2]}` : "") : (standalone ? "installed app" : "browser"),
     perm, onesignal: OS ? "loaded" : push==="loading" ? "loading" : "not loaded", sub, opted,
-    sw: navigator.serviceWorker && navigator.serviceWorker.controller ? "active" : "not active",
+    sw: (navigator.serviceWorker && navigator.serviceWorker.controller ? "active" : "not active") + (VAPID ? " · key ok" : " · no key yet"),
     site: location.host, err: PUSH_ERR
   };
 }
@@ -5425,6 +5425,7 @@ function initPush(){
     try{
       await OneSignal.init({ appId: ONESIGNAL_APP_ID, serviceWorkerPath: "OneSignalSDKWorker.js", serviceWorkerParam: { scope: "/" } });
       OS = OneSignal;
+      pushPrep();
       OneSignal.Notifications.addEventListener("permissionChange", () => { refreshPush(); syncTags(); });
       OneSignal.User.PushSubscription.addEventListener("change", () => { refreshPush(); syncTags(); });
     }catch(e){ OS = null; push = "unsupported"; PUSH_ERR = "OneSignal start: " + (e && e.message || String(e)); }
@@ -5434,33 +5435,46 @@ function initPush(){
   sc.onerror = () => { push = "unsupported"; PUSH_ERR = "OneSignal couldn't be loaded (blocked by a content blocker or no connection)"; refreshPush(); };
   document.head.appendChild(sc);
 }
+/* Things the tap needs at once (iPhone allows subscribing only right in the tap, before anything waits):
+   the service worker registration and the app's push key from OneSignal's public config. */
+let SWREG = null, VAPID = "";
+function pushPrep(){
+  try{ VAPID = localStorage.getItem("nf-vapid") || ""; }catch(e){}
+  if(navigator.serviceWorker) navigator.serviceWorker.getRegistration().then(r => { if(r) SWREG = r; }).catch(() => {});
+  fetch(`https://api.onesignal.com/sync/${ONESIGNAL_APP_ID}/web`).then(r => r.text()).then(t => {
+    const m = t.match(/"vapid_public_key"\s*:\s*"([A-Za-z0-9_-]+)"/);
+    if(m){ VAPID = m[1]; try{ localStorage.setItem("nf-vapid", VAPID); }catch(e){} }
+  }).catch(() => {});
+}
+function b64u(s){ const p = "=".repeat((4 - s.length % 4) % 4), b = atob((s + p).replace(/-/g, "+").replace(/_/g, "/")); return Uint8Array.from(b, c => c.charCodeAt(0)); }
+// Gives up after ms, so a call that never answers can't freeze the button
+const within = (p, ms, what) => Promise.race([p, new Promise((_, no) => setTimeout(() => no(new Error(what + " didn't answer")), ms))]);
+
 async function enablePush(){
   if(!OS){ PUSH_ERR = PUSH_ERR || "OneSignal not loaded yet"; toast("Notifications are still loading. Try again in a moment."); return; }
-  // iPhone (WebKit) only lets a page ask for permission AND create the push subscription right in the tap,
-  // before anything else waits. So: permission already granted → subscribe immediately; otherwise ask first.
-  // OneSignal's own request waits for its setup first, so iOS ignored the tap.
   const hasN = "Notification" in window, nat = hasN ? Notification.permission : "";
-  let ask = null, sub = null;
+  let ask = null, native = null;
+  // Right in the tap, before anything waits: the phone's own push subscription. On an iPhone this also asks for permission.
   try{
-    if(nat==="granted") sub = OS.User.PushSubscription.optIn();
+    if(nat!=="denied" && SWREG && SWREG.pushManager && VAPID) native = SWREG.pushManager.subscribe({userVisibleOnly:true, applicationServerKey:b64u(VAPID)});
     else if(nat==="default") ask = Notification.requestPermission();
-  }catch(e){ PUSH_ERR = (nat==="granted" ? "Subscribing: " : "Permission question: ") + (e && e.message || String(e)); }
+  }catch(e){ PUSH_ERR = "Push subscription: " + (e && e.message || String(e)); }
   try{
-    if(sub) await sub;
-    else{
-      if(ask) await ask; else if(!hasN) await OS.Notifications.requestPermission();
-      const granted = hasN ? Notification.permission==="granted" : OS.Notifications.permission;
-      if(granted) await OS.User.PushSubscription.optIn();
-      else if(hasN && Notification.permission==="default") PUSH_ERR = "The permission question didn't appear or was closed";
-    }
-  }catch(e){ PUSH_ERR = "Subscribing: " + (e && e.message || String(e)); }
+    if(native) await within(native, 15000, "The phone's push subscription");
+    else if(ask) await within(ask, 60000, "The permission question");
+    else if(!hasN) await within(OS.Notifications.requestPermission(), 15000, "OneSignal's permission question");
+    const granted = hasN ? Notification.permission==="granted" : OS.Notifications.permission;
+    // OneSignal finds the subscription made above and registers this device with its server
+    if(granted) await within(OS.User.PushSubscription.optIn(), 10000, "OneSignal");
+    else if(hasN && Notification.permission==="default") PUSH_ERR = "The permission question didn't appear or was closed";
+  }catch(e){ PUSH_ERR = (native ? "Push subscription: " : "Subscribing: ") + (e && e.message || String(e)); }
   // OneSignal registers the device with its server in the background; wait a moment for the ID
-  for(let i=0; i<12 && !pushSubId(); i++) await new Promise(r => setTimeout(r, 250));
-  if(hasN && Notification.permission==="granted" && !pushSubId()) PUSH_ERR = await pushWhyNoSub();
+  for(let i=0; i<16 && !pushSubId(); i++) await new Promise(r => setTimeout(r, 250));
+  if(hasN && Notification.permission==="granted" && !pushSubId()) PUSH_ERR = PUSH_ERR || await pushWhyNoSub();
   else if(pushSubId()) PUSH_ERR = "";
   refreshPush(); syncTags();
   if(push==="on") toast("Notifications are on.");
-  else if(push==="denied") toast("Notifications are blocked. Allow them in your phone's settings under Notifications → NOVAFit.");
+  else if(push==="denied" || (hasN && Notification.permission==="denied")) toast("Notifications are blocked. Allow them in your phone's settings under Notifications → NOVAFit.");
   else if(hasN && Notification.permission==="granted") toast("Almost there: tap “Allow notifications” once more to finish.");
   else toast("Notifications couldn't be turned on. Open “Check notifications” below to see why.");
 }

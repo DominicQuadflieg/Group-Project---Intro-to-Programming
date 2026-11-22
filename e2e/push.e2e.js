@@ -108,3 +108,34 @@ test("granted but no subscription: the app says to tap once more and names the r
   assert.match(await page.evaluate(() => PUSH_ERR), /subscription|service worker/i);
   assert.deepEqual(await page.done(), []);
 });
+
+test("with the push key known, the phone's own subscription starts first in the tap, then OneSignal registers it", async () => {
+  const page = await app.open();
+  await signedIn(page);
+  await fakePush(page, "granted");
+  await page.evaluate(() => {
+    VAPID = "BPK9u0ECB4eQZxHSFXQjbOCDeWw6ZQpQMYNQxQVC-6VTnRQm4Sng7M_si8EQ1iZRVRioH8-7osKYcLHZzcz2SXM";
+    SWREG = { pushManager: { subscribe: o => { window.__log.push("native-subscribe:" + (o.applicationServerKey instanceof Uint8Array) + ":" + o.applicationServerKey.length);
+      Object.defineProperty(window, "Notification", { configurable: true, value: { permission: "granted", requestPermission: () => Promise.resolve("granted") } });
+      Object.defineProperty(OS.Notifications, "permission", { configurable: true, get: () => true });
+      return Promise.resolve({}); } } };
+    enablePush(); window.__sync = window.__log.slice();
+  });
+  assert.deepEqual(await page.evaluate(() => window.__sync), ["native-subscribe:true:65"]);   // 65-byte P-256 public key
+  await page.waitForSelector(".toast");
+  assert.match(await text(page, ".toast"), /Notifications are on/);
+  assert.deepEqual(await page.evaluate(() => window.__log), ["native-subscribe:true:65", "optin"]);
+  assert.deepEqual(await page.done(), []);
+});
+
+test("a OneSignal call that never answers can't freeze the button", async () => {
+  const page = await app.open({ clock: undefined });
+  await signedIn(page);
+  await fakePush(page, "granted");
+  await grantedBefore(page);
+  await page.evaluate(() => { window.__noId = true; OS.User.PushSubscription.optIn = () => new Promise(() => {}); });
+  await page.evaluate(() => { enablePush(); });
+  await page.waitForSelector(".toast", { timeout: 20000 });
+  assert.match(await page.evaluate(() => PUSH_ERR), /didn't answer/);
+  assert.deepEqual(await page.done(), []);
+});
