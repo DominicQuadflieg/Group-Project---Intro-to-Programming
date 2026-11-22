@@ -1,5 +1,5 @@
 # Netlify settings for NOVAFit (used when the site is connected to this GitHub repository)
-# The app is the plain folder "app" (no build step); Strava, "A loop from here" and the Nova SBE headlines run as functions.
+# The app is the plain folder "app" (no build step); Strava and the Nova SBE headlines run as functions.
 [build]
   publish = "app"
   functions = "netlify/functions"

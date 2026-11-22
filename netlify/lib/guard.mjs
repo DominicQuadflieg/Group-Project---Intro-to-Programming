@@ -1,14 +1,14 @@
-/* NOVAFit · shared protection for the Netlify Functions (strava.mjs, route.mjs)
+/* NOVAFit · shared protection for the Netlify Functions (strava.mjs, news.mjs)
 
    1. Same site only: a browser call from another website is refused (Origin / Sec-Fetch-Site).
       Extra origins (e.g. a preview address) can be allowed with ALLOWED_ORIGINS="https://a,https://b".
-   2. Rate limit per IP address, so nobody can use up the free Strava or openrouteservice quota.
+   2. Rate limit per IP address, so nobody can use up the free Strava quota.
       The counter lives in the memory of one function instance: it resets when Netlify starts a new
       instance, so it slows down abuse but is not an exact limit.
    3. Small bodies only: the app never sends more than a few hundred bytes.
 
    This does not replace authentication: the functions hold no user data, they only keep the
-   API keys secret and pass requests on. Without the key nobody can call Strava or the route service
+   API keys secret and pass requests on. Without the key nobody can call Strava
    in our name; with these checks nobody can do it from another site or in bulk. */
 
 export const MAX_BODY = 8 * 1024;

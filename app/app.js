@@ -748,7 +748,7 @@ function renderSport(){
     if(ses.length) h += spSec("Your plan", `${nd} of ${ses.length} done`) + `<div class="splist">${ses.map(x => spRow(`data-act="runout"`, D[x.day], x.title || "Run", x.min ? x.min + " min" : "", planRight(x), done.has(x.day))).join("")}</div>`;
     h += spSec("Your goal") + (rp ? `<button class="spgoal" data-act="runplan"><span><b>${esc(planTitle(rp))}</b>${pg.n ? `<small>week ${pg.i+1} of ${pg.n}</small>` : ""}</span><i aria-hidden="true"><i style="width:${Math.round(pg.f*100)}%"></i></i></button>`
       : `<div class="splist">${spRow(`data-act="runplan"`, "", "Set a running goal", "10 km, half marathon or your loop, with a plan")}</div>`);
-    h += spSec("Where to run") + `<div class="splist">${spRow(`data-act="near"`, "", "Runs near you", "Nearby routes and loops")}</div>`;
+    h += spSec("Where to run") + `<div class="splist">${spRow(`data-act="near"`, "", "Runs near you", "Nearby routes")}</div>`;
     h += `<div class="splist">${spRow(`data-act="impsheet"`, "", "Import runs", "Garmin, Strava, files")}</div>`;
   }else{
     const sug = ySuggest() || "vinyasa", sg = NFYoga.byId(sug) || NFYoga.byId("vinyasa");
@@ -1346,7 +1346,7 @@ function runSheet(){
     <button class="start" data-kind="run" data-act="runout"><span class="stripe"></span><span><b>Outdoor run</b><small>Upload a screenshot or enter it yourself</small><small>${lo?"Last done "+ago(lo.start)+" · "+fmt(num(lo.run.km))+" km":"Not done yet"}</small></span><span class="arrow">›</span></button>
     <button class="start" data-kind="run" data-act="runband"><span class="stripe"></span><span><b>Treadmill at the gym</b><small>Enter km and time from the display</small><small>${lb?"Last done "+ago(lb.start):"Not done yet"}</small></span><span class="arrow">›</span></button>
     <button class="start" data-kind="run" data-act="runplan"><span class="stripe"></span><span><b>My running goal</b><small>${p ? esc(planTitle(p)) + (pg.n ? ` · Week ${pg.i+1} of ${pg.n}` : "") : "Set a goal and get your running plan"}</small>${pg && pg.n ? `<span class="gbar"><i style="width:${Math.round(pg.f*100)}%"></i></span>` : ""}</span><span class="arrow">›</span></button>
-    <button class="start" data-kind="run" data-act="near"><span class="stripe"></span><span><b>Runs near you</b><small>Routes close by, or a loop from where you are</small></span><span class="arrow">›</span></button>
+    <button class="start" data-kind="run" data-act="near"><span class="stripe"></span><span><b>Runs near you</b><small>Routes close by, with the way there</small></span><span class="arrow">›</span></button>
     ${stravaRow()}
     <button class="secondary" data-act="closesheet">Cancel</button></div>`);
 }
@@ -1603,24 +1603,13 @@ async function stravaSync(fromConnect){
     else if(fromConnect) toast("Strava connected ✓ No new runs in the last 30 days.");
   }catch(e){ if(fromConnect) toast("Strava connected ✓ " + stErrTxt(e)); else if(e && e.status===401) toast(stErrTxt(e)); }
 }
-/* ================= Runs near you: feste Strecken (A) und eine Runde ab hier (B) =================
-   A: höchstens 4 Strecken aus run.js (NEARBY_ROUTES), sortiert nach Nähe zur Wetter-Position (auf ~1 km gerundet, sonst Nova SBE).
-   B: eine Runde über openrouteservice (netlify/functions/route.mjs). Dafür wird der Standort einmal genauer abgefragt,
-      nur für diese Anfrage verwendet und nicht gespeichert. Zusammen nie mehr als 5 Vorschläge. */
-const ROUTE_FN = "/.netlify/functions/route";
-let ROUTE_OK;                                   // undefined = noch unbekannt
-let NEAR = {km:0, seed:1, loop:null, busy:false, err:"", home:false, open:""};
-async function routeOk(){
-  if(ROUTE_OK!==undefined) return ROUTE_OK;
-  try{ const r = await fetch(ROUTE_FN, {cache:"no-store"}); ROUTE_OK = r.ok; }catch(e){ ROUTE_OK = false; }
-  return ROUTE_OK;
-}
+/* ================= Runs near you: feste Strecken =================
+   Höchstens 4 Strecken aus run.js (NEARBY_ROUTES), sortiert nach Nähe zur Wetter-Position (auf ~1 km gerundet, sonst Nova SBE). */
+let NEAR = {open:""};
 const mapsTo = p => `https://www.google.com/maps/dir/?api=1&travelmode=walking&destination=${p.lat},${p.lon}`;
 function nearSheet(){
   const nx = planNext(), target = nx && nx.km>0 ? nx.km : 0, pos = wxPos(), mine = S.settings.wxGeo===true;
-  const tk = target ? Math.min(30, Math.max(2, Math.round(target*2)/2)) : 0;   // Länge des nächsten Plan-Laufs
-  if(!NEAR.km) NEAR.km = tk || 5;
-  const list = NFRun.nearbyRoutes(pos, target, NFRun.MAX_SUGGESTIONS - 1);
+  const list = NFRun.nearbyRoutes(pos, target, NFRun.MAX_SUGGESTIONS);
   // Same parts as the running and yoga menus: rows like "Outdoor run" (.start), sections with an eyebrow, a serif title and a short line
   const row = r => { const open = NEAR.open===r.id;
     return `<button class="start nearrow${open ? " open" : ""}" data-kind="run" data-act="nearopen" data-id="${r.id}" aria-expanded="${open}"><span class="stripe"></span>
@@ -1628,17 +1617,6 @@ function nearSheet(){
       <span class="arrow" aria-hidden="true">›</span></button>
       ${open ? `<div class="nearpanel"><p>${esc(r.desc)}</p>
         <div class="row2"><a class="secondary nearbtn" href="${mapsTo(r.start)}" target="_blank" rel="noopener">Directions</a><button class="primary run nearbtn" data-act="nearstart" data-id="${r.id}">Start this run</button></div></div>` : ""}`; };
-  const L = NEAR.loop, shape = L ? NFRun.loopSvg(L.coords, 300, 170, 14) : null;
-  const loop = ROUTE_OK===false ? `<p class="yhub-desc">Needs a one-time setup: a free openrouteservice key in Netlify (see README).</p>`
-    : `<p class="yhub-desc">Pick a length and NOVAFit finds a round trip on foot paths.</p>
-      ${L && shape ? `<svg class="nearmap" viewBox="0 0 300 170" role="img" aria-label="Shape of your ${fmt(L.km)} km loop"><path d="${shape.d}"/><circle cx="${shape.start.x}" cy="${shape.start.y}" r="6"/></svg>
-        <p class="nearloopkm"><b class="tnum">${fmt(L.km)} km loop</b> ${L.home ? "from Nova SBE" : "from where you are"}</p>
-        <div class="row2"><a class="secondary nearbtn" href="${NFRun.loopMapsUrl(L.coords)}" target="_blank" rel="noopener">Open in Maps</a><button class="primary run nearbtn" data-act="nearstart" data-id="loop">Start this run</button></div>
-        <button class="txtbtn" data-act="nearloop" data-seed="next">Show me another loop</button>` : ""}
-      <div class="nearkm" role="group" aria-label="Length">${[3, 5, 8, 10].concat(tk && ![3,5,8,10].includes(tk) ? [tk] : []).sort((a,b) => a-b).map(k => `<button data-act="nearkm" data-k="${k}" aria-pressed="${NEAR.km===k}">${fmt(k)} km</button>`).join("")}</div>
-      ${NEAR.err ? `<p class="err" role="alert">${esc(NEAR.err)}</p>${NEAR.err.includes("location") ? `<button class="txtbtn" data-act="nearloop" data-home="1">Start at Nova SBE instead</button>` : ""}` : ""}
-      <button class="${L ? "secondary" : "primary run"}" data-act="nearloop"${NEAR.busy ? " disabled" : ""}>${NEAR.busy ? "Making your loop …" : L ? `Make a new loop · ${fmt(NEAR.km)} km` : `Make me a loop · ${fmt(NEAR.km)} km`}</button>
-      <p class="small muted" style="margin:0">Uses your location once for this loop. It isn't saved.</p>`;
   sheet(`<div class="run-menu nearsheet"><h3>Runs near you</h3>
     <p class="small muted" style="margin:0">${mine ? `<span>Near</span> <b translate="no">${esc(wxPlace())}</b>` : `<span>Near</span> <b translate="no">Nova SBE</b> · <button class="txtbtn" data-act="nearloc">Use my location</button>`}${target ? ` · <span>Your plan:</span> <b>${esc(nx.label)}</b>` : ""}</p>
     <section class="yhub-breaks nearsec" aria-labelledby="near-routes-title">
@@ -1647,13 +1625,7 @@ function nearSheet(){
       <p class="yhub-desc">Hand-picked routes, the closest first. Tap one for the way there.</p>
       <div class="nearrows">${list.length ? list.map(row).join("") : `<p class="muted small" style="margin:0">No saved routes close to you yet.</p>`}</div>
     </section>
-    <section class="yhub-breaks nearsec loopc" aria-labelledby="near-loop-title">
-      <p class="yhub-eyebrow">From where you are</p>
-      <h4 id="near-loop-title">A loop from here</h4>
-      ${loop}
-    </section>
     <button class="secondary" data-act="closesheet">Close</button></div>`);
-  if(ROUTE_OK===undefined) routeOk().then(() => { if($("#layer .nearsheet")) nearSheet(); });
 }
 /* Standort für die Liste: dieselbe Freigabe wie beim Wetter; danach die Liste neu sortieren */
 function nearLocate(){
@@ -1661,29 +1633,9 @@ function nearLocate(){
   let n = 0; const iv = setInterval(() => { n++; const t = (S.settings.wxPos||{}).t || 0;
     if(t!==t0 || n>30){ clearInterval(iv); if($("#layer .nearsheet")) nearSheet(); } }, 500);
 }
-const herePos = () => new Promise((res, rej) => {
-  if(!navigator.geolocation) return rej(new Error("nogeo"));
-  navigator.geolocation.getCurrentPosition(g => res({lat:g.coords.latitude, lon:g.coords.longitude}), rej, {enableHighAccuracy:true, timeout:12000, maximumAge:60e3});
-});
-async function nearLoop(next, home){
-  if(NEAR.busy) return;
-  if(!(await routeOk())){ nearSheet(); return; }
-  NEAR.busy = true; NEAR.err = ""; if(next) NEAR.seed = NEAR.seed % 99 + 1; nearSheet();
-  try{
-    let pos;
-    if(home) pos = NFRun.WX_HOME;
-    else try{ pos = await herePos(); }catch(e){ throw new Error("Couldn't get your location. Allow location for NOVAFit, or start at Nova SBE."); }
-    const r = await fetch(ROUTE_FN, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({lat:pos.lat, lon:pos.lon, km:NEAR.km, seed:NEAR.seed})});
-    const d = await r.json().catch(() => ({}));
-    if(!r.ok) throw new Error(d.error==="no_route" ? "There are no foot paths right here. Try a few steps away or another length." : d.error==="rate_limited" ? "Too many loops just now. Try again in a minute." : "The loop couldn't be made right now. Try again later.");
-    NEAR.loop = {km:d.km, coords:d.coords, home:!!home};
-  }catch(e){ NEAR.err = e.message || "The loop couldn't be made right now."; }
-  NEAR.busy = false;
-  if($("#layer .nearsheet")) nearSheet();
-}
 /* „Start this run“: Lauf draußen öffnen, Distanz und Strecke schon eingetragen */
 function nearStart(id){
-  const r = id==="loop" ? (NEAR.loop && {name:`${fmt(NEAR.loop.km)} km loop`, km:NEAR.loop.km}) : NFRun.NEARBY_ROUTES.find(x => x.id===id);
+  const r = NFRun.NEARBY_ROUTES.find(x => x.id===id);
   if(!r) return;
   closeSheet();
   if(S.active && S.active.type!=="lauf"){ toast("Finish your open session first."); return; }
@@ -5218,11 +5170,9 @@ document.addEventListener("click", async ev => {
     case "stadd": stravaAddSel(); break;
     case "stoff": stravaOff(); break;
     case "impsheet": impSheet(); break;
-    case "near": NEAR.err = ""; nearSheet(); break;
+    case "near": nearSheet(); break;
     case "nearopen": NEAR.open = NEAR.open===b.dataset.id ? "" : b.dataset.id; nearSheet(); break;
     case "nearloc": nearLocate(); break;
-    case "nearkm": NEAR.km = +b.dataset.k; NEAR.err = ""; nearSheet(); break;
-    case "nearloop": nearLoop(b.dataset.seed==="next", b.dataset.home==="1" || (NEAR.loop && NEAR.loop.home && b.dataset.seed==="next")); break;
     case "nearstart": nearStart(b.dataset.id); break;
     case "histstrava": impStrava(); break;
     case "histrange": if(HI){ HI.range = b.dataset.v; impPreview(); } break;

@@ -10,7 +10,6 @@ How to run NOVAFit with everything switched on. For a quick start see the [READM
 | Variable | For | Where to get it |
 |---|---|---|
 | `STRAVA_CLIENT_ID`, `STRAVA_CLIENT_SECRET` | Strava connection | https://www.strava.com/settings/api |
-| `ORS_API_KEY` | A running loop from where you are | https://account.heigit.org (free Basic Key) |
 
 The keys never go into the repository: only the functions in `netlify/functions/` use them.
 
@@ -52,19 +51,13 @@ A preview shows the number of runs and kilometres, with the time range (this yea
 
 ## Runs near you
 
-*Train › Running › Runs near you* suggests at most five runs (`NEARBY_ROUTES` in `app/run.js`, `netlify/functions/route.mjs`). The entry was taken out of the running menu in #39 and is back as its own row, in the menu's design:
+*Train › Running › Runs near you* suggests at most four runs (`NEARBY_ROUTES` in `app/run.js`). The entry was taken out of the running menu in #39 and is back as its own row, in the menu's design:
 
 - **Up to 4 hand-picked routes** (`NEARBY_ROUTES` in `app/run.js`): Carcavelos seafront, Oeiras seafront, Paredão Estoril–Cascais and the Lisbon riverside at Belém, sorted by how far away they are. The weather location is used for this (rounded to about 1 km, Nova SBE if location is off). Routes that fit the next run of your running plan are marked. Lengths are approximate: it's a demo set, check them before you rely on them.
-- **A loop from here:** pick 3, 5, 8 or 10 km (or the length of your next plan run) and NOVAFit makes a round trip on foot paths from where you are, shows its shape and opens it in Google Maps. For this one request the position is sent to the route service, it isn't stored.
 
 “Start this run” opens an outdoor run with the distance and the route already filled in.
 
-The loop needs a free openrouteservice key (the list of routes works without it):
-
-1. Sign up at https://account.heigit.org (openrouteservice now runs there). Open the **API Key** tab and copy the **Basic Key** with the Copy button; it starts with `eyJ`.
-2. In Netlify → *Site configuration → Environment variables* add `ORS_API_KEY` with the token, then deploy again (like the Strava keys, it only works when Netlify is connected to this repository).
-
-Without the key the app shows “Needs a one-time setup” instead of the loop button.
+The loop from where you are (openrouteservice) was taken out on 22 Nov 2026; no key is needed any more. An old `ORS_API_KEY` in Netlify can be deleted.
 
 ## Pictures
 

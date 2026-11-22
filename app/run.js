@@ -775,7 +775,7 @@
   }
 
   /* ---------- runs near you ----------
-     A few hand-picked routes (A) plus a loop made from where you stand (B, netlify/functions/route.mjs).
+     A few hand-picked routes, the closest first.
      Lengths are approximate and the starts are rounded: a demo set, check them before relying on them. */
   const NEARBY_ROUTES = [
     { id: "carcavelos", name: "Carcavelos seafront", km: 5, start: { lat: 38.678, lon: -9.326 },
@@ -787,7 +787,7 @@
     { id: "belem", name: "Lisbon riverside, Belém", km: 7, start: { lat: 38.692, lon: -9.216 },
       desc: "From the Belém Tower along the Tagus towards Alcântara and back. Flat, lots to see." }
   ];
-  const MAX_SUGGESTIONS = 5, NEAR_KM = 50, LOOP_MIN = 2, LOOP_MAX = 30;
+  const MAX_SUGGESTIONS = 4, NEAR_KM = 50;
 
   /* The hand-picked routes closest to you (within 50 km), at most `n`.
      fits = the length is within 1.5 km of the run your plan has next. */
@@ -796,36 +796,7 @@
     return NEARBY_ROUTES.map(r => Object.assign({}, r, { away: round2(gpsDist(pos, r.start) / 1000), fits: targetKm > 0 && Math.abs(r.km - targetKm) <= 1.5 }))
       .filter(r => r.away <= NEAR_KM)
       .sort((a, b) => a.away - b.away)
-      .slice(0, Math.max(0, Math.min(n == null ? MAX_SUGGESTIONS - 1 : n, MAX_SUGGESTIONS)));
-  }
-
-  /* Length for a loop from here: 2–30 km, whole or half kilometres */
-  function validLoopKm(v) {
-    const k = toNum(v);
-    if (!(k >= LOOP_MIN && k <= LOOP_MAX)) return { ok: false, err: `Choose between ${LOOP_MIN} and ${LOOP_MAX} km.` };
-    return { ok: true, km: Math.round(k * 2) / 2 };
-  }
-
-  /* Google Maps walking directions along a loop ([lon, lat] points): start = end, up to 8 stops in between */
-  function loopMapsUrl(coords) {
-    const pts = (coords || []).filter(c => Array.isArray(c) && isFinite(c[0]) && isFinite(c[1]));
-    if (pts.length < 2) return "";
-    const ll = c => c[1].toFixed(5) + "," + c[0].toFixed(5), way = [];
-    for (let i = 1; i <= 8; i++) way.push(pts[Math.round(i * (pts.length - 1) / 9)]);
-    return "https://www.google.com/maps/dir/?api=1&travelmode=walking&origin=" + ll(pts[0]) + "&destination=" + ll(pts[0]) +
-      "&waypoints=" + encodeURIComponent(way.map(ll).join("|"));
-  }
-
-  /* The shape of a loop as an SVG path in a w × h box (north up, distances kept true) */
-  function loopSvg(coords, w, h, pad) {
-    const pts = (coords || []).filter(c => Array.isArray(c) && isFinite(c[0]) && isFinite(c[1]));
-    if (pts.length < 2) return null;
-    pad = pad == null ? 10 : pad;
-    const k = Math.cos((pts[0][1] * Math.PI) / 180), xs = pts.map(c => c[0] * k), ys = pts.map(c => -c[1]);
-    const x0 = Math.min(...xs), y0 = Math.min(...ys), sw = Math.max(...xs) - x0 || 1e-9, sh = Math.max(...ys) - y0 || 1e-9;
-    const sc = Math.min((w - 2 * pad) / sw, (h - 2 * pad) / sh), ox = (w - sw * sc) / 2, oy = (h - sh * sc) / 2;
-    const P = pts.map((c, i) => [ox + (xs[i] - x0) * sc, oy + (ys[i] - y0) * sc].map(v => Math.round(v * 10) / 10));
-    return { d: "M" + P.map(p => p.join(" ")).join("L"), start: { x: P[0][0], y: P[0][1] } };
+      .slice(0, Math.max(0, Math.min(n == null ? MAX_SUGGESTIONS : n, MAX_SUGGESTIONS)));
   }
 
   const api = { KM_PER_MI, MAX_FILE_MB, cleanText, timeTokens, parseDate, parseShot, validateRun, checkIncline, checkTarget, checkKmMonth, MAX_INCLINE,
@@ -834,7 +805,7 @@
     gpsDist, parseGpx, parseTcx, parseFit, isPolarCsv, parsePolarCsv, zipEntry, fileKind, parseActivity, findDuplicate, isRunSport,
     STRAVA_SCOPE, stravaAuthUrl, stravaScopeOk, stravaEntry, stravaNew, stravaItems,
     WX_HOME, LOOP_DEFAULT, LOOP_KM, LOOP_NAME_MAX, wxUrl, samePlace, placeName, loopName, validateLoop,
-    NEARBY_ROUTES, MAX_SUGGESTIONS, nearbyRoutes, validLoopKm, loopMapsUrl, loopSvg };
+    NEARBY_ROUTES, MAX_SUGGESTIONS, nearbyRoutes };
   if (typeof module === "object" && module.exports) module.exports = api;
   else root.NFRun = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);

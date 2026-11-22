@@ -8,15 +8,6 @@ test.before(async () => { app = await setup(); });
 test.after(async () => { await app.close(); });
 
 const NOVA = { latitude: 38.6795, longitude: -9.3247 };
-// The route function answers like openrouteservice would: a closed loop of about the asked length
-async function fakeRoutes(page, mode = "ok") {
-  await page.route("**/.netlify/functions/route", r => {
-    if (r.request().method() === "GET") return mode === "off" ? r.fulfill({ status: 503, json: { error: "not_configured" } }) : r.fulfill({ json: { ok: true } });
-    const q = r.request().postDataJSON(), c = [];
-    for (let i = 0; i <= 40; i++) { const a = i / 40 * 2 * Math.PI; c.push([q.lon + 0.008 * Math.sin(a), q.lat + 0.006 * (1 - Math.cos(a))]); }
-    return r.fulfill({ json: { km: q.km, coords: c } });
-  });
-}
 // Train › Running opens the running menu; "Runs near you" is one of its rows
 async function runningMenu(page) {
   await page.evaluate(() => { S.settings.profile = { name: "T" }; save(); screen = "home"; render(); runSheet(); });
@@ -25,7 +16,6 @@ async function runningMenu(page) {
 
 test("the running page (Train › Running) shows Runs near you in its own section", async () => {
   const page = await app.open();
-  await fakeRoutes(page);
   await page.evaluate(() => { S.settings.profile = { name: "T" }; save(); SPORT = "r"; screen = "sport"; render(); });
   const sec = await page.$$eval(".spsec span", x => x.map(e => e.textContent));
   assert.ok(sec.includes("Where to run"), "section heading");
@@ -35,53 +25,36 @@ test("the running page (Train › Running) shows Runs near you in its own sectio
   assert.deepEqual(await page.done(), []);
 });
 
-test("the running menu opens Runs near you: nearby routes first, then a loop from here", async () => {
+test("the running menu opens Runs near you: the closest routes, each with the way there and a start button", async () => {
   const page = await app.open({ context: { geolocation: NOVA, permissions: ["geolocation"] } });
-  await fakeRoutes(page);
   await runningMenu(page);
   await page.click('[data-act="near"]');
-  await page.waitForSelector(".sheet .loopc");
+  await page.waitForSelector(".sheet .nearrow");
   const routes = await page.$$eval(".sheet .nearrow b", b => b.map(x => x.textContent));
   assert.ok(routes.length >= 1 && routes.length <= 4, "1 to 4 routes");
   assert.equal(routes[0], "Carcavelos seafront", "closest first");
+  assert.equal(await page.$(".loopc, .nearmap, [data-act=nearloop]"), null, "no loop from here any more");
   // a route opens to show the way there and a start button; tapping again closes it
   await page.click('.nearrow[data-id="carcavelos"]');
   assert.equal(await page.getAttribute('.nearrow[data-id="carcavelos"]', "aria-expanded"), "true");
   assert.match(await page.$eval(".nearpanel a", a => a.href), /^https:\/\/www\.google\.com\/maps\/dir\//);
   await page.click('.nearrow[data-id="carcavelos"]');
   assert.equal(await page.$(".nearpanel"), null);
-  await page.click('.loopc [data-act="nearkm"][data-k="5"]');
-  await page.click('.loopc [data-act="nearloop"]:not([data-seed])');
-  await page.waitForSelector(".nearmap path");
-  assert.match(await text(page, ".loopc"), /5 km loop from where you are/);
-  assert.match(await page.$eval('.loopc a', a => a.href), /^https:\/\/www\.google\.com\/maps\/dir\//);
-  await page.click('.loopc [data-act="nearstart"]');
+  await page.click('.nearrow[data-id="carcavelos"]');
+  await page.click('.nearpanel [data-act="nearstart"]');
   await page.waitForFunction(() => !document.querySelector(".sheet"));
-  assert.deepEqual(await page.evaluate(() => [S.active.run.km, S.active.run.note]), ["5", "Route: 5 km loop"]);
-  assert.deepEqual(await page.done(), []);
-});
-
-test("without the route key the routes still work and the loop says it needs setting up", async () => {
-  const page = await app.open();
-  await fakeRoutes(page, "off");
-  await runningMenu(page);
-  await page.click('[data-act="near"]');
-  await page.waitForFunction(() => /one-time setup/.test((document.querySelector(".loopc") || {}).textContent || ""));
-  assert.ok(await page.$$eval(".sheet .nearrow", x => x.length) >= 1);
-  assert.equal(await page.$('.loopc [data-act="nearloop"]'), null, "no loop button without the key");
+  assert.deepEqual(await page.evaluate(() => [S.active.run.km, S.active.run.note]), ["5", "Route: Carcavelos seafront"]);
   assert.deepEqual(await page.done(), []);
 });
 
 test("in German nothing in the sheet stays English (names marked translate=no aside)", async () => {
   const page = await app.open({ context: { geolocation: NOVA, permissions: ["geolocation"] } });
-  await fakeRoutes(page);
-  // every text in the sheet, with a loop drawn
+  // every text in the sheet, with a route opened
   const texts = async () => {
     await runningMenu(page);
     await page.click('[data-act="near"]');
     await page.click('.nearrow[data-id="carcavelos"]');
-    await page.click('.loopc [data-act="nearloop"]:not([data-seed])');
-    await page.waitForSelector(".nearmap path");
+    await page.waitForSelector(".nearpanel");
     return page.evaluate(() => { const out = [], w = document.createTreeWalker(document.querySelector("#layer"), NodeFilter.SHOW_TEXT); let n;
       while ((n = w.nextNode())) { const t = n.nodeValue.replace(/\s+/g, " ").trim();
         if (t && /[a-z]{3}/i.test(t) && !n.parentElement.closest("[translate=no]")) out.push(t); } return out; });
