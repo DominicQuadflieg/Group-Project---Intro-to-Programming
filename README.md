@@ -166,6 +166,7 @@ Every change went through its own branch and pull request into `main`, with a sh
 | | 22 Nov | Four languages, sign out, library and running fixes ([#58](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/58)–[#65](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/65)) |
 | | 22 Nov | Polar Flow import, external services in the README, Runs near you and running plan in the new design, sets in own templates, workout overview, Profile and body ([#66](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/66)–[#70](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/70)) |
 | v2.15 | 22 Nov | Checks on every typed-in number, editing saved sessions and Undo, backups that keep your account, demo data, translation gaps closed ([#71](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/71)–[#86](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/86)) |
+| | 22 Nov | New live address, "A loop from here" and push notifications taken out ([#88](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/88)–[#92](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/92)) |
 
 Every change in detail: [CHANGELOG.md](CHANGELOG.md).
 
