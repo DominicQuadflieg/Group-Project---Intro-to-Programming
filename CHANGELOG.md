@@ -2,6 +2,13 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Set numbers are checked
+
+- Reps and weights in a gym session are checked while you type: reps a whole number from 1 to 200, weight 0 to 500 kg (assistance 0 to 200 kg), timed exercises 1 to 3600 seconds or 0.5 to 300 minutes. Until now −5 reps, letters or 99 999 kg were saved and spoiled records and totals
+- A wrong number turns the set red with a short message right below it (in all four languages); the set doesn't count, the tick doesn't accept it, and the typo isn't copied into the next sets
+- Saving leaves out any set with impossible numbers, also with *I did all, save them all*
+- The check is a pure function in `exercises.js` (`checkSet`) with unit tests; one new browser test
+
 ## Unreleased – Own gym days and templates
 
 - Choose my own at sign-up: every exercise starts at 0 sets; set 1 to 10 with + and −. Exercises without a set are marked red.

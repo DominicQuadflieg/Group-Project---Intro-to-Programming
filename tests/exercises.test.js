@@ -196,3 +196,35 @@ test("the custom exercise form refuses quotes and markup", () => {
   });
   assert.equal(X.validateCustom({ name: "Farmer's carry", eq: "Other", part: "Legs", type: "w" }, []).ok, true);
 });
+
+/* ---------- checking the numbers of a set ---------- */
+test("checkSet accepts normal sets and empty fields", () => {
+  const w = { type: "w" };
+  for (const s of [{ r: "10", kg: "42.5" }, { r: "8", kg: "42,5" }, { r: "12", kg: "0" }, { r: "", kg: "" }, { r: "200", kg: "500" }, {}])
+    assert.deepEqual(X.checkSet(s, w), { r: "", kg: "" }, JSON.stringify(s));
+  assert.ok(X.setOk({ r: " 5 ", kg: " 20 " }, w));
+});
+
+test("checkSet refuses negative, broken and absurd reps and weights", () => {
+  const w = { type: "w" };
+  for (const r of ["-5", "abc", "0", "201", "99999", "7.5", "1e3"]) assert.match(X.checkSet({ r, kg: "20" }, w).r, /Reps/, r);
+  for (const kg of ["-20", "abc", "500.5", "99999", "--1", "4 0"]) assert.match(X.checkSet({ r: "10", kg }, w).kg, /Weight/, kg);
+  assert.equal(X.setOk({ r: "-5", kg: "99999" }, w), false);
+});
+
+test("checkSet knows assisted, reps-only and timed exercises", () => {
+  assert.match(X.checkSet({ r: "8", kg: "250" }, { type: "a" }).kg, /Help/);
+  assert.equal(X.checkSet({ r: "8", kg: "30" }, { type: "a" }).kg, "");
+  assert.equal(X.checkSet({ r: "15", kg: "abc" }, { type: "r" }).kg, "");          // no weight field for bodyweight
+  assert.equal(X.checkSet({ r: "45" }, { type: "t", part: "Core" }).r, "");         // seconds
+  assert.match(X.checkSet({ r: "4000" }, { type: "t", part: "Core" }).r, /seconds/);
+  assert.equal(X.checkSet({ r: "12,5" }, { type: "t", part: "Cardio" }).r, "");    // minutes
+  assert.match(X.checkSet({ r: "0.2" }, { type: "t", part: "Cardio" }).r, /minutes/);
+});
+
+test("the limits fit every set the library suggests", () => {
+  for (const e of X.LIBRARY) {
+    const [lo, hi] = e.r;
+    assert.ok(X.setOk({ r: String(lo), kg: "" }, e) && X.setOk({ r: String(hi), kg: "" }, e), e.id);
+  }
+});
