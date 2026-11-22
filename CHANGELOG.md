@@ -2,6 +2,13 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Check notifications
+
+- *Settings › Notifications* has **Send a test notification** (shown straight from the device, without OneSignal: if it appears, the phone or laptop is fine and a missing reminder is a OneSignal question)
+- **Check notifications** lists device, permission, OneSignal, service worker, subscription and address, plus the last problem (e.g. OneSignal couldn't start or load, the permission question didn't appear, subscribing failed) instead of hiding it
+- The device's OneSignal ID with a copy button, to send a test message to exactly this device from the OneSignal dashboard
+- In all four languages; two new browser tests
+
 ## Unreleased – Clearer settings
 
 - Chosen options in the settings (sex, show calories, appearance, sound …) are filled black with a ✓, white in dark mode.
