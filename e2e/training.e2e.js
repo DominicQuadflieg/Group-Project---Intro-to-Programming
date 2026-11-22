@@ -73,6 +73,27 @@ test("strength: impossible numbers show an error next to the set and are not sav
   assert.deepEqual(await page.done(), []);
 });
 
+test("run typed in by hand: impossible distance or pace shows an error next to the field", async () => {
+  const page = await app.open();
+  await signedIn(page);
+  await page.evaluate(() => startSession("lauf", "out"));
+  await page.waitForSelector("#run-min");
+  await page.fill("#run-min", "3000");                        // 30:00
+  for (const [km, msg] of [["-5", /Enter the distance as a number/], ["900", /between 0 and 300 km/], ["20", /faster than a world record/]]) {
+    await page.fill("#run-km", km);
+    await page.click('[data-act="finish"] >> nth=0');
+    assert.match(await text(page, "#run-km-err"), msg, km);
+    assert.equal(await page.getAttribute("#run-km", "aria-invalid"), "true");
+    assert.equal(await page.evaluate(() => S.history.length), 0);
+  }
+  await page.fill("#run-km", "5,2");                          // typing clears the message
+  assert.equal(await text(page, "#run-km-err"), "");
+  await page.click('[data-act="finish"] >> nth=0');
+  await page.waitForFunction(() => S.history.length === 1);
+  assert.equal(await page.evaluate(() => S.history[0].run.km), 5.2);
+  assert.deepEqual(await page.done(), []);
+});
+
 test("strength: swapping an exercise keeps the sets already done and saves them", async () => {
   const page = await app.open();
   await signedIn(page);
