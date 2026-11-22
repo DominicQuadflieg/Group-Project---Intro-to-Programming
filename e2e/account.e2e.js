@@ -31,6 +31,20 @@ test("sign-up refuses empty and invalid input with an error next to each field",
   assert.deepEqual(await page.done(), []);
 });
 
+test("the cursor stays in the field the user tapped, even on a slow phone", async () => {
+  // Stop the page's clock, so the app's delayed "focus the first field" fires only after the user
+  // already tapped the email field – like on a slow phone.
+  const page = await app.open({ clock: new Date(2026, 10, 22, 12, 0) });
+  await page.clock.pauseAt(new Date(2026, 10, 22, 12, 0, 1));
+  await page.click('[data-to="signup"]');
+  await page.click("#ob-email");
+  await page.clock.runFor(200);                      // the app's focus timer fires now
+  await page.keyboard.type("julius@novasbe.pt");
+  assert.equal(await page.inputValue("#ob-email"), "julius@novasbe.pt");
+  assert.equal(await page.inputValue("#ob-name"), "");
+  assert.deepEqual(await page.done(), []);
+});
+
 test("a valid sign-up stores only a password hash and leads to the questionnaire", async () => {
   const page = await app.open();
   await page.click('[data-to="signup"]');
