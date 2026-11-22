@@ -26,6 +26,7 @@
       { id: "run5k", label: "Run 5 km without stopping", plan: "Road to 5 km" },
       { id: "run10k", label: "10 km under 60 minutes", plan: "Road to 10 km" },
       { id: "half", label: "Half marathon in 12 weeks", plan: "Half marathon build-up" },
+      { id: "marathon", label: "Finish a marathon", plan: "Marathon build-up" },
       { id: "coast", label: "Seaside 10 km along the coast", plan: "Seaside 10 km build-up" }
     ],
     s: [
@@ -176,7 +177,7 @@
   /* ---------- Plans ---------- */
   function runTitles(a) {
     if (a.level === "beginner") return ["Easy run", "Run-walk intervals", "Easy run"];
-    if (a.goals.includes("half") || a.goals.includes("coast")) return ["Easy run", "Intervals 6 × 1 min", "Long run"];
+    if (a.goals.includes("half") || a.goals.includes("marathon") || a.goals.includes("coast")) return ["Easy run", "Intervals 6 × 1 min", "Long run"];
     return ["Easy run", "Intervals 6 × 1 min", "Tempo run"];
   }
 
@@ -366,7 +367,7 @@
       if (cut) easy[cut]--;
     }
     const easyMin = Math.max(30, a.min - 15);
-    plans.push(makePlan("easy", "Easy start", mixTotal(easy) < a.days ? `One session less, ${easyMin} minutes each` : `Shorter sessions, ${easyMin} minutes each`, easy, a, easyMin, false));
+    plans.push(makePlan("easy", "Easy start", mixTotal(easy) < a.days ? "One session less a week" : "Shorter yoga sessions", easy, a, easyMin, false));
     return plans;
   }
 

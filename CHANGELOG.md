@@ -2,6 +2,10 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Marathon, and session length from what's in it
+
+- Running goal: Finish a marathon, with an optional target time and a 16-week plan (long run up to 32 km, shorter the week before). If you raced today now shows a marathon time too; Marathon is also a goal at sign-up.
+- The sign-up no longer asks for minutes per session. Gym sessions show about how long they take, worked out from their sets and rests; yoga shows its length; runs follow the running plan.
 ## Unreleased – Runs near you on the running page
 
 - *Train › Running* (the running page most people use) has a new section **Where to run** with *Runs near you*, built like *Your goal* and *Import runs*. Until now the entry was only in the older running menu that opens from *Today*, so it couldn't be found from the running page
