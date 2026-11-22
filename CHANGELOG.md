@@ -10,6 +10,13 @@ Alle Versionen der App, die neueste oben.
 - The error messages of the screenshot and file check are translated now too
 - `checkTarget` in `run.js` with unit tests; two new browser tests
 
+## Unreleased – Set numbers are checked
+
+- Reps and weights in a gym session are checked while you type: reps a whole number from 1 to 200, weight 0 to 500 kg (assistance 0 to 200 kg), timed exercises 1 to 3600 seconds or 0.5 to 300 minutes. Until now −5 reps, letters or 99 999 kg were saved and spoiled records and totals
+- A wrong number turns the set red with a short message right below it (in all four languages); the set doesn't count, the tick doesn't accept it, and the typo isn't copied into the next sets
+- Saving leaves out any set with impossible numbers, also with *I did all, save them all*
+- The check is a pure function in `exercises.js` (`checkSet`) with unit tests; one new browser test
+
 ## Unreleased – Badges that take longer
 
 21 new long-term badges (★★ months, ★★★ a year or more), sorted easy to hard per group. Triple week now says 3× SPORTS. No more NEW tags in the Progress card editor.

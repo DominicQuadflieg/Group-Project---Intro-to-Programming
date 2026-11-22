@@ -37,6 +37,42 @@ test("strength: an empty session can't be saved, a logged set can", async () => 
   assert.deepEqual(await page.done(), []);
 });
 
+test("strength: impossible numbers show an error next to the set and are not saved", async () => {
+  const page = await app.open();
+  await signedIn(page);
+  const t = await page.evaluate(() => startKeys()[0]);
+  await page.evaluate(t => startSession(t), t);
+  const first = await page.waitForSelector('input[data-in="set"][data-f="r"]');
+  const ex = await first.getAttribute("data-ex");
+  const kg = `input[data-in="set"][data-f="kg"][data-ex="${ex}"][data-i="0"]`;
+
+  await first.fill("-5");
+  await page.fill(kg, "40");
+  assert.match(await text(page, `#se-${ex}-0`), /Reps: a whole number from 1 to 200/);
+  assert.equal(await first.getAttribute("aria-invalid"), "true");
+  assert.equal(await page.evaluate(ex => S.active.sets[ex][0].ok, ex), false);
+  // the typo is not handed on to the next set
+  assert.notEqual(await page.inputValue(`input[data-in="set"][data-f="r"][data-ex="${ex}"][data-i="1"]`), "-5");
+
+  // the tick doesn't accept it either
+  await page.click(`[data-act="tick"][data-ex="${ex}"][data-i="0"]`);
+  assert.equal(await page.evaluate(ex => S.active.sets[ex][0].ok, ex), false);
+
+  await first.fill("10");
+  await page.fill(kg, "99999");
+  assert.match(await text(page, `#se-${ex}-0`), /Weight: 0 to 500 kg/);
+  await page.fill(kg, "42,5");
+  assert.equal(await text(page, `#se-${ex}-0`), "");
+  assert.equal(await page.evaluate(ex => S.active.sets[ex][0].ok, ex), true);
+
+  await page.click('[data-act="finish"] >> nth=0');
+  const ok = await page.$('.sheet [data-act="finishok"]');
+  if (ok) await ok.click();
+  await page.waitForFunction(() => screen === "summary");
+  assert.deepEqual(await page.evaluate(ex => S.history[S.history.length - 1].sets[ex], ex), [{ r: 10, kg: 42.5 }]);
+  assert.deepEqual(await page.done(), []);
+});
+
 test("run typed in by hand: impossible distance or pace shows an error next to the field", async () => {
   const page = await app.open();
   await signedIn(page);

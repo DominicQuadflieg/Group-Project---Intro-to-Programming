@@ -395,6 +395,33 @@
   // Typing reps or weight in one set fills the same value into the later sets of that exercise,
   // unless the person already entered or ticked them (ok === true). Those carried values stay
   // suggestions (ok: false) until ticked. Changes `sets` in place; returns the indexes it changed.
+  /* Checks the numbers of one set as the user types them. Empty fields are fine (not done yet).
+     Reps: a whole number from 1 to 200. Time: seconds 1–3600 or minutes 0.5–300.
+     Weight: 0–500 kg; assistance on an assisted machine: 0–200 kg. Comma or point as decimal mark.
+     Returns { r: error text or "", kg: error text or "" }. */
+  const SET_LIMITS = { reps: [1, 200], s: [1, 3600], min: [0.5, 300], kg: [0, 500], help: [0, 200] };
+  function checkSet(set, ex) {
+    const type = (ex && ex.type) || "w", unit = ex ? unitOf(ex) : "kg", out = { r: "", kg: "" };
+    const val = v => String(v == null ? "" : v).trim();
+    const r = val(set && set.r), kg = val(set && set.kg);
+    const dec = t => /^\d+([.,]\d+)?$/.test(t) ? parseFloat(t.replace(",", ".")) : NaN;
+    if (r) {
+      if (type === "t") {
+        const [lo, hi] = SET_LIMITS[unit === "min" ? "min" : "s"], n = dec(r);
+        if (!(n >= lo && n <= hi)) out.r = unit === "min" ? `Time: ${lo} to ${hi} minutes` : `Time: ${lo} to ${hi} seconds`;
+      } else {
+        const [lo, hi] = SET_LIMITS.reps;
+        if (!/^\d+$/.test(r) || +r < lo || +r > hi) out.r = `Reps: a whole number from ${lo} to ${hi}`;
+      }
+    }
+    if (kg && (type === "w" || type === "a")) {
+      const [lo, hi] = SET_LIMITS[type === "a" ? "help" : "kg"], n = dec(kg);
+      if (!(n >= lo && n <= hi)) out.kg = type === "a" ? `Help: ${lo} to ${hi} kg` : `Weight: ${lo} to ${hi} kg`;
+    }
+    return out;
+  }
+  const setOk = (set, ex) => { const e = checkSet(set, ex); return !e.r && !e.kg; };
+
   function carryForward(sets, i, field, value) {
     const changed = [];
     if (!Array.isArray(sets) || !(field === "r" || field === "kg")) return changed;
@@ -408,7 +435,7 @@
   }
 
   const api = { safeText, safeCustom, RETIRED, TYPES, PARTS, EQUIP, PATTERNS, LIBRARY, BY_ID, DRAWINGS, TEMPLATES, TEMPLATE_ORDER, MUSCLE_NAMES,
-    unitOf, search, alternatives, validateCustom, makeCustom, templateExercises, focusOf, carryForward };
+    unitOf, search, alternatives, validateCustom, makeCustom, templateExercises, focusOf, carryForward, checkSet, setOk, SET_LIMITS };
   if (typeof module === "object" && module.exports) module.exports = api;
   else root.NFEx = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);
