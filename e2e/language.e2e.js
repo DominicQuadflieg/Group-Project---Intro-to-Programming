@@ -47,7 +47,10 @@ test("German: the yoga page, the empty Progress cards and a loaded backup leave 
   for (const en of ["Nothing yet", "numbers start here", "Go to "]) assert.ok(!prog.includes(en), en);
 
   await page.evaluate(() => loadBackupText(JSON.stringify({ history: [{ id: "s1", type: "lauf", start: 1700000000000, end: 1700001800000, run: { mode: "out", km: 5, min: 30, note: "" } }], settings: {} })));
-  await page.waitForSelector(".toast");
-  assert.equal(await text(page, ".toast"), "1 Einheit geladen.");
+  assert.match(await text(page, ".sheet"), /1 neue Einheit kommt in deinen Verlauf/);   // with an account on the phone, the app asks first
+  await page.click("[data-act=backupok]");
+  await page.waitForSelector(".toast.undo");
+  assert.equal(await text(page, ".toast.undo span"), "Backup geladen.");
+  assert.equal(await text(page, ".toast.undo button"), "Rückgängig");
   assert.deepEqual(await page.done(), []);
 });

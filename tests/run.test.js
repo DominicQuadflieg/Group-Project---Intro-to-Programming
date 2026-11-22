@@ -233,3 +233,34 @@ test("checkTarget only accepts a pace a person can run", () => {
   assert.match(R.checkTarget(10, 24), /faster/);                                    // 2:24 /km
   assert.match(R.checkTarget(21.0975, 9 * 60), /slower than walking/);
 });
+
+/* ---------- typed-in runs, goals and plan targets (usability check, Nov 2026) ---------- */
+test("a typed-in run must be one a person can run", () => {
+  assert.equal(R.validateRun({ km: "10", time: "55:00" }).ok, true);
+  assert.equal(R.validateRun({ km: "100", time: "00:30" }).ok, false, "100 km in 30 s");
+  assert.equal(R.validateRun({ km: "1", time: "0:10" }).ok, false, "too short");
+  assert.ok(R.validateRun({ km: "-3", time: "30:00" }).errors.km, "negative distance");
+  assert.ok(R.validateRun({ km: "0", time: "30:00" }).errors.km, "zero distance");
+  assert.ok(R.validateRun({ km: "5", time: "99:99" }).errors.time, "99 seconds");
+  assert.ok(R.validateRun({ km: "1", time: "2:00:00" }).errors.km, "slower than walking");
+  assert.equal(R.validateRun({ km: "3", time: "45:00" }).ok, true, "a slow walk is fine");
+});
+
+test("treadmill incline: empty or 0 to 30 %", () => {
+  assert.equal(R.checkIncline(""), "");
+  assert.equal(R.checkIncline("0"), "");
+  assert.equal(R.checkIncline("4,5"), "");
+  assert.equal(R.checkIncline("15"), "");
+  assert.ok(R.checkIncline("80"));
+  assert.ok(R.checkIncline("-5"));
+  assert.ok(R.checkIncline("abc"));
+});
+
+test("kilometres per month: 1 to 1000", () => {
+  assert.equal(R.checkKmMonth("30"), "");
+  assert.equal(R.checkKmMonth("1000"), "");
+  assert.ok(R.checkKmMonth("99999"));
+  assert.ok(R.checkKmMonth("-50"));
+  assert.ok(R.checkKmMonth("0"));
+  assert.ok(R.checkKmMonth("abc"));
+});

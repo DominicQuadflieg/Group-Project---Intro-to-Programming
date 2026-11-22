@@ -155,6 +155,14 @@
 
   /* Tension check: "How tense do you feel?" from 1 (relaxed) to 5 (very tense), before and after. */
   const validTension = v => Number.isInteger(v) && v >= 1 && v <= 5;
+  /* Minutes typed in for a yoga session or class: empty is fine (nothing logged), otherwise 1 to 300. */
+  const MAX_LOG_MIN = 300;
+  function checkMinutes(v) {
+    const t = String(v == null ? "" : v).trim();
+    if (!t) return "";
+    const n = /^\d{1,3}([.,]\d+)?$/.test(t) ? parseFloat(t.replace(",", ".")) : NaN;
+    return n >= 1 && n <= MAX_LOG_MIN ? "" : "Duration: 1 to " + MAX_LOG_MIN + " minutes";
+  }
   /* Averages over checks with both answers: {n, before, after, diff}, or null without any. */
   function tension(list) {
     const ok = (list || []).filter(x => x && validTension(x.b) && validTension(x.a));
@@ -260,7 +268,7 @@
   }
 
 
-  const api = { SESSIONS, EXAM_WEEKS, MIN_STEP, SUN, EASIER, expandSun, easier, cue, validTension, tension, tensionText, byId, total, minutes, lengthFor, stepsFor, examWeek, suggest,
+  const api = { SESSIONS, EXAM_WEEKS, MIN_STEP, SUN, EASIER, expandSun, easier, cue, validTension, checkMinutes, MAX_LOG_MIN, tension, tensionText, byId, total, minutes, lengthFor, stepsFor, examWeek, suggest,
     GOAL_SESSION, suggestWhy, FLEX, FLEX_EVERY, TOES, validFlex, flexName, flexList, addFlex, flexDueIn, flexTrend };
   if (typeof module === "object" && module.exports) module.exports = api;
   else root.NFYoga = api;

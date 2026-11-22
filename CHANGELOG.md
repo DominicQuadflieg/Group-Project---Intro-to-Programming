@@ -2,6 +2,22 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Usability check: no impossible numbers, and Undo
+
+A walk through the whole app with nonsense inputs (−3 km, 80 % incline, 600 min of yoga, 99 999 km per month, a 5-second loop goal) and every action that deletes or replaces something.
+
+- **Runs and treadmill**: on top of the run check, a pace slower than 30:00 /km and a treadmill incline outside 0 to 30 % are refused, with a message
+- **Yoga**: 1 to 300 minutes, with a message
+- **Running goals**: the loop target must be a pace someone can run, kilometres per month 1 to 1000 (the race target check came with *Runs and race targets are checked*)
+- **Edit a saved session** (history › Edit): fix reps, weights, distance, time or yoga minutes, with the same checks. Empty reps remove a set
+- **Undo** after deleting a session, saving an edit, loading a backup, removing a progress photo or the profile photo, and deleting an own exercise
+- **Badges** that only the deleted or edited session had earned are taken back (and come back with Undo)
+- **Backups** ask first, say how many sessions are new and warn when the backup belongs to another account (the account itself already stays, see *A backup never replaces the account*); Undo puts everything back. Demo data loads without the question
+- **Own exercises** can be edited (name, body part, equipment; the log type only while it was never logged) and deleted. Past workouts keep the name; an exercise still in an own workout or the running session can't be deleted
+- **Skip this exercise** (optional exercises) asks first when sets are already ticked off, like *Remove from today*
+- Removed the *Send a test notification* button
+- Checks are pure functions with unit tests (`run.js`: `checkIncline`, `checkKmMonth`, a slowest pace in `validateRun`; `yoga.js`: `checkMinutes`); 8 new browser tests in `e2e/usability.e2e.js`; all new texts in four languages
+
 ## Unreleased – Translation gaps closed
 
 - A test user clicked through every screen in German and listed what stayed English. About 100 texts now have a row in Portuguese, German and Italian: the yoga page (“A little space for yourself”, “Find your flow.” …), the empty Progress cards, “Back to top”, “Already trained today”, the flexibility check result, *added* / *your exercise* in the library, the sign-up and own-exercise errors, and many short messages (Strava, weather, import undo, running goal, calendar, backup)

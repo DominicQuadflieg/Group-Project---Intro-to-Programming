@@ -60,7 +60,9 @@ const YOGA_MIN = Math.round(YOGA.reduce((a,x) => a+x.d, 0)/60);
 const LN = () => NFRun.loopName(S.settings.loopName);
 /* Every exercise by id: the library plus the user's own exercises (added after loading, see addCustomToEXN) */
 const EXN = {}; NFEx.LIBRARY.forEach(e => EXN[e.id] = exFromLib(e));
-const customList = () => (S && S.settings && Array.isArray(S.settings.custom)) ? S.settings.custom : [];
+// Own exercises. A deleted one stays stored (hidden) so past workouts still show its name.
+const allCustom = () => (S && S.settings && Array.isArray(S.settings.custom)) ? S.settings.custom : [];
+const customList = () => allCustom().filter(c => c && !c.hidden);
 /* Own workouts from "Build my own" (S.settings.ownW: key → {name, ex}). Kept after a plan change so
    older sessions still show their name; unknown types in the history get a plain fallback. */
 function registerOwn(){
@@ -74,7 +76,7 @@ function registerOwn(){
   const gone = (S && S.settings && S.settings.ownGone) || {};
   ((S && S.history) || []).forEach(e => { if(e && e.type && !W[e.type]){ W[e.type] = {name:gone[e.type] || "Workout", kind:"gym", group:"free", ex:[], desc:""}; if(!ALL_W.includes(e.type)) ALL_W.splice(ALL_W.indexOf("lauf"), 0, e.type); } });
 }
-function addCustomToEXN(){ customList().forEach(c => { if(c && c.id && !NFEx.BY_ID[c.id]) EXN[c.id] = exFromLib(c); }); }
+function addCustomToEXN(){ allCustom().forEach(c => { if(c && c.id && !NFEx.BY_ID[c.id]) EXN[c.id] = exFromLib(c); }); }
 const exType = id => (EXN[id] && EXN[id].type) || "w";
 const exUnit = id => EXN[id] ? NFEx.unitOf(EXN[id]) : "kg";
 // One logged set as text, depending on how the exercise is logged
@@ -103,6 +105,7 @@ function normalize(s){
   if(st.ownW && typeof st.ownW==="object") Object.keys(st.ownW).forEach(k => { const w = st.ownW[k]; if(!w || typeof w!=="object" || !/^[A-Za-z0-9_-]{1,40}$/.test(k)) delete st.ownW[k]; else { w.name = NFEx.safeText(w.name, 40, "Own workout");
     if(w.sets && typeof w.sets==="object"){ const c = {}; Object.keys(w.sets).forEach(id => { const n = Math.floor(+w.sets[id]); if(/^[A-Za-z0-9_-]{1,40}$/.test(id) && n>=1 && n<=NFPlan.OWN_MAX_SETS) c[id] = n; }); w.sets = c; } else delete w.sets; } });
   if(st.loopName != null) st.loopName = NFEx.safeText(st.loopName, 24);
+  { const kg = parseFloat(String(st.bodyKg==null ? "" : st.bodyKg).replace(",", ".")); st.bodyKg = kg>=NFPlan.MIN_KG && kg<=NFPlan.MAX_KG ? String(kg) : ""; }   // body weight: only a plausible one (older versions kept any text)
   if(st.lang != null && !NFI18N.LANGS.some(l => l.id===st.lang)) delete st.lang;
   if(st.ownGone != null){ const g = {}; if(typeof st.ownGone==="object") Object.keys(st.ownGone).forEach(k => { if(/^[A-Za-z0-9_-]{1,40}$/.test(k)) g[k] = NFEx.safeText(st.ownGone[k], 40, "Workout"); }); st.ownGone = g; }   // language: only one we have
   return {v:2, active:s.active||null, history:Array.isArray(s.history)?s.history:[], settings:st, badges:(s.badges && typeof s.badges==="object") ? s.badges : null};
@@ -1267,6 +1270,24 @@ function runInfoHtml(){
   if(r.mode!=="band" && !(S.active.runAt && S.active.runAt < mondayOf(Date.now()))) win += planHint(km, min);
   return {line:parts.join(" · ") || "Enter the time from your running app.", win};
 }
+/* Distance, time and incline typed in by hand: checked before the run is saved (a typo like 100 km in 0:30
+   would otherwise become a record and unlock badges). focus = move to the wrong field and shake it. */
+function runCheck(focus){
+  const r = S.active && S.active.run; if(!r) return true;
+  const v = NFRun.validateRun({km:r.km, time:r.min}), inc = r.mode==="band" ? NFRun.checkIncline(r.incline) : "";
+  const el = $("#run-err"), fi = $("#run-inc");
+  if(el) el.textContent = inc; if(fi){ if(inc) fi.setAttribute("aria-invalid", "true"); else fi.removeAttribute("aria-invalid"); }
+  if(!v.ok){ if(focus) runErrShow(v.errors); return false; }
+  if(inc){ if(focus && fi){ fi.focus(); const l = fi.closest("label"); if(l){ l.classList.remove("shake"); void l.offsetWidth; l.classList.add("shake"); } } return false; }
+  return true;
+}
+function yogaCheck(focus){
+  const y = S.active && S.active.yoga; if(!y) return true;
+  const msg = NFYoga.checkMinutes(y.min), el = $("#yo-min-err"), f = $("#yo-min");
+  if(el) el.textContent = msg;
+  if(f){ f.setAttribute("aria-invalid", msg ? "true" : "false"); if(msg && focus) f.focus(); }
+  return !msg;
+}
 function runBlock(){
   wxLoad();
   const a = S.active, r = a.run, band = r.mode==="band", inf = runInfoHtml(), nx = band ? null : planNext();
@@ -1274,7 +1295,8 @@ function runBlock(){
   const kmBox = `<label class="runkm" for="run-km"><small>Distance</small><span><input id="run-km" inputmode="decimal" data-in="run" data-f="km" aria-describedby="run-km-err" value="${esc(r.km)}" placeholder="${band?"e.g. 3":"e.g. 7.7"}"><em>km</em></span>${band ? "" : `<button type="button" class="kmchip" data-act="kmalster">${esc(LN())} ${fmt(alsterKm())} km</button>`}</label><p class="err runerr" id="run-km-err" role="alert"></p>`;
   const note = `<details class="runnote"${r.note?" open":""}><summary>+ Add note</summary><textarea id="run-note" data-in="run" data-f="note" placeholder="e.g. easy pace, headwind, lovely sunset …">${esc(r.note)}</textarea></details>`;
   const incBox = `<label class="runkm" for="run-inc"><small>Incline · number from the display</small><span><input id="run-inc" inputmode="decimal" data-in="run" data-f="incline" value="${esc(r.incline||"")}" placeholder="0"><em>%</em></span></label>`;
-  if(band) return `<div class="runwrap"><p class="runlead">Enter what the treadmill shows.</p>${kmBox}${timeBox}${incBox}<div id="runwin">${inf.win}</div>
+  const errBox = `<p class="err" id="run-err" role="alert" aria-live="polite"></p>`;
+  if(band) return `<div class="runwrap"><p class="runlead">Enter what the treadmill shows.</p>${kmBox}${timeBox}${incBox}${errBox}<div id="runwin">${inf.win}</div>
     <button class="secondary" data-act="interval" data-target="run">Start interval timer</button>${note}</div>`;
   return `<div class="runwrap">
     ${nx ? `<div class="plantoday">${rico(nx.type)}<div><small>${nx.today ? "Today per plan" : "Up next in your plan"}</small><b>${esc(nx.label)}</b><span>${esc(nx.desc)}</span></div></div>` : ""}
@@ -2016,7 +2038,7 @@ function yogaBlock(){
   </article>
   <section class="ylist" aria-label="Other yoga sessions"><p class="exn" style="margin:0">Or choose another session</p>${others}</section>
   <article class="card">
-    <div class="rungrid"><div><label class="lbl" for="yo-min">Duration</label><div class="field"><input inputmode="decimal" id="yo-min" data-in="yoga" data-f="min" value="${esc(y.min)}" placeholder="${FM}"><span class="u">min</span></div></div>
+    <div class="rungrid"><div><label class="lbl" for="yo-min">Duration</label><div class="field"><input inputmode="decimal" id="yo-min" data-in="yoga" data-f="min" value="${esc(y.min)}" placeholder="${FM}" aria-describedby="yo-min-err"><span class="u">min</span></div><p class="err" id="yo-min-err" role="alert" aria-live="polite"></p></div>
       <div class="pace" style="background:var(--yoga-soft)"><span>Yoga total</span><b class="tnum" style="color:var(--yoga)">${n}×</b></div></div>
     <p class="small muted" style="margin:0">After the session, the app logs the minutes for you. If you went to a class, enter the duration yourself.</p>
     <div><label class="lbl" for="yo-note">How did you feel?</label><textarea id="yo-note" data-in="yoga" data-f="note" placeholder="e.g. open hips, relaxed, pigeon was tough …">${esc(y.note)}</textarea></div>
@@ -2415,8 +2437,87 @@ function histSheet(id){
   if(e.run) h += `<p class="exn">${runName(e.run.mode)}</p><p class="sets tnum">${fmt(num(e.run.km))} km in ${hms(num(e.run.min))} · ${mmss(paceOf(num(e.run.km),num(e.run.min)))} /km${num(e.run.incline)?" · "+fmt(num(e.run.incline))+" % incline":""}</p>${e.run.note?`<p class="sets">${esc(e.run.note)}</p>`:""}`;
   Object.keys(e.sets||{}).forEach(k => h += `<p class="exn">${EXN[k]?esc(EXN[k].n):esc(k)}</p><p class="sets tnum">${e.sets[k].map(s => setTxt(k, s)).join(" · ")}</p>`);
   if(e.tread) h += `<p class="exn">Treadmill</p><p class="sets tnum">${fmt(num(e.tread.min),0)} min${num(e.tread.km)?" · "+fmt(num(e.tread.km))+" km":""}${num(e.tread.incline)?" · "+fmt(num(e.tread.incline))+" % incline":""}</p>`;
-  h += `</div><button class="secondary" data-act="closesheet">Close</button><button class="secondary danger" data-act="delask" data-id="${e.id}">Delete session</button>`;
+  h += `</div><button class="secondary" data-act="closesheet">Close</button>${e.sets || e.run || e.yoga ? `<button class="secondary" data-act="editsess" data-id="${esc(e.id)}">Edit</button>` : ""}<button class="secondary danger" data-act="delask" data-id="${esc(e.id)}">Delete session</button>`;
   sheet(h);
+}
+
+/* ---- Edit a saved session: fix a typo (80 kg instead of 8) without deleting the whole session ---- */
+let EDIT = null;
+function editSheet(id){
+  const e = S.history.find(x => x.id===id); if(!e) return;
+  EDIT = {id};
+  const w = W[e.type] || {name:"Session"}, fld = (id, val, unit, mode, lab) => `<div class="field"><input class="tnum" id="${id}" inputmode="${mode}" autocomplete="off" value="${esc(val)}" aria-label="${esc(lab)}"><span class="u">${esc(unit)}</span></div>`;
+  let h = `<h3>Edit session</h3><p class="muted small" style="margin:-6px 0 0">${esc(e.run ? runName(e.run.mode) : w.name)} · ${new Date(e.start).toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"})}</p>
+    <p class="muted small" style="margin:0">Fix a typo here. Empty the reps of a set to remove it.</p><div class="edform">`;
+  if(e.run){
+    h += `<div class="rungrid"><div><label class="lbl" for="ed-km">Distance</label>${fld("ed-km", num(e.run.km) ? String(e.run.km) : "", "km", "decimal", "Distance")}</div>
+      <div><label class="lbl" for="ed-min">Time</label><input class="inp tnum" id="ed-min" inputmode="numeric" autocomplete="off" data-in="edtime" value="${esc(num(e.run.min) ? hms(num(e.run.min)) : "")}" placeholder="00:00"></div></div>
+      ${e.run.mode==="band" ? `<div><label class="lbl" for="ed-inc">Incline</label>${fld("ed-inc", num(e.run.incline) ? String(e.run.incline) : "", "%", "decimal", "Incline")}</div>` : ""}
+      <p class="err" id="ed-run-err" role="alert" aria-live="polite"></p>`;
+  }
+  if(e.yoga) h += `<div><label class="lbl" for="ed-yo">Duration</label>${fld("ed-yo", String(Math.round(num(e.yoga.min)*10)/10), "min", "decimal", "Duration")}<p class="err" id="ed-yo-err" role="alert" aria-live="polite"></p></div>`;
+  Object.keys(e.sets||{}).forEach(k => {
+    const t = exType(k), withKg = t==="w" || t==="a";
+    h += `<p class="exn">${EXN[k] ? esc(EXN[k].n) : esc(k)}</p>`;
+    e.sets[k].forEach((st, i) => {
+      h += `<div class="edrow"><span class="sn">${i+1}</span>${fld(`ed-r-${k}-${i}`, String(st.r), t==="t" ? exUnit(k) : "reps", "decimal", t==="t" ? "Time" : "Reps")}
+        ${withKg ? fld(`ed-kg-${k}-${i}`, num(st.kg) ? String(st.kg) : "", t==="a" ? "kg help" : "kg", "decimal", t==="a" ? "Help" : "Weight") : ""}</div>
+        <p class="err" id="ed-se-${k}-${i}" role="alert" aria-live="polite"></p>`;
+    });
+  });
+  h += `<p class="err" id="ed-err" role="alert" aria-live="polite"></p></div>
+    <button class="primary" data-act="editsave">Save changes</button><button class="secondary" data-act="hist" data-id="${esc(e.id)}">Cancel</button>`;
+  sheet(h);
+}
+function editSave(){
+  const i0 = EDIT ? S.history.findIndex(x => x.id===EDIT.id) : -1; if(i0<0){ closeSheet(); return; }
+  const old = S.history[i0], e = JSON.parse(JSON.stringify(old)), bad = [];
+  const mark = (inputs, errId, msg) => { inputs.forEach(f => { if(f) f.setAttribute("aria-invalid", msg ? "true" : "false"); }); const el = $("#"+errId); if(el) el.textContent = msg || ""; if(msg) bad.push(inputs.find(Boolean)); };
+  if(e.run){
+    const fk = $("#ed-km"), fm = $("#ed-min"), fi = $("#ed-inc"), v = NFRun.validateRun({km:fk.value, time:fm.value}), inc = fi ? NFRun.checkIncline(fi.value) : "";
+    mark([v.errors.time ? fm : v.errors.km ? fk : fi], "ed-run-err", v.errors.time || v.errors.km || inc);
+    if(v.ok && !inc){ e.run.km = v.value.km; e.run.min = v.value.min; e.end = e.start + Math.round(v.value.min*60000); if(fi){ if(num(fi.value)>0) e.run.incline = num(fi.value); else delete e.run.incline; } }
+  }
+  if(e.yoga){ const f = $("#ed-yo"), m = f.value.trim() ? NFYoga.checkMinutes(f.value) : NFYoga.checkMinutes("0"); mark([f], "ed-yo-err", m); if(!m) e.yoga.min = num(f.value); }
+  if(e.sets){
+    const sets = {};
+    Object.keys(e.sets).forEach(k => {
+      const ex = EXN[k] || {type:"w"}, keep = [];
+      e.sets[k].forEach((st, i) => {
+        const fr = $(`#ed-r-${CSS.escape(k)}-${i}`), fkg = $(`#ed-kg-${CSS.escape(k)}-${i}`);
+        if(!fr || !fr.value.trim()){ mark([fr, fkg], `ed-se-${CSS.escape(k)}-${i}`, ""); return; }   // empty reps: the set is removed
+        const cand = {r:fr.value, kg:fkg ? fkg.value : String(st.kg==null ? "" : st.kg)}, er = NFEx.checkSet(cand, ex);
+        mark([er.r ? fr : fkg], `ed-se-${CSS.escape(k)}-${i}`, er.r || er.kg);
+        if(!er.r && !er.kg) keep.push({r:num(cand.r), kg:num(cand.kg)});
+      });
+      if(keep.length) sets[k] = keep;
+    });
+    if(Object.keys(sets).length) e.sets = sets; else delete e.sets;
+  }
+  if(bad.length){ const f = bad[0]; if(f){ f.focus(); f.scrollIntoView({block:"center"}); } return; }
+  if(!e.sets && !e.run && !e.yoga && !e.tread){ const el = $("#ed-err"); if(el) el.textContent = T("Nothing left in this session. Delete it instead."); return; }
+  const before = facts(), badges = Object.assign({}, S.badges);
+  S.history[i0] = e; S.history.sort((x, y) => x.start - y.start); historyChanged(before);
+  EDIT = null; save(); closeSheet(); render();
+  undoToast("Changes saved.", () => { const j = S.history.findIndex(x => x.id===old.id); if(j>=0) S.history[j] = old; S.badges = badges; save(); render(); });
+}
+/* Deleting or editing a session takes back the badges that only this session had earned
+   (a typo like 100 km in 30 seconds would otherwise keep the marathon badge forever). */
+function historyChanged(before){
+  if(!S.badges) S.badges = {};
+  FCACHE = {k:"", v:null};
+  const f = facts();
+  BADGES.forEach(b => { if(S.badges[b.id] && b.ok(before) && !b.ok(f)) delete S.badges[b.id]; });
+  checkBadges(true);
+}
+/* A toast with an "Undo" button: for steps that delete or replace something */
+let UNDO = null;
+function undoToast(text, fn){
+  document.querySelectorAll(".toast.undo").forEach(x => x.remove());
+  const el = document.createElement("div"); el.className = "toast undo"; el.setAttribute("role", "status");
+  el.innerHTML = `<span>${esc(T(text))}</span><button type="button" data-act="undo">${esc(T("Undo"))}</button>`;
+  document.body.appendChild(el); UNDO = fn;
+  clearTimeout(undoToast.t); undoToast.t = setTimeout(() => { el.remove(); if(UNDO===fn) UNDO = null; }, 8000);
 }
 
 /* Settings in parts: the "You" page opens one part at a time; settingsSheet() without a part shows all */
@@ -2920,8 +3021,8 @@ function runGoalsSheet(){
   sheet(`<h3>Running goals</h3>
     <div class="rungrid"><div><label class="lbl" for="g-ln">Your usual loop</label><input class="inp" id="g-ln" maxlength="${NFRun.LOOP_NAME_MAX+6}" autocomplete="off" placeholder="${NFRun.LOOP_DEFAULT}" value="${esc(S.settings.loopName||"")}" aria-describedby="g-ln-err"><p class="err" id="g-ln-err" role="alert" aria-live="polite"></p></div>
       <div><label class="lbl" for="g-lk">Length</label><div class="field"><input class="tnum" id="g-lk" inputmode="decimal" value="${fmt(alsterKm(),2)}" aria-describedby="g-lk-err"><span class="u">km</span></div><p class="err" id="g-lk-err" role="alert" aria-live="polite"></p></div></div>
-    <div><label class="lbl" for="g-al">Loop under (mm:ss)</label><input class="inp tnum" id="g-al" inputmode="text" value="${mmss(S.settings.alsterGoal)}"></div>
-    <div><label class="lbl" for="g-km">Kilometres per month</label><input class="inp tnum" id="g-km" inputmode="decimal" value="${Math.round(num(S.settings.kmGoal))}"></div>
+    <div><label class="lbl" for="g-al">Loop under (mm:ss)</label><input class="inp tnum" id="g-al" inputmode="text" value="${mmss(S.settings.alsterGoal)}" aria-describedby="g-al-err"><p class="err" id="g-al-err" role="alert" aria-live="polite"></p></div>
+    <div><label class="lbl" for="g-km">Kilometres per month</label><input class="inp tnum" id="g-km" inputmode="decimal" value="${Math.round(num(S.settings.kmGoal))}" aria-describedby="g-km-err"><p class="err" id="g-km-err" role="alert" aria-live="polite"></p></div>
     <button class="primary run" data-act="rungoalsave">Save</button><button class="secondary" data-act="closesheet">Cancel</button>`);
 }
 
@@ -3385,6 +3486,7 @@ function guideSheet(id, back){
       : poseSvg(EXPOSE[id] || PAT_POSE[ex.pat], "expose")}
     ${steps.length?`<p class="exn" style="margin:0;font-weight:600">How to do it</p><ol class="guide">${steps.map(t => `<li>${esc(t)}</li>`).join("")}</ol>`:""}
     ${(g.x||[]).length?`<p class="exn" style="margin:0;font-weight:600">Watch out for</p><ul class="guide">${g.x.map(t => `<li>${esc(t)}</li>`).join("")}</ul>`:""}
+    ${back && customList().some(c => c.id===id) ? `<div class="row2"><button class="secondary" data-act="cxedit" data-ex="${esc(id)}">Edit</button><button class="secondary danger" data-act="cxdel" data-ex="${esc(id)}">Delete</button></div>` : ""}
     ${back ? `<button class="secondary" data-act="libback">‹ Back to the list</button>` : `<button class="secondary" data-act="closesheet">Close</button>`}`);
 }
 
@@ -3699,27 +3801,55 @@ function libRestore(){
 // Picks exercises for an own day during onboarding: several at once, then back to the day list
 function openPicker(i){ const day = OB.a.own.days[i]; LIB = {q:"", part:"", eq:"", mode:"pick", day:i, sel:(day.ex||[]).slice()}; libSheet(); }
 const pickLabel = () => { const n = (LIB.sel||[]).length; return n ? `Done (${n})` : "Done"; };
-function libNewSheet(err, val){
+function libNewSheet(err, val, editId){
   err = err || {}; val = val || {};
-  const sel = (name, list, label) => `<select class="inp" id="cx-${name}" name="${name}"${err[name]?` aria-invalid="true" aria-describedby="cx-${name}-err"`:""}><option value="">Choose…</option>${list.map(([v,t]) => `<option value="${esc(v)}"${val[name]===v?" selected":""}>${esc(t)}</option>`).join("")}</select><p class="err" id="cx-${name}-err" role="alert">${esc(err[name]||"")}</p>`;
-  sheet(`<h3>Your own exercise</h3><p class="muted small">Missing something? Add it here. It shows up in the library and in your progress charts.</p>
-    <form id="cx-form" class="cxf" novalidate>
+  const typeLocked = editId && cxUsed(editId);
+  const sel = (name, list, label) => `<select class="inp" id="cx-${name}" name="${name}"${name==="type" && typeLocked ? " disabled" : ""}${err[name]?` aria-invalid="true" aria-describedby="cx-${name}-err"`:""}><option value="">Choose…</option>${list.map(([v,t]) => `<option value="${esc(v)}"${val[name]===v?" selected":""}>${esc(t)}</option>`).join("")}</select><p class="err" id="cx-${name}-err" role="alert">${esc(err[name]||"")}</p>`;
+  sheet(`<h3>${editId ? "Edit your exercise" : "Your own exercise"}</h3><p class="muted small">${editId ? (typeLocked ? "You already logged it, so the way you log it stays the same." : "Change the name, body part or equipment.") : "Missing something? Add it here. It shows up in the library and in your progress charts."}</p>
+    <form id="cx-form" class="cxf" novalidate${editId ? ` data-edit="${esc(editId)}"` : ""}>
       <label class="f" for="cx-name">Name</label><input class="inp" id="cx-name" name="name" maxlength="40" autocomplete="off" placeholder="e.g. Cossack Squat" value="${esc(val.name||LIB.q||"")}"${err.name?` aria-invalid="true" aria-describedby="cx-name-err"`:""}><p class="err" id="cx-name-err" role="alert">${esc(err.name||"")}</p>
       <label class="f" for="cx-part">Body part</label>${sel("part", NFEx.PARTS.map(x => [x,x]), "Body part")}
       <label class="f" for="cx-eq">Equipment</label>${sel("eq", NFEx.EQUIP.map(x => [x,x]), "Equipment")}
       <label class="f" for="cx-type">How you log it</label>${sel("type", Object.entries(NFEx.TYPES), "Log type")}
-      <div class="row2"><button type="button" class="secondary" data-act="libback">‹ Back</button><button class="primary" type="submit">Create</button></div>
+      <div class="row2"><button type="button" class="secondary" data-act="${editId ? "cxback" : "libback"}"${editId ? ` data-ex="${esc(editId)}"` : ""}>‹ Back</button><button class="primary" type="submit">${editId ? "Save" : "Create"}</button></div>
     </form>`);
   const first = document.querySelector('#cx-form [aria-invalid="true"]') || (!val.name ? document.getElementById("cx-name") : null);
   // like the onboarding: don't take the cursor away from a field the user already chose
   if(first) setTimeout(() => { const a = document.activeElement; if(a && a!==first && a.closest && a.closest("#cx-form")) return; try{ first.focus({preventScroll:true}); }catch(e){} }, 50);
 }
+/* Own exercises: logged in a past or the current session? Then the way it is logged can't change. */
+const cxUsed = id => S.history.some(e => e && e.sets && e.sets[id]) || !!(S.active && S.active.sets && S.active.sets[id]);
+const cxBase = c => c.n.endsWith(` (${c.eq})`) ? c.n.slice(0, -(c.eq.length + 3)) : c.n;
+function cxEdit(id){ const c = customList().find(x => x.id===id); if(c) libNewSheet(null, {name:cxBase(c), part:c.part, eq:c.eq, type:c.type}, id); }
+function cxSave(form, id){
+  const c = customList().find(x => x.id===id); if(!c){ libSheet(); return; }
+  const val = {name:form.name.value, part:form.part.value, eq:form.eq.value, type:cxUsed(id) ? c.type : form.type.value};
+  const v = NFEx.validateCustom(val, customList().filter(x => x.id!==id));
+  if(!v.ok){ libNewSheet(v.errors, val, id); return; }
+  const n = Object.assign({}, c, NFEx.makeCustom(v.value, id));
+  S.settings.custom = allCustom().map(x => x.id===id ? n : x); EXN[id] = exFromLib(n);
+  // own workouts show the new name right away; past workouts look it up by id
+  save(); toast(`Saved: ${n.n}`); guideSheet(id, true);
+}
+function cxDelete(id, ok){
+  const c = customList().find(x => x.id===id); if(!c){ libSheet(); return; }
+  const inW = Object.values(S.settings.ownW||{}).filter(w => w && Array.isArray(w.ex) && w.ex.includes(id)).map(w => w.name);
+  const back = `<button class="secondary" data-act="cxback" data-ex="${esc(id)}">‹ Back</button>`;
+  if(S.active && S.active.sets && S.active.sets[id]){ sheet(`<h3>Still in your session</h3><p class="muted">${esc(c.n)} is part of the session you're doing now. Finish the session or remove the exercise there first.</p>${back}`); return; }
+  if(inW.length){ sheet(`<h3>Still in your workouts</h3><p class="muted">${esc(c.n)} is part of ${inW.map(n => "“" + esc(n) + "”").join(", ")}. Take it out of ${inW.length===1 ? "that workout" : "those workouts"} first.</p>${back}`); return; }
+  if(!ok){ sheet(`<h3>Delete ${esc(c.n)}?</h3><p class="muted">It disappears from the library. Workouts you already logged with it stay in your history.</p>
+    <button class="secondary danger" data-act="cxdelok" data-ex="${esc(id)}">Delete exercise</button>${back}`); return; }
+  S.settings.custom = allCustom().map(x => x.id===id ? Object.assign({}, x, {hidden:true}) : x);
+  save(); libSheet();
+  undoToast("Exercise deleted.", () => { S.settings.custom = allCustom().map(x => x.id===id ? (({hidden, ...rest}) => rest)(x) : x); save(); if($(".sheet") && LIB) libSheet(); });
+}
 function libCreate(form){
+  if(form.dataset.edit){ cxSave(form, form.dataset.edit); return; }
   const val = {name:form.name.value, part:form.part.value, eq:form.eq.value, type:form.type.value};
   const v = NFEx.validateCustom(val, customList());
   if(!v.ok){ libNewSheet(v.errors, val); return; }
   const c = NFEx.makeCustom(v.value, "c" + Date.now().toString(36));
-  S.settings.custom = customList().concat(c); EXN[c.id] = exFromLib(c); save();
+  S.settings.custom = allCustom().concat(c); EXN[c.id] = exFromLib(c); save();
   if(LIB.mode==="add" && S.active){ libAdd(c.id); return; }
   if(LIB.mode==="pick"){ LIB.sel = (LIB.sel||[]).concat(c.id); LIB.q = ""; libSheet(); toast(`${c.n} created and picked`); return; }
   LIB.q = ""; libSheet(); toast(`${c.n} created`);
@@ -5055,7 +5185,12 @@ document.addEventListener("click", async ev => {
     case "rmset": { const arr = S.active.sets[b.dataset.ex]; if(arr && +b.dataset.i < arr.length){ arr.splice(+b.dataset.i, 1); rest = null; save(); renderSession(); } break; }
     case "addset": { const ex = EXN[b.dataset.ex], arr = (S.active.sets[ex.id] = S.active.sets[ex.id]||[]); arr.push(prefill(ex.id, arr.length, arr[arr.length-1])); save(); renderSession(); break; }
     case "openopt": { const base = exIn(S.active.type, b.dataset.ex), x = eff(base); S.active.open[base.id] = true; if(!S.active.sets[x.id]) S.active.sets[x.id] = prefilledSets(x); save(); renderSession(); break; }
-    case "closeopt": { const base = exIn(S.active.type, b.dataset.ex), x = eff(base); S.active.open[base.id] = false; delete S.active.sets[x.id]; if(S.active.swap) delete S.active.swap[base.id]; save(); renderSession(); break; }
+    case "closeopt": case "closeoptok": {
+      const base = exIn(S.active.type, b.dataset.ex), x = eff(base);
+      // sets already ticked off are lost when the exercise is skipped: ask first, like "Remove from today"
+      if(b.dataset.act==="closeopt" && (S.active.sets[x.id]||[]).some(isDone)){ sheet(`<h3>Skip ${esc(x.n)}?</h3><p class="muted">The sets you already checked off for it won't be saved.</p>
+        <button class="secondary danger" data-act="closeoptok" data-ex="${esc(b.dataset.ex)}">Skip it</button><button class="secondary" data-act="closesheet">Keep it</button>`); break; }
+      closeSheet(); S.active.open[base.id] = false; delete S.active.sets[x.id]; if(S.active.swap) delete S.active.swap[base.id]; save(); renderSession(); break; }
     case "opentread": S.active.tread = {min:"", km:"", incline:""}; save(); renderSession(); break;
     case "closetread": S.active.tread = null; save(); renderSession(); break;
     case "runout": case "runband": closeSheet(); if(S.active){ if(S.active.type==="lauf"){ screen = "session"; render(); } else toast("Finish your open session first."); break; } startSession("lauf", b.dataset.act==="runband" ? "band" : "out"); break;
@@ -5111,9 +5246,8 @@ document.addEventListener("click", async ev => {
       const e = buildEntry(), pend = pendingCount(), w = W[S.active.type];
       if(w.kind==="run"){
         if(!(parseMin(S.active.run.min)>0)){ const f = $("#run-min"); if(f){ f.focus(); const l = f.closest(".runtime"); l.classList.remove("shake"); void l.offsetWidth; l.classList.add("shake"); } toast("Enter your time 🙂"); return; }
-        // the same check as for a screenshot or a watch file: no negative or impossible distance, no 10 km in 5 seconds
-        const v = NFRun.validateRun({km:S.active.run.km, time:S.active.run.min});
-        if(!v.ok){ runErrShow(v.errors); return; }
+        // the same check as for a screenshot or a watch file, plus the treadmill incline
+        if(!runCheck(true)) return;
         finishSession(); return;
       }
       if(pend>0){
@@ -5125,6 +5259,7 @@ document.addEventListener("click", async ev => {
           <button class="secondary" data-act="closesheet">Keep training</button>`);
         return;
       }
+      if(w.kind==="yoga" && !yogaCheck(true)) return;
       if(!e.sets && !e.run && !e.tread && !e.yoga){ finishSession(); return; }
       sheet(`<h3>Finish session?</h3><p class="muted">Your numbers are saved and shown as targets for your next ${W[S.active.type].name}.</p>
         <button class="primary ${kc(S.active.type)}" data-act="finishok">Finish and save</button><button class="secondary" data-act="closesheet">Keep training</button>`);
@@ -5152,14 +5287,24 @@ document.addEventListener("click", async ev => {
     case "hist": histSheet(b.dataset.id); break;
     case "delask": sheet(`<h3>Delete session?</h3><p class="muted">It will be removed from your history and stats.</p>
         <button class="secondary danger" data-act="delok" data-id="${b.dataset.id}">Delete</button><button class="secondary" data-act="closesheet">Cancel</button>`); break;
-    case "delok": S.history = S.history.filter(x => x.id!==b.dataset.id); save(); closeSheet(); renderHome(); break;
+    case "delok": {
+      const i = S.history.findIndex(x => x.id===b.dataset.id); if(i<0){ closeSheet(); break; }
+      const gone = S.history[i], badges = Object.assign({}, S.badges), before = facts();
+      S.history.splice(i, 1); historyChanged(before); save(); closeSheet(); render();
+      undoToast("Session deleted.", () => { if(!S.history.some(x => x.id===gone.id)){ S.history.push(gone); S.history.sort((x, y) => x.start - y.start); } S.badges = badges; save(); render(); });
+      break;
+    }
+    case "backupok": { const d = BACKUP; BACKUP = null; if(d) applyBackup(d); else closeSheet(); break; }
+    case "undo": { const f = UNDO; UNDO = null; document.querySelectorAll(".toast.undo").forEach(x => x.remove()); if(f) f(); break; }
+    case "editsess": editSheet(b.dataset.id); break;
+    case "editsave": editSave(); break;
     case "settings": settingsSheet(""); break;
     case "menu": closeSheet(); screen = screen==="me" ? "home" : "me"; render(); window.scrollTo(0,0); break;
     case "tab": { closeSheet(); TAB = ["today","train","progress"].includes(b.dataset.t) ? b.dataset.t : "today"; try{ sessionStorage.setItem("nf-tab", TAB); }catch(e){} screen = "home"; render(); window.scrollTo(0,0); break; }
     case "setp": settingsSheet(b.dataset.p); break;
     case "avatar": if(S.settings.avatar) avatarSheet(); else pickAvatar(); break;
     case "avatarnew": closeSheet(); pickAvatar(); break;
-    case "avatardel": delete S.settings.avatar; save(); closeSheet(); render(); toast("Photo removed."); break;
+    case "avatardel": { const av = S.settings.avatar; delete S.settings.avatar; save(); closeSheet(); render(); if(av) undoToast("Photo removed.", () => { S.settings.avatar = av; save(); render(); }); break; }
     case "ob": obAct(b); break;
     case "menutheme": closeSheet(); S.settings.theme = isDark() ? "light" : "dark"; applyTheme(); save(); render(); break;
     case "goto": {
@@ -5198,11 +5343,14 @@ document.addEventListener("click", async ev => {
     case "wxhere": wxLocate(true); break;
     case "wxhome": S.settings.wxGeo = false; save(); wxSeg(); wxLoad(); wxPaint(); toast(`Weather is for ${NFRun.WX_HOME.place} now.`); break;
     case "rungoalsave": {
-      const g = parseMin($("#g-al").value), k = num($("#g-km").value), lp = NFRun.validateLoop($("#g-ln").value, $("#g-lk").value);
-      [["g-ln", lp.err.name], ["g-lk", lp.err.km]].forEach(([id, m]) => { $("#"+id+"-err").textContent = m||""; $("#"+id).setAttribute("aria-invalid", m?"true":"false"); });
-      if(!lp.ok){ $(lp.err.name ? "#g-ln" : "#g-lk").focus(); break; }
+      const alT = $("#g-al").value.trim(), g = parseMin(alT), k = num($("#g-km").value), lp = NFRun.validateLoop($("#g-ln").value, $("#g-lk").value);
+      // the loop goal must be a time a person can run on that loop, the monthly goal 1 to 1000 km
+      const alErr = !/^\d{1,3}(:[0-5]\d){0,2}$/.test(alT) || !(g>0) ? "Enter the time like 42:30" : NFRun.checkTarget(lp.km || alsterKm(), g), kmErr = NFRun.checkKmMonth($("#g-km").value);
+      const errs = [["g-ln", lp.err.name], ["g-lk", lp.err.km], ["g-al", alErr], ["g-km", kmErr]];
+      errs.forEach(([id, m]) => { $("#"+id+"-err").textContent = m ? T(m) : ""; $("#"+id).setAttribute("aria-invalid", m?"true":"false"); });
+      const first = errs.find(x => x[1]); if(first){ $("#"+first[0]).focus(); break; }
       S.settings.loopName = lp.name; S.settings.loopKm = lp.km;
-      if(g>0) S.settings.alsterGoal = g; if(k>0) S.settings.kmGoal = k;
+      S.settings.alsterGoal = g; S.settings.kmGoal = Math.round(k);
       save(); closeSheet(); renderHome(); break;
     }
     case "warmup": startWarmup(); break;
@@ -5226,7 +5374,6 @@ document.addEventListener("click", async ev => {
     case "tmskip": if(TM){ TM.end = Date.now(); if(TM.paused){ TM.paused = false; } tickTimer(); } break;
     case "tmstop": finishTimer(false); break;
     case "pushon": enablePush(); break;
-    case "pushtest": pushTest(); break;
     case "pushcopy": { const id = b.dataset.id; try{ await navigator.clipboard.writeText(id); toast("Device ID copied."); }catch(e){ toast("Copy didn't work. Select the ID and copy it by hand."); } break; }
     case "hidepush": S.settings.hidePush = true; save(); renderHome(); break;
     case "hideinstall": S.settings.hideInstall = true; save(); renderHome(); break;
@@ -5265,6 +5412,10 @@ document.addEventListener("click", async ev => {
     case "libfilter": LIB[b.dataset.k] = b.dataset.v; document.querySelectorAll(`[data-act="libfilter"][data-k="${b.dataset.k}"]`).forEach(x => x.setAttribute("aria-pressed", String(x.dataset.v===b.dataset.v))); { const l = $("#liblist"); if(l) l.innerHTML = libListHtml(); } break;
     case "libadd": if(b.getAttribute("aria-disabled")!=="true") libAdd(b.dataset.ex); break;
     case "libnew": libNewSheet(); break;
+    case "cxedit": cxEdit(b.dataset.ex); break;
+    case "cxback": guideSheet(b.dataset.ex, true); break;
+    case "cxdel": cxDelete(b.dataset.ex, false); break;
+    case "cxdelok": cxDelete(b.dataset.ex, true); break;
     case "libback": libSheet(); libRestore(); break;
     case "libguide": { const sh = $(".sheet"); LIB.scroll = sh ? sh.scrollTop : 0; LIB.last = b.dataset.ex; guideSheet(b.dataset.ex, true); break; }
     case "libpick": {
@@ -5311,7 +5462,12 @@ document.addEventListener("click", async ev => {
     case "storymute": S.settings.storyMute = !S.settings.storyMute; save(); if(MUS && MUS.ctx.state==="suspended") MUS.ctx.resume().catch(() => {}); musicVol();
       b.textContent = S.settings.storyMute ? "🔇" : "🔊"; b.setAttribute("aria-label", S.settings.storyMute ? "Music on" : "Music off"); break;
     case "phadd": $("#phfile").click(); break;
-    case "phdel": { const id = b.dataset.id; await photoTx(st => st.delete(id)).catch(() => {}); photosReset(); paintPhotos(); break; }
+    case "phdel": {
+      const id = b.dataset.id, rec = (await photosAll().catch(() => [])).find(p => p.id===id);
+      await photoTx(st => st.delete(id)).catch(() => {}); photosReset(); paintPhotos();
+      if(rec) undoToast("Photo removed.", () => photoTx(st => st.put(rec)).catch(() => {}).then(() => { photosReset(); paintPhotos(); }));
+      break;
+    }
     case "nrcpaste": nrcPaste(); break;
     case "nrchelp": nrcHelp(); break;
     case "nrcuse": { const r = parseRunText($("#nrctext").value); if(!r){ toast("No run found in that text."); break; } closeSheet(); applyRun(r); break; }
@@ -5371,16 +5527,36 @@ document.addEventListener("change", ev => {
   rd.readAsText(f);
 });
 // A backup file or data pasted from Safari: checked and cleaned like everything that comes from storage
+/* A backup file or data pasted from Safari. With a profile on this phone, the app asks first and keeps
+   your name, email and password: a backup from someone else can't take over the account. "Undo" puts
+   everything back as it was. */
+let BACKUP = null;
 function loadBackupText(text){
+  let d = null;
+  try{ d = JSON.parse(text); }catch(e){}
+  if(!d || typeof d!=="object" || !Array.isArray(d.history)){ toast("That's not a valid backup."); return false; }
+  // demo data: made-up sessions only (no settings, no profile), removable under Settings › Your data, so no question
+  if(d.demo===true){ demoShift(d); applyBackup(d); return true; }
+  if(!S.settings.profile){ applyBackup(d); return true; }
+  BACKUP = d;
+  const have = new Set(S.history.map(e => e && e.id)), n = d.history.filter(e => e && e.id && !have.has(e.id)).length;
+  const p = d.settings && d.settings.profile, other = p && S.settings.profile && p.email && String(p.email).toLowerCase()!==String(S.settings.profile.email||"").toLowerCase();
+  sheet(`<h3>Load this backup?</h3><p class="muted" style="margin:0">${n===0 ? "All sessions in it are already here." : n===1 ? "1 new session is added to your history." : `${n} new sessions are added to your history.`}</p>
+    <p class="muted">Your plan and settings are taken from the backup. Your name, email and password stay as they are.</p>
+    ${other ? `<p class="small" style="margin:0;color:var(--hl,#ED1B34)">This backup belongs to another account.</p>` : ""}
+    <button class="primary" data-act="backupok">Load backup</button><button class="secondary" data-act="closesheet">Cancel</button>`);
+  return true;
+}
+function applyBackup(d){
+  const prev = JSON.stringify(S), mine = S.settings.profile ? {profile:S.settings.profile, name:S.settings.name, avatar:S.settings.avatar, locked:S.settings.locked} : null;
   try{
-    const d = JSON.parse(text);
-    if(!d || typeof d!=="object" || !Array.isArray(d.history)) throw 0;
-    d.settings = NFPlan.backupSettings(d.settings, !!S.settings.profile);   // the account on this phone stays
-    if(d.demo===true) demoShift(d);
-    S = merge(S, d); addCustomToEXN(); registerOwn(); checkBadges(true); save(); applyTheme(); closeSheet(); screen = "home"; render();
-    toast(d.demo===true ? T(`Demo data loaded: ${d.history.length} sessions. Settings › Your data removes it again.`) : `${d.history.length} ${d.history.length===1 ? "session" : "sessions"} loaded.`);
-    return true;
-  }catch(e){ toast("That's not a valid backup."); return false; }
+    d.settings = NFPlan.backupSettings(d.settings, !!mine);   // the account on this phone stays (plan.js)
+    S = merge(S, d);
+    if(mine) Object.keys(mine).forEach(k => { if(mine[k]===undefined) delete S.settings[k]; else S.settings[k] = mine[k]; });
+  }catch(e){ S = normalize(JSON.parse(prev)); toast("That's not a valid backup."); return; }
+  addCustomToEXN(); registerOwn(); checkBadges(true); save(); applyTheme(); closeSheet(); screen = "home"; render();
+  if(!mine){ toast(d.demo===true ? T(`Demo data loaded: ${d.history.length} sessions. Settings › Your data removes it again.`) : `${d.history.length} ${d.history.length===1 ? "session" : "sessions"} loaded.`); return; }
+  undoToast(d.demo===true ? `Demo data loaded: ${d.history.length} sessions. Settings › Your data removes it again.` : "Backup loaded.", () => { S = normalize(JSON.parse(prev)); addCustomToEXN(); registerOwn(); save(); applyTheme(); render(); });
 }
 /* Demo file (app/demo/novafit-demo.json): move every date forward by whole weeks, so the last demo
    session lies in the past week and weekdays stay the same. Only entries with a "demo-" id are kept. */
@@ -5416,6 +5592,7 @@ document.addEventListener("input", ev => {
   if(k==="bodycm"){ const v = t.value.trim(), e = NFPlan.cmError(v); fieldErr(t, "#set-cm-err", e); if(e) return;
     S.settings.body = S.settings.body || {}; if(v) S.settings.body.cm = Math.round(num(v)); else delete S.settings.body.cm; save(); return; }
   if(k==="time"){ S.settings.remTime = t.value || "18:00"; save(); return; }
+  if(k==="edtime"){ const f = fmtTimeDigits(t.value); if(f!==t.value) t.value = f; return; }
   if(k==="plw"){ if(t.dataset.f==="target"){ const f = fmtTimeDigits(t.value); if(f!==t.value) t.value = f; } PLW[t.dataset.f] = t.value; if(t.type==="date") render(); return; }
   if(k==="shot"){ if(t.id==="sh-time"){ const f = fmtTimeDigits(t.value); if(f!==t.value) t.value = f; } t.setAttribute("aria-invalid", "false"); const e = t.closest("div").parentNode.querySelector(".err"); if(e) e.textContent = ""; return; }
   if(!S.active) return;
@@ -5434,9 +5611,10 @@ document.addEventListener("input", ev => {
     if(t.id==="run-min"){ const f = fmtTimeDigits(t.value); if(f!==t.value) t.value = f; }
     if(t.id==="run-min" || t.id==="run-km") runErrShow({});   // typing again clears the message
     S.active.run[t.dataset.f] = t.value;
+    if(t.id==="run-inc"){ const re = $("#run-err"); if(re && re.textContent) runCheck(false); }
     const inf = runInfoHtml(), el = $("#runinfo"), wn = $("#runwin"); if(el) el.textContent = inf.line; if(wn && wn.innerHTML!==inf.win) wn.innerHTML = inf.win;
   }else if(k==="tread"){ S.active.tread[t.dataset.f] = t.value; }
-  else if(k==="yoga"){ S.active.yoga[t.dataset.f] = t.value; }
+  else if(k==="yoga"){ S.active.yoga[t.dataset.f] = t.value; if(t.dataset.f==="min") yogaCheck(false); }
   save();
 });
 document.addEventListener("input", ev => {
@@ -5501,9 +5679,8 @@ function pushState(){
 function refreshPush(){ push = pushState(); document.querySelectorAll("[data-push]").forEach(el => el.innerHTML = pushHtml()); if(screen==="home" && !isTyping() && !$("#layer").innerHTML) renderHome(); }
 function pushHtml(){
   switch(push){
-    case "on": return `<p class="small" style="margin:0;color:var(--good)">✓ Notifications are on.</p>
-      <button class="secondary" data-act="pushtest" style="margin-top:10px">Send a test notification</button>${pushDiagHtml()}`;
-    case "off": return `<button class="primary" data-act="pushon">Allow notifications</button>${(() => { try{ return Notification.permission==="granted"; }catch(e){ return false; } })() ? `<button class="secondary" data-act="pushtest" style="margin-top:10px">Send a test notification</button>` : ""}${pushDiagHtml()}`;
+    case "on": return `<p class="small" style="margin:0;color:var(--good)">✓ Notifications are on.</p>${pushDiagHtml()}`;
+    case "off": return `<button class="primary" data-act="pushon">Allow notifications</button>${pushDiagHtml()}`;
     case "denied": return `<p class="small muted" style="margin:0">Notifications are blocked. You can allow them in your iPhone settings under Notifications → NOVAFit.</p>${pushDiagHtml()}`;
     case "install": return `<p class="small muted" style="margin:0">First add the app to your home screen (Share → Add to Home Screen) and open it from there. Then you can allow notifications.</p>${pushDiagHtml()}`;
     case "unsupported": return `<p class="small muted" style="margin:0">This device or browser doesn't support notifications.</p>${pushDiagHtml()}`;
@@ -5535,23 +5712,6 @@ function pushDiagHtml(){
       <button class="secondary" data-act="pushcopy" data-id="${esc(i.sub)}" style="margin-top:6px">Copy device ID</button>
       <p class="small muted" style="margin:6px 0 0">To test sending: OneSignal → Audience → Subscriptions, search this ID and send a test message.</p>` : `<p class="small muted" style="margin:6px 0 0">No OneSignal subscription on this device yet.</p>`}
   </details>`;
-}
-/* Shows a notification straight from this device, without OneSignal. If it appears, the phone or laptop is fine. */
-async function pushTest(){
-  try{
-    if(!("Notification" in window)) throw new Error("this browser has no notifications");
-    if(Notification.permission!=="granted") throw new Error("permission is " + Notification.permission);
-    const opts = {body:T("Test notification: notifications work on this device."), icon:"icon-192.png", badge:"icon-192.png", tag:"nf-test"};
-    const reg = navigator.serviceWorker && await navigator.serviceWorker.getRegistration();
-    if(reg && reg.showNotification) await reg.showNotification("NOVAFit", opts);
-    else new Notification("NOVAFit", opts);
-    PUSH_ERR = "";
-    toast("Test sent. It should appear in a moment.");
-  }catch(e){
-    PUSH_ERR = "Test: " + (e && e.message || String(e));
-    toast("The test couldn't be shown. Open “Check notifications” to see why.");
-  }
-  refreshPush();
 }
 function syncTags(){
   if(!OS || push!=="on") return;

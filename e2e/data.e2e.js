@@ -48,6 +48,7 @@ test("backup: markup in a changed file is shown as text, never run", async () =>
   await signedIn(page);
   await page.evaluate(() => settingsSheet());
   await page.setInputFiles("#importf", fixture("changed-backup.json"));
+  await page.click("[data-act=backupok]");   // with a profile on the phone, the app asks first
   await page.waitForFunction(() => S.history.length === 1);
   for (const tab of ["today", "train", "progress"]) {
     await page.evaluate(t => { TAB = t; screen = "home"; render(); }, tab);
@@ -64,6 +65,9 @@ test("backup: a file with another account brings the runs, not the other person'
   const mine = await page.evaluate(() => JSON.stringify(S.settings.profile));
   await page.evaluate(() => settingsSheet());
   await page.setInputFiles("#importf", fixture("other-account-backup.json"));
+  await page.waitForSelector("[data-act=backupok]");                    // the app asks first
+  assert.match(await page.textContent(".sheet"), /another account/);
+  await page.click("[data-act=backupok]");
   await page.waitForFunction(() => S.history.length === 1);
   assert.equal(await page.evaluate(() => JSON.stringify(S.settings.profile)), mine);
   assert.equal(await page.evaluate(() => S.settings.goal), 5);           // ordinary settings still come in

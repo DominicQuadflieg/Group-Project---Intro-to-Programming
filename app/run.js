@@ -8,6 +8,9 @@
   const KM_PER_MI = 1.609344;
   const MIN_RUN = 3, MAX_RUN = 24 * 60;          // a plausible run lasts 3 min to 24 h
   const MIN_PACE = 2.5, MAX_PACE = 20;           // plausible pace in min/km
+  const MAX_LOG_PACE = 30;                       // a logged run or walk slower than this is a typo
+  const MAX_INCLINE = 30;                        // treadmills go up to about 15 %, incline trainers to 30 %
+  const MAX_KM_MONTH = 1000;
 
   // First letters of month names in English, German, Portuguese, Spanish, French and Italian
   const MONTHS = { jan: 0, feb: 1, mar: 2, mär: 2, mrz: 2, apr: 3, may: 4, mai: 4, jun: 5, jul: 6, aug: 7,
@@ -239,6 +242,7 @@
     if (!errors.km && !errors.time && value.km > 0) {
       const p = value.min / value.km;
       if (p < MIN_PACE) errors.km = "That would be faster than a world record – please check distance and time";
+      else if (p > MAX_LOG_PACE) errors.km = "That's slower than walking – please check distance and time";
     }
     const d = String(input.date == null ? "" : input.date).trim();
     if (d) {
@@ -248,6 +252,20 @@
       else value.at = at;
     } else value.at = 0;
     return { ok: Object.keys(errors).length === 0, errors, value };
+  }
+
+  /* Treadmill incline in %: empty is fine (no incline), otherwise 0 to 30. Returns an error text or "". */
+  function checkIncline(v) {
+    const t = String(v == null ? "" : v).trim();
+    if (!t) return "";
+    const n = /^\d{1,2}([.,]\d)?$/.test(t) ? toNum(t) : NaN;
+    return n >= 0 && n <= MAX_INCLINE ? "" : "Incline: 0 to " + MAX_INCLINE + " %";
+  }
+
+  /* Kilometres per month: a whole number from 1 to 1000. Returns an error text or "". */
+  function checkKmMonth(v) {
+    const t = String(v == null ? "" : v).trim(), n = /^\d{1,4}([.,]\d+)?$/.test(t) ? toNum(t) : NaN;
+    return n >= 1 && n <= MAX_KM_MONTH ? "" : "Enter between 1 and " + MAX_KM_MONTH + " km.";
   }
 
   /* ================= Activity files (GPX, TCX, FIT) =================
@@ -810,7 +828,7 @@
     return { d: "M" + P.map(p => p.join(" ")).join("L"), start: { x: P[0][0], y: P[0][1] } };
   }
 
-  const api = { KM_PER_MI, MAX_FILE_MB, cleanText, timeTokens, parseDate, parseShot, validateRun, checkTarget,
+  const api = { KM_PER_MI, MAX_FILE_MB, cleanText, timeTokens, parseDate, parseShot, validateRun, checkIncline, checkTarget, checkKmMonth, MAX_INCLINE,
     parseCsv, numLoose, durMin, parseStamp, sportKind, historyEntry, readHistoryCsv, fileItem, rangeStart, planImport,
     zipEnd, zipList, zipDataOffset,
     gpsDist, parseGpx, parseTcx, parseFit, isPolarCsv, parsePolarCsv, zipEntry, fileKind, parseActivity, findDuplicate, isRunSport,
