@@ -2,6 +2,13 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Running plan looks right again
+
+- **Fixed:** the weeks of the running plan (“This week”, “Next week”) were squeezed into narrow columns side by side. The plan used the class `.pweek`, which the new Progress page also uses for its 7-day strip; the plan's week cards are now `.rweek`, so each run is a full-width row again
+- The next run is marked with a small tag (“Up next”) like other tags in the app
+- The running goal wizard and the plan are now in all four languages: run types (Easy, Tempo, Intervals, Long), their descriptions, targets, weeks to go, race day, buttons and the note below. The gym-days sentence was split so every weekday is translated on its own
+- Two browser tests: the runs of a week are full-width rows under each other (it fails on the old styles), and in German nothing in the wizard and the plan stays English
+
 ## Unreleased – Profile and body in settings
 
 - Changing your plan starts with how often you want to train; sex, age, weight and height are set under Settings › Profile and body (sex and age are new there).

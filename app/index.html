@@ -653,14 +653,15 @@ a.dl{display:grid;place-items:center;text-decoration:none;color:var(--ink)}
 .pbars i.d{background:rgba(255,255,255,.95)}.pbars i.c{background:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.45)}
 .pfoot{display:flex;justify-content:space-between;font-size:12px;opacity:.9;margin-top:8px}
 .plan-meta{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 12px;font-size:12px;opacity:.9;margin-top:8px}
-.pweek{display:flex;flex-direction:column}
-.pweek h3{margin:0 0 4px;font:700 18px var(--display);text-transform:uppercase;display:flex;justify-content:space-between;align-items:baseline}
-.pweek h3 span{font:600 12px var(--body);color:var(--muted);text-transform:none}
-.pweek.dim{opacity:.7}
+.rweek{display:flex;flex-direction:column}
+.rweek h3{margin:0 0 6px;font:700 22px/1.15 var(--display);text-transform:uppercase;display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.rweek h3 span{font:600 12px var(--body);color:var(--muted);text-transform:none}
+.rweek.dim{opacity:.7}
 .prun{display:grid;grid-template-columns:40px 1fr auto;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
-.pweek h3 + .prun{border-top:0}
+.rweek h3 + .prun{border-top:0}
 .prun b{display:block;font-size:15px}.prun small{display:block;font-size:12.5px;color:var(--muted)}
 .prun em{font-style:normal;font-size:12px;font-weight:700;color:var(--run);white-space:nowrap}
+.prun em.rnext{font:700 11px var(--body);letter-spacing:.1em;text-transform:uppercase;background:var(--surface);padding:3px 7px}
 .prun.next{background:var(--run-soft);margin:0 -10px;padding:10px;border-radius:calc(var(--rs) * 14px);border-top:0}
 .prun.next + .prun{border-top:0}
 .prun.miss em{color:var(--muted)}
@@ -722,7 +723,7 @@ a.dl{display:grid;place-items:center;text-decoration:none;color:var(--ink)}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#000000;--surface:#121212;--ink:#ffffff;--muted:#a6a6a6;--line:#2b2b2b;--accent:#ffffff;--accent-soft:#1f1f1f;--run:#4d9be6;--run-soft:#0d2236;--good:#5cc77a;--good-soft:#12301c;--on-accent:#000000;--yoga:#ff7a3d;--yoga-soft:#2e1608;--bar:#ffffff;--hl:#ff4458;--hero:#161616;--hero-run:#161616;--hero-yoga:#161616;--hero-gold:#161616;--hero-btn:#000000;--deep:#d0d0d0;color-scheme:dark;}}
 :root[data-theme="dark"]{--bg:#000000;--surface:#121212;--ink:#ffffff;--muted:#a6a6a6;--line:#2b2b2b;--accent:#ffffff;--accent-soft:#1f1f1f;--run:#4d9be6;--run-soft:#0d2236;--good:#5cc77a;--good-soft:#12301c;--on-accent:#000000;--yoga:#ff7a3d;--yoga-soft:#2e1608;--bar:#ffffff;--hl:#ff4458;--hero:#161616;--hero-run:#161616;--hero-yoga:#161616;--hero-gold:#161616;--hero-btn:#000000;--deep:#d0d0d0;color-scheme:dark;}
 /* Ueberschriften: Serif, normale Schreibweise */
-h1,.goal h3,.start b,.resume b,.bigline,.sbar .ttl b,.calhead b,.sheet h3,.hero h2,.runroute b,.plantoday b,.plh,.planhd h2,.pweek h3,.sy-big,.tmphase{text-transform:none;letter-spacing:0}
+h1,.goal h3,.start b,.resume b,.bigline,.sbar .ttl b,.calhead b,.sheet h3,.hero h2,.runroute b,.plantoday b,.plh,.planhd h2,.rweek h3,.sy-big,.tmphase{text-transform:none;letter-spacing:0}
 .start b{font-size:22px}
 /* Zahlen + Buttons: Open Sans */
 .tile b,.kcal b,.target b,.setrow .sn,.pace b,.rest b,.stepper b,.tmtime,.sy-num,.runtime input,.runkm input,.plf input,.plseg button b,.mb em,.mcmp b,.mrk b,.start .arrow,.goalopt .arrow{font-family:var(--num);font-weight:800;letter-spacing:-.01em}

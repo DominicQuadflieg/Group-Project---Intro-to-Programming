@@ -1399,7 +1399,7 @@ function planWizard(){
     <div class="plseg">${[1,2].map(n => `<button data-act="plper" data-n="${n}" class="${w.perWeek===n?"on":""}"><b>${n}×</b><small>per week</small></button>`).join("")}</div>
     <p class="plq">On which ${w.perWeek===1?"day":"days"}?</p>
     <div class="pldays">${order.map(d => `<button data-act="plday" data-d="${d}" class="${w.days.includes(d)?"on":""}${gymDays.includes(d)?" gym":""}">${WD[(d+6)%7]}</button>`).join("")}</div>
-    <p class="plinfo sm">Gym days are ${gymDays.map(d => WD[(d+6)%7]).join(", ")}.${clash.length ? " On gym days, keep runs short and easy." : " That way running fits in nicely."}</p>
+    <p class="plinfo sm"><span>Gym days:</span> ${gymDays.map(d => `<b>${WD[(d+6)%7]}</b>`).join(", ")}. <span>${clash.length ? "On gym days, keep runs short and easy." : "That way running fits in nicely."}</span></p>
     ${warn.length ? `<p class="plwarn">${warn.join(" ")}</p>` : ""}
     <button class="primary run" data-act="plcreate">Create plan</button>
     <button class="secondary" data-act="plback">‹ Different goal</button></div>`;
@@ -1414,9 +1414,9 @@ function planView(p){
     const wd = WD[(new Date(r.date).getDay()+6)%7];
     if(r.done){ const e = r.done; return `<div class="prun done${r.hit?"":" miss"}">${rico(r.hit?"check":r.type, "on")}<div><b>${esc(r.label)}</b><small class="tnum">${WD[(new Date(e.start).getDay()+6)%7]} · ${fmt(num(e.run.km))} km in ${hms(num(e.run.min))}</small></div><em>${r.hit?"done":"ran"}</em></div>`; }
     const nx = isCur && !cw.runs.slice(0, cw.runs.indexOf(r)).some(x => !x.done);
-    return `<div class="prun${nx?" next":""}">${rico(r.type)}<div><b>${esc(r.label)}</b><small>${wd} · ${esc(r.desc)}</small></div><em>${nx?"up next":""}</em></div>`;
+    return `<div class="prun${nx?" next":""}">${rico(r.type)}<div><b>${esc(r.label)}</b><small>${wd} · ${esc(r.desc)}</small></div>${nx ? `<em class="rnext">up next</em>` : "<em></em>"}</div>`;
   };
-  const wk = (w, title, cur) => `<section class="card pweek${cur?"":" dim"}"><h3>${title}<span>${cur ? `${w.runs.filter(r => r.done).length} of ${w.runs.length} done` : `${w.runs.length} ${w.runs.length===1?"run":"runs"}`}</span></h3>${w.runs.map(r => row(r, cur)).join("")}</section>`;
+  const wk = (w, title, cur) => `<section class="card rweek${cur?"":" dim"}"><h3>${title}<span>${cur ? `${w.runs.filter(r => r.done).length} of ${w.runs.length} done` : `${w.runs.length} ${w.runs.length===1?"run":"runs"}`}</span></h3>${w.runs.map(r => row(r, cur)).join("")}</section>`;
   let h = `<div class="plview"><section class="planhd"><small>My running goal</small><h2>${esc(planTitle(p))}</h2>
     <p>${p.date ? `${left} ${left===1?"week":"weeks"} to go` : "no end date"}${pred ? ` · Current forecast: ${hms(pred)}` : ""}</p>
     <div class="pbars">${bars}</div>
