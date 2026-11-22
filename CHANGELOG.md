@@ -2,6 +2,19 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Profile and body in settings
+
+- Changing your plan starts with how often you want to train; sex, age, weight and height are set under Settings › Profile and body (sex and age are new there).
+
+## Unreleased – Workout overview
+
+- + Add set right under each exercise; extra sets can be removed with −, the planned ones stay.
+- ⋯ now shows today's whole workout with the sets per exercise; ↑ ↓ change the order.
+
+## Unreleased – Sets in your own templates
+
+- In Save a new template every exercise starts at 0 sets; set 1 to 10 sets per exercise with + and −. The template keeps them.
+- During a workout, ⋯ › Remove a set takes away a set, also one of the planned ones.
 ## Unreleased – Polar Flow CSV
 
 - Runs exported from Polar Flow as **CSV** can now be imported, as a single run (Log a run → watch file) and in “Bring your training history”, several files at once. NOVAFit reads date, start time, duration and distance; without a distance it uses the watch's per-second distances

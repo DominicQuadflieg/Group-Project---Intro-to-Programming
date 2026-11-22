@@ -66,7 +66,7 @@ const customList = () => (S && S.settings && Array.isArray(S.settings.custom)) ?
 function registerOwn(){
   const m = (S && S.settings && S.settings.ownW) || {};
   Object.keys(m).forEach(k => {
-    const d = m[k] || {}, ex = (d.ex||[]).map(id => EXN[id] ? Object.assign(exFromLib(EXN[id]), {opt:false}) : null).filter(Boolean);
+    const d = m[k] || {}, ex = (d.ex||[]).map(id => EXN[id] ? Object.assign(exFromLib(EXN[id]), {opt:false}, d.sets && d.sets[id] ? {s:d.sets[id]} : {}) : null).filter(Boolean);
     W[k] = {name:d.name || "Own workout", kind:"gym", group:"free", own:true, intro:"Your own workout. You can still swap, add or remove exercises.", ex,
       desc:ex.slice(0, 4).map(e => e.n.replace(/ \(.*\)$/, "")).join(" · ") || "Your own workout"};
     if(!ALL_W.includes(k)) ALL_W.splice(ALL_W.indexOf("lauf"), 0, k);
@@ -99,7 +99,8 @@ function normalize(s){
   st.custom = NFEx.safeCustom(st.custom);
   if(st.avatar!=null && !(typeof st.avatar==="string" && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(st.avatar) && st.avatar.length < 150000)) delete st.avatar;   // profile photo: only a small image, nothing else
   if(st.pcards && typeof st.pcards==="object") ["s","r","y"].forEach(k => { const l = st.pcards[k]; st.pcards[k] = Array.isArray(l) ? l.filter(x => typeof x==="string" && /^[a-z]{1,12}$/.test(x)).slice(0, 5) : undefined; }); else delete st.pcards;
-  if(st.ownW && typeof st.ownW==="object") Object.keys(st.ownW).forEach(k => { const w = st.ownW[k]; if(!w || typeof w!=="object" || !/^[A-Za-z0-9_-]{1,40}$/.test(k)) delete st.ownW[k]; else w.name = NFEx.safeText(w.name, 40, "Own workout"); });
+  if(st.ownW && typeof st.ownW==="object") Object.keys(st.ownW).forEach(k => { const w = st.ownW[k]; if(!w || typeof w!=="object" || !/^[A-Za-z0-9_-]{1,40}$/.test(k)) delete st.ownW[k]; else { w.name = NFEx.safeText(w.name, 40, "Own workout");
+    if(w.sets && typeof w.sets==="object"){ const c = {}; Object.keys(w.sets).forEach(id => { const n = Math.floor(+w.sets[id]); if(/^[A-Za-z0-9_-]{1,40}$/.test(id) && n>=1 && n<=NFPlan.OWN_MAX_SETS) c[id] = n; }); w.sets = c; } else delete w.sets; } });
   if(st.loopName != null) st.loopName = NFEx.safeText(st.loopName, 24);
   if(st.lang != null && !NFI18N.LANGS.some(l => l.id===st.lang)) delete st.lang;   // language: only one we have
   return {v:2, active:s.active||null, history:Array.isArray(s.history)?s.history:[], settings:st, badges:(s.badges && typeof s.badges==="object") ? s.badges : null};
@@ -758,11 +759,20 @@ function renderSport(){
 const PLUS_ICO = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
 /* ---- Build your own gym workout: name, exercises, optional plan day ---- */
 let BUILD = null;
-function buildNew(){ BUILD = {key:null, name:"", ex:[], day:"", err:{}}; buildSheet(); }
+function buildNew(){ BUILD = {key:null, name:"", ex:[], sets:{}, day:"", err:{}}; buildSheet(); }
 function buildEdit(k){
   const d = S.settings.ownW && S.settings.ownW[k]; if(!d) return;
   const p = S.settings.plan, s = p && Array.isArray(p.sessions) ? p.sessions.find(x => x.kind==="s" && x.workout===k) : null;
-  BUILD = {key:k, name:d.name || "", ex:(d.ex||[]).filter(id => EXN[id]), day:s ? String(s.day) : "", err:{}}; buildSheet();
+  const ex = (d.ex||[]).filter(id => EXN[id]), sets = {};
+  ex.forEach(id => sets[id] = (d.sets && d.sets[id]) || EXN[id].s || 3);   // older templates: the sets they used so far
+  BUILD = {key:k, name:d.name || "", ex, sets, day:s ? String(s.day) : "", err:{}}; buildSheet();
+}
+// One exercise in the template builder: name, sets stepper (starts at 0), remove
+function bRow(id){
+  const n = BUILD.sets[id] || 0, miss = n < 1 && BUILD.err && BUILD.err.noSets && BUILD.err.noSets.includes(id), nm = esc(EXN[id].n);
+  return `<div class="terow brow${miss ? " miss" : ""}" id="br-${esc(id)}"><span><b>${nm}</b><small>${esc([EXN[id].part, EXN[id].eq].filter(Boolean).join(" · "))}</small>
+    <span class="bstep"><button type="button" data-act="bset" data-ex="${esc(id)}" data-d="-1" aria-label="One set less for ${nm}"${n<1?" disabled":""}>−</button><b id="bn-${esc(id)}">${n} ${n===1?"set":"sets"}</b><button type="button" data-act="bset" data-ex="${esc(id)}" data-d="1" aria-label="One set more for ${nm}"${n>=NFPlan.OWN_MAX_SETS?" disabled":""}>+</button></span></span>
+    <button class="tetog" data-act="brm" data-ex="${esc(id)}" aria-label="Remove ${nm}">Remove</button></div>`;
 }
 function buildCapture(){ if(!BUILD) return; const n = $("#b-name"), d = $("#b-day"); if(n) BUILD.name = n.value; if(d) BUILD.day = d.value; }
 function buildSheet(){
@@ -773,7 +783,7 @@ function buildSheet(){
     <label class="lbl" for="b-name">Name</label><input class="inp" id="b-name" maxlength="${NFPlan.OWN_NAME_MAX}" autocomplete="off" placeholder="e.g. My Push Day" value="${esc(b.name)}"${e.name ? ` aria-invalid="true" aria-describedby="b-name-err"` : ""}>
     ${e.name ? `<p class="err" id="b-name-err" role="alert">${esc(e.name)}</p>` : ""}
     <p class="eyebrow tehd">Exercises · ${b.ex.length}</p>
-    ${b.ex.length ? `<div class="telist">${b.ex.map(id => `<div class="terow"><span><b>${esc(EXN[id].n)}</b><small>${esc([EXN[id].part, EXN[id].eq].filter(Boolean).join(" · "))}</small></span><button class="tetog" data-act="brm" data-ex="${esc(id)}" aria-label="Remove ${esc(EXN[id].n)}">Remove</button></div>`).join("")}</div>` : ""}
+    ${b.ex.length ? `<p class="small muted" style="margin:0 0 8px">Set how many sets you want for each exercise with + and −.</p><div class="telist">${b.ex.map(id => bRow(id)).join("")}</div>${e.sets ? `<p class="err" role="alert">${esc(e.sets)}</p>` : ""}` : ""}
     <button class="tecreate" data-act="bpick"${e.ex ? ` aria-describedby="b-ex-err"` : ""}>${PLUS_ICO}<span><b>${b.ex.length ? "Add or change exercises" : "Add exercises"}</b><small>From the library, or create your own exercise</small></span></button>
     ${e.ex ? `<p class="err" id="b-ex-err" role="alert">${esc(e.ex)}</p>` : ""}
     ${days.length ? `<label class="lbl" for="b-day" style="margin-top:18px">In your plan</label><select class="inp" id="b-day"><option value="">${b.key && days.some(x => x.workout===b.key) ? "Leave my plan as it is" : "No, just on Train"}</option>${days.map(x => `<option value="${x.day}"${String(x.day)===String(b.day)?" selected":""}>${DN[x.day]} · instead of ${esc(x.title || (W[x.workout]||{}).name || "")}</option>`).join("")}</select>` : ""}
@@ -782,12 +792,12 @@ function buildSheet(){
 }
 function buildSave(){
   buildCapture();
-  const v = NFPlan.validateBuild({name:BUILD.name, ex:BUILD.ex}, id => !!EXN[id]);
-  if(!v.ok){ BUILD.err = v.errors; buildSheet(); const f = $(v.errors.name ? "#b-name" : "[data-act=bpick]"); if(f) f.focus(); return; }
+  const v = NFPlan.validateBuild({name:BUILD.name, ex:BUILD.ex, sets:BUILD.sets}, id => !!EXN[id]);
+  if(!v.ok){ BUILD.err = v.errors; buildSheet(); const f = $(v.errors.name ? "#b-name" : v.errors.noSets ? `#br-${v.errors.noSets[0]} [data-d="1"]` : "[data-act=bpick]"); if(f){ f.focus(); f.scrollIntoView({block:"center"}); } return; }
   S.settings.ownW = S.settings.ownW || {};
   let key = BUILD.key;
   if(!key){ let i = 1; while(W["my"+i] || S.settings.ownW["my"+i]) i++; key = "my"+i; }
-  S.settings.ownW[key] = {name:v.name, ex:v.ex};
+  S.settings.ownW[key] = {name:v.name, ex:v.ex, sets:v.sets};
   registerOwn();
   const p = S.settings.plan, day = BUILD.day==="" ? null : Number(BUILD.day);
   if(p && Array.isArray(p.sessions)){
@@ -1136,22 +1146,33 @@ function exCard(ex, base, pos){
     ${ex.cue && timesDone(ex.id) < 3 ? `<p class="cue">${ex.cue}</p>` : ""}${ll}${hint}
     <div class="colhead"><span>Set</span><span>${COLS[ex.type||"w"][0]}</span><span>${COLS[ex.type||"w"][1]}</span><span></span></div>
     <div class="sets">${setRows(ex)}</div>
+    <button class="addsetin" data-act="addset" data-ex="${ex.id}">+ Add set</button>
   </article>`;
 }
 // ⋯ per exercise: everything that used to sit under each card
 function exMenu(d){
   const ex = EXN[d.ex] || {n:"Exercise"}, it = (act, label, attrs, sub) => `<button class="secondary" data-act="exm" data-go="${act}" ${attrs}>${label}${sub ? `<span class="muted small">${sub}</span>` : ""}</button>`;
-  const base = `data-base="${d.base}"`, exa = `data-ex="${d.ex}"`;
-  sheet(`<div class="exh2" style="margin-bottom:6px">${cardPic(ex)}<span class="nm"><b>${esc(ex.n)}</b><small>${esc(ex.part || "")}${ex.eq ? " · " + esc(ex.eq) : ""}</small></span></div>
+  const base = `data-base="${d.base}"`, exa = `data-ex="${d.ex}"`, a = S.active;
+  EXM = d;
+  // Today at a glance: every exercise with its sets, in order; ↑ ↓ change the order (main and optional ones each among themselves)
+  const plan = a ? planEx(a.type).filter(e => !(a.hidden||[]).includes(e.id)) : [], added = a ? (a.added||[]).map(addedEx).filter(Boolean) : [];
+  const grp = e => plan.filter(x => !!x.opt === !!e.opt);
+  const row = (e, isAdded) => {
+    const x = eff(e), arr = (a.sets||{})[x.id] || [], done = arr.filter(isDone).length, g = isAdded ? null : grp(e), gi = g ? g.indexOf(e) : -1, cur = e.id===d.base || x.id===d.ex;
+    const mv = (dir, dis, lbl) => `<button class="ovmv" data-act="ovmove" data-base="${e.id}" data-d="${dir}" aria-label="${lbl} ${esc(x.n)}"${dis?" disabled":""}>${dir<0?"↑":"↓"}</button>`;
+    return `<li class="ovrow${cur?" cur":""}${e.opt?" opt":""}">${cardPic(x)}<span class="ovn"><b>${esc(x.n)}</b><small>${done ? `${done} of ${arr.length} sets done` : `${arr.length} ${arr.length===1?"set":"sets"}`}${e.opt ? " · optional" : ""}${isAdded ? " · added" : ""}</small></span>
+      ${isAdded ? "" : `<span class="ovmvs">${mv(-1, gi<=0, "Move up")}${mv(1, gi>=g.length-1, "Move down")}</span>`}</li>`;
+  };
+  sheet(`<p class="eyebrow" style="margin:0">Today</p><h3 style="margin:2px 0 10px">${esc((W[a && a.type]||{}).name || "Your workout")}</h3>
+    <ol class="ovlist">${plan.map(e => row(e, false)).join("")}${added.map(e => row(e, true)).join("")}</ol>
+    <p class="eyebrow tehd" style="margin-top:16px">${esc(ex.n)}</p>
     <div class="exmenu" style="display:flex;flex-direction:column;gap:8px">
     ${it("guide", "How to do it", exa, "pictures and tips")}
-    ${it("addset", "Add a set", exa)}
     ${!d.added && altsOf(d.base).length ? it("swap", "Swap exercise", base, "e.g. machine instead") : ""}
-    ${d.first ? "" : it("move", "Move up", `${base} data-d="-1"`)}
-    ${d.last ? "" : it("move", "Move down", `${base} data-d="1"`)}
     ${d.opt ? it("closeopt", "Skip this exercise", `data-ex="${d.base}"`) : it("rmex", "Remove from today", `${base} data-added="${d.added||""}"`).replace('class="secondary"', 'class="secondary rm"')}
     </div><button class="secondary" data-act="closesheet">Close</button>`);
 }
+let EXM = null;
 
 function treadBlock(){
   const a = S.active;
@@ -2339,6 +2360,9 @@ function settingsSheet(part){
     profile: ["Profile and body", () => `
     <div class="card" style="background:var(--bg);border:0">
       <span class="lbl">My profile</span>
+      <span class="lbl" id="set-sex-l" style="margin-top:6px">Sex</span>
+      <div class="seg theme" id="sexseg" role="group" aria-labelledby="set-sex-l" style="grid-template-columns:repeat(2,1fr)">${Object.entries(SEX_TXT).map(([k,l]) => `<button data-act="bodysex" data-v="${k}" aria-pressed="${(st.body && st.body.sex)===k}">${l}</button>`).join("")}</div>
+      <div class="rungrid" style="margin-top:10px"><div><label class="lbl" for="set-age">Age</label><div class="field"><input inputmode="numeric" id="set-age" data-in="bodyage" maxlength="3" value="${esc((st.body && st.body.age) || "")}" placeholder="e.g. 21" aria-describedby="set-age-err"><span class="u">years</span></div><p class="err" id="set-age-err" role="alert"></p></div><div></div></div>
       <div class="rungrid"><div><label class="lbl" for="set-kg">Body weight</label><div class="field"><input inputmode="decimal" id="set-kg" data-in="bodykg" value="${esc(st.bodyKg)}" placeholder="e.g. 60"><span class="u">kg</span></div></div>
       <div><label class="lbl" for="set-cm">Height</label><div class="field"><input inputmode="numeric" id="set-cm" data-in="bodycm" value="${esc((st.body && st.body.cm) || "")}" placeholder="e.g. 175"><span class="u">cm</span></div></div></div>
       <p class="small muted" style="margin:6px 0 10px">Only used to estimate calories after a session.</p>
@@ -4490,7 +4514,8 @@ function obHead(back){
   const n = OB_STEPS[OB.step];
   return `<div class="ob-top">${left}${right}</div>${n ? `<div class="ob-prog" aria-hidden="true"><i style="width:${n/10*100}%"></i></div>` : ""}`;
 }
-const obStep = (n, of) => `<p class="ob-step">Step ${n} of ${of}</p>`;
+// When the plan is changed later, the "about you" step is skipped (it lives in Profile and body), so the count starts one lower
+const obStep = (n, of) => OB.mode==="edit" ? `<p class="ob-step">Step ${n-1} of ${of-1}</p>` : `<p class="ob-step">Step ${n} of ${of}</p>`;
 const errEl = (id) => `<p class="err" id="${id}" role="alert" aria-live="polite"></p>`;
 
 function renderOnboard(){
@@ -4552,7 +4577,7 @@ function renderOnboard(){
       break;
     }
     case "days":
-      h = obHead("body") + obStep(2, obTotal()) + `<h2>${firstName() ? "Hi " + esc(firstName()) + ", how" : "How"} often do you want to train?</h2>
+      h = obHead(OB.mode==="edit" ? "" : "body") + obStep(2, obTotal()) + `<h2>${firstName() ? "Hi " + esc(firstName()) + ", how" : "How"} often do you want to train?</h2>
         <p class="lead">Sessions per week. You can change this any time.</p>
         <div class="daysel" role="group" aria-label="Sessions per week">${[2,3,4,5,6].map(d => `<button class="opt" data-act="ob" data-do="days" data-v="${d}" aria-pressed="${a.days===d}">${d}</button>`).join("")}</div>
         <p class="lead" aria-live="polite">${{2:"A calm start. Perfect for busy exam weeks.",3:"The sweet spot for steady progress.",4:"Ambitious, with room to recover.",5:"Serious training. Plan your rest days well.",6:"Athlete mode. One rest day per week."}[a.days]||""}</p>
@@ -4720,7 +4745,7 @@ function obAct(b){
   const a = OB.a, d = b.dataset;
   switch(d.do){
     case "go": obGo(d.to); break;
-    case "edit": OB.body = null; startOnboarding("body", "edit"); break;
+    case "edit": OB.body = null; startOnboarding("days", "edit"); break;   // sex, age, weight and height live under Settings › Profile and body
     case "sex":
       (OB.body = OB.body || {}).sex = d.v; obError("ob-sex-err", "");
       document.querySelectorAll('[data-do="sex"]').forEach(x => x.setAttribute("aria-pressed", String(x.dataset.v===d.v)));
@@ -5027,6 +5052,8 @@ document.addEventListener("click", async ev => {
     case "totop": window.scrollTo({top:0, behavior:smoothOk() ? "smooth" : "auto"}); break;
     case "swap": swapSheet(b.dataset.base); break;
     case "move": moveEx(b.dataset.base, +b.dataset.d); break;
+    case "ovmove": { const sc = ($(".sheet")||{}).scrollTop || 0; moveEx(b.dataset.base, +b.dataset.d); if(EXM) exMenu(EXM); const sh = $(".sheet"); if(sh) sh.scrollTop = sc;
+      const nb = document.querySelector(`.ovmv[data-base="${b.dataset.base}"][data-d="${b.dataset.d}"]`); if(nb && !nb.disabled) nb.focus(); break; }
     case "doswap": doSwap(b.dataset.base, b.dataset.id); break;
     case "chart": chartSheet(b.dataset.id); break;
     case "runchart": runChartSheet(b.dataset.k); break;
@@ -5094,6 +5121,13 @@ document.addEventListener("click", async ev => {
     case "trainedit": BUILD = null; trainEditSheet(); break;
     case "bnew": buildNew(); break;
     case "bedit": buildEdit(b.dataset.t); break;
+    case "bset": {   // change sets in place, so the sheet doesn't jump to the top
+      const id = b.dataset.ex, n = Math.min(NFPlan.OWN_MAX_SETS, Math.max(0, (BUILD.sets[id]||0) + (+b.dataset.d)));
+      BUILD.sets[id] = n;
+      if(n > 0 && BUILD.err && BUILD.err.noSets){ BUILD.err.noSets = BUILD.err.noSets.filter(x => x!==id); if(!BUILD.err.noSets.length){ delete BUILD.err.noSets; delete BUILD.err.sets; const er = $(".sheet .telist + .err"); if(er) er.remove(); } }
+      const row = document.getElementById("br-"+id); if(row){ const f = b.dataset.d; row.outerHTML = bRow(id); const nb = document.querySelector(`#br-${id} [data-d="${f}"]`); if(nb && !nb.disabled) nb.focus(); }
+      break;
+    }
     case "brm": buildCapture(); BUILD.ex = BUILD.ex.filter(id => id!==b.dataset.ex); buildSheet(); break;
     case "bpick": buildCapture(); BUILD.err = {}; LIB = {q:"", part:"", eq:"", mode:"pick", build:true, sel:BUILD.ex.slice()}; libSheet(); break;
     case "bsave": buildSave(); break;
@@ -5121,7 +5155,7 @@ document.addEventListener("click", async ev => {
       break;
     }
     case "libpickdone": {
-      if(LIB.build && BUILD){ BUILD.ex = (LIB.sel||[]).slice(); buildSheet(); break; }
+      if(LIB.build && BUILD){ BUILD.ex = (LIB.sel||[]).slice(); BUILD.ex.forEach(id => { if(BUILD.sets[id]==null) BUILD.sets[id] = 0; }); buildSheet(); break; }
       const day = OB.a && OB.a.own && OB.a.own.days[LIB.day];
       if(day) day.ex = (LIB.sel||[]).slice();
       closeSheet(); if(screen==="onboard") renderOnboard(); break;
@@ -5160,6 +5194,7 @@ document.addEventListener("click", async ev => {
     case "storyclose": closeStory(); render(); break;
     case "restsound": S.settings.restSound = b.dataset.v==="1"; save(); if(b.dataset.v==="1"){ restAudio(); restBeep(); }
       document.querySelectorAll("#restsoundseg button").forEach(x => x.setAttribute("aria-pressed", x.dataset.v===b.dataset.v)); break;
+    case "bodysex": S.settings.body = S.settings.body || {}; S.settings.body.sex = b.dataset.v; save(); document.querySelectorAll("#sexseg button").forEach(x => x.setAttribute("aria-pressed", x===b)); break;
     case "kcalshow": S.settings.showKcal = b.dataset.v==="1"; save();
       document.querySelectorAll("#kcalseg button").forEach(x => x.setAttribute("aria-pressed", x.dataset.v===b.dataset.v)); break;
     case "goal": { S.settings.goal = Math.min(7, Math.max(1, S.settings.goal + (+b.dataset.d))); $("#goalv").textContent = S.settings.goal; save(); break; }
@@ -5230,6 +5265,9 @@ document.addEventListener("input", ev => {
   if(k==="ownname"){ const day = OB.a && OB.a.own && OB.a.own.days[+t.dataset.i]; if(day) day.name = t.value; return; }
   if(k==="name"){ S.settings.name = t.value; save(); return; }
   if(k==="bodykg"){ S.settings.bodyKg = t.value.trim(); save(); return; }
+  if(k==="bodyage"){ const v = t.value.trim(), age = Math.round(num(v)), er = $("#set-age-err"), okA = age>=NFPlan.MIN_AGE && age<=NFPlan.MAX_AGE;
+    if(er) er.textContent = !v || okA ? "" : T(`Enter an age between ${NFPlan.MIN_AGE} and ${NFPlan.MAX_AGE}`); t.setAttribute("aria-invalid", v && !okA ? "true" : "false");
+    if(okA){ S.settings.body = S.settings.body || {}; S.settings.body.age = age; save(); } return; }
   if(k==="bodycm"){ const cm = Math.round(num(t.value)); S.settings.body = S.settings.body || {};
     if(cm>=NFPlan.MIN_CM && cm<=NFPlan.MAX_CM) S.settings.body.cm = cm; else delete S.settings.body.cm; save(); return; }
   if(k==="time"){ S.settings.remTime = t.value || "18:00"; save(); return; }

@@ -341,3 +341,16 @@ test("sign out removes only NOVAFit's own storage keys", () => {
   assert.deepEqual(P.appKeys("nope"), []);
   assert.deepEqual(P.appKeys([null, 3, "po-x"]), ["po-x"]);
 });
+
+test("own template: every exercise needs 1 to 10 sets when sets are given", () => {
+  const P = require("../app/plan.js");
+  const ok = P.validateBuild({ name: "Push", ex: ["bench", "dips"], sets: { bench: 3, dips: 2 } });
+  assert.deepEqual(ok, { ok: true, name: "Push", ex: ["bench", "dips"], sets: { bench: 3, dips: 2 } });
+  const miss = P.validateBuild({ name: "Push", ex: ["bench", "dips"], sets: { bench: 3, dips: 0 } });
+  assert.equal(miss.ok, false);
+  assert.deepEqual(miss.errors.noSets, ["dips"]);
+  assert.match(miss.errors.sets, /at least one set/);
+  assert.equal(P.validateBuild({ name: "Big", ex: ["bench"], sets: { bench: 40 } }).sets.bench, P.OWN_MAX_SETS);
+  // without sets (sign-up path) nothing changes
+  assert.deepEqual(P.validateBuild({ name: "Push", ex: ["bench"] }), { ok: true, name: "Push", ex: ["bench"] });
+});

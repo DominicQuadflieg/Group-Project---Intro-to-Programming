@@ -391,7 +391,7 @@
   // Each strength day is either "rec" (a ready-made template, exercises can still be added in the
   // workout) or "own" (the user picks every exercise, no suggestions). A custom split has only
   // own days with names the user gives them.
-  const OWN_MAX_EX = 15, OWN_NAME_MAX = 30;
+  const OWN_MAX_EX = 15, OWN_NAME_MAX = 30, OWN_MAX_SETS = 10;
   const STRENGTH_MODES = ["rec", "own"];
 
   function ownDaysFor(splitId, n) {
@@ -477,7 +477,15 @@
     else if (name.length > OWN_NAME_MAX) errors.name = `At most ${OWN_NAME_MAX} characters`;
     if (!ex.length) errors.ex = "Add at least one exercise";
     else if (ex.length > OWN_MAX_EX) errors.ex = `At most ${OWN_MAX_EX} exercises`;
-    return Object.keys(errors).length ? { ok: false, errors } : { ok: true, name, ex };
+    // Sets per exercise (from the template builder): every exercise needs 1 to OWN_MAX_SETS sets
+    let sets;
+    if (b && b.sets && typeof b.sets === "object") {
+      sets = {};
+      const none = [];
+      ex.forEach(id => { const n = Math.floor(Number(b.sets[id]) || 0); if (n < 1) none.push(id); sets[id] = Math.min(OWN_MAX_SETS, Math.max(0, n)); });
+      if (none.length && !errors.ex) { errors.sets = none.length === 1 ? "Add at least one set to the exercise marked red" : `Add at least one set to the ${none.length} exercises marked red`; errors.noSets = none; }
+    }
+    return Object.keys(errors).length ? { ok: false, errors } : (sets ? { ok: true, name, ex, sets } : { ok: true, name, ex });
   }
   // Puts a workout on a strength day of the plan (replaces that day's workout). Other days stay as they are;
   // a day without a strength session leaves the plan unchanged. Never changes the plan it was given.
@@ -506,7 +514,7 @@
     rebalanceMix, mixTotal, scheduleWeek, suggestPlans, weekdayIndex, sessionOn, nextSession,
     WORKOUTS, HEAVY_LEGS, ADDONS, ADDON_FOR, SPLITS, splitsFor, splitById, recommendSplit, splitFor, validateSplit,
     OWN_MAX_EX, OWN_NAME_MAX, STRENGTH_MODES, ownDaysFor, validateOwnDays, ownDayKeys, applyOwnDays,
-    SPORTS, trainKinds, toggleKind, reviewPlan, validateBuild, placeInPlan
+    SPORTS, trainKinds, toggleKind, reviewPlan, validateBuild, placeInPlan, OWN_MAX_SETS
   };
   if (typeof module === "object" && module.exports) module.exports = api;
   else root.NFPlan = api;
