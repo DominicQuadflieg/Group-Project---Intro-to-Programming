@@ -2,6 +2,13 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Runs near you on the running page
+
+- *Train › Running* (the running page most people use) has a new section **Where to run** with *Runs near you*, built like *Your goal* and *Import runs*. Until now the entry was only in the older running menu that opens from *Today*, so it couldn't be found from the running page
+- The route service on the live site was checked first: it returns real loops
+- “week 1 of 13” under *Your goal* is now translated too
+- Browser test: the running page shows the section and opens *Runs near you*
+
 ## Unreleased – iPhone notifications, second step
 
 - “Allow notifications” now creates the phone's own push subscription first, right in the tap, with the app's push key from OneSignal's public config (loaded when the app starts); OneSignal then registers that subscription. On an iPhone this is the only moment iOS allows it

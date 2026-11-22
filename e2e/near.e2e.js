@@ -23,6 +23,18 @@ async function runningMenu(page) {
   await page.waitForSelector('.run-menu [data-act="near"]');
 }
 
+test("the running page (Train › Running) shows Runs near you in its own section", async () => {
+  const page = await app.open();
+  await fakeRoutes(page);
+  await page.evaluate(() => { S.settings.profile = { name: "T" }; save(); SPORT = "r"; screen = "sport"; render(); });
+  const sec = await page.$$eval(".spsec span", x => x.map(e => e.textContent));
+  assert.ok(sec.includes("Where to run"), "section heading");
+  await page.click('#app [data-act="near"]');
+  await page.waitForSelector(".sheet .nearsheet .nearrow");
+  assert.match(await text(page, ".sheet h3"), /Runs near you/);
+  assert.deepEqual(await page.done(), []);
+});
+
 test("the running menu opens Runs near you: nearby routes first, then a loop from here", async () => {
   const page = await app.open({ context: { geolocation: NOVA, permissions: ["geolocation"] } });
   await fakeRoutes(page);
