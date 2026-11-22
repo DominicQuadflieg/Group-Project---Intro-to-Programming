@@ -2,6 +2,13 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – iPhone notifications, second step
+
+- “Allow notifications” now creates the phone's own push subscription first, right in the tap, with the app's push key from OneSignal's public config (loaded when the app starts); OneSignal then registers that subscription. On an iPhone this is the only moment iOS allows it
+- Every step has a time limit, so a call that never answers can't freeze the button any more; the reason shows in “Check notifications”
+- “Send a test notification” also appears when the phone allows notifications but OneSignal isn't subscribed yet; “Check notifications” shows whether the push key is loaded
+- Two new browser tests
+
 ## Unreleased – iPhone notifications subscribe
 
 - On the iPhone, permission could be granted while OneSignal never created a subscription, so Notifications stayed “Off”. When permission is already granted, “Allow notifications” now starts the subscription right in the tap (iPhone only allows it there); otherwise it asks first and a second tap finishes
