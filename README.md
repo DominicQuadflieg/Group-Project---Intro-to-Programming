@@ -7,7 +7,13 @@ Group project for *Introduction to Programming* at Nova SBE, 2026/27.
 
 | Today | Train | Workout | Progress |
 |---|---|---|---|
-| ![Today](docs/img/today.jpg) | ![Train](docs/img/train.jpg) | ![Workout](docs/img/workout.jpg) | ![Progress](docs/img/progress.jpg) |
+| <img src="docs/img/today.jpg" alt="Today: the next session, the week ahead and Nova news" width="200"> | <img src="docs/img/train.jpg" alt="Train: the week line and one card per sport" width="200"> | <img src="docs/img/workout.jpg" alt="Workout: last time's sets, a suggestion to add weight, + Add set" width="200"> | <img src="docs/img/progress.jpg" alt="Progress: reviews, then cards per sport" width="200"> |
+| What's next today, the week ahead and Nova news | Your week and one card per sport | Last time's sets, more weight when you're ready, + Add set | Weekly and monthly reviews, then your numbers per sport |
+
+| Weekly story | Guided tour | Four languages |
+|---|---|---|
+| <img src="docs/img/story.jpg" alt="Weekly review as a story with your own photos" width="200"> | <img src="docs/img/tour.jpg" alt="Guided tour after sign-up" width="200"> | <img src="docs/img/languages.jpg" alt="Today in Portuguese" width="200"> |
+| Every Sunday your week as a short story, shareable as an image | After sign-up a tour walks through every page | English, Portuguese, German and Italian (here Portuguese) |
 
 ## Team
 
@@ -32,7 +38,7 @@ Group project for *Introduction to Programming* at Nova SBE, 2026/27.
 ## Features
 
 **Getting started**
-- Account (name, Nova email, password) and a questionnaire: body data, days per week, mix of gym, running and yoga, goals, level, strength split
+- Account (name, Nova email, password) and a questionnaire: body data, days per week, mix of gym, running and yoga, goals, level, strength split. Later changes to the plan start at the training days; sex, age, weight and height stay under *Settings › Profile and body*
 - Three suggested week plans; the chosen one sets the weekly goal
 - A guided tour right after sign-up that walks through every page (you tap, it explains; optional example data that is removed afterwards). Restart it under *Menu › Guided tour*.
 
@@ -44,7 +50,7 @@ Group project for *Introduction to Programming* at Nova SBE, 2026/27.
 
 **Train**
 - A week line in the colour of each sport and today's session on top
-- *Gym:* plan days, own templates, ready-made workouts, 124 exercises with drawings; sets filled in from last time, a suggestion when to add weight, rest timer, guided warm-up, swap or add exercises, records
+- *Gym:* plan days, own templates (you choose how many sets each exercise gets), ready-made workouts, 124 exercises with drawings; sets filled in from last time, a suggestion when to add weight, + Add set under every exercise, rest timer, guided warm-up, swap or add exercises, records; ⋯ shows today's whole workout and changes the order
 - *Running:* outdoor or treadmill; read a run from a watch screenshot, import GPX, FIT and TCX files or the whole history from Garmin and Strava; a direct Strava connection is built and tested, but not switched on in our live version, because the Strava API needs a Strava subscription that none of us has (see [docs/setup.md](docs/setup.md#strava-connection)); runs near you (hand-picked routes and a loop from where you are, from the running menu); interval timer; goal plans for 10 km, a half marathon or your own loop
 - *Yoga:* 7 guided sessions read aloud, 5-minute study breaks, a tension check before and after, a flexibility check every two weeks
 - *Edit what's on Train:* switch sports on or off; everything else follows
@@ -54,7 +60,7 @@ Group project for *Introduction to Programming* at Nova SBE, 2026/27.
 - Weekly, monthly and yearly reviews as stories with your own photos, shareable as an image
 - Calendar and full history, 27 badges including special Nova badges
 
-**Make it yours:** own photos, dark mode, push reminders, app lock.
+**Make it yours:** own photos, dark mode, app lock, training days in your phone calendar, and push notifications (allowed with one tap, also in the installed iPhone app; messages come in the phone's language).
 
 **Four languages:** English, Portuguese, German and Italian. The app starts in the language of the phone; switch with *EN ▾* on the welcome screen or under *Menu › Look and feel › Language*. Exercise names stay in English, like in the gym. Screenshots from running apps are read in English, German, Portuguese, Spanish, French and Italian.
 
@@ -89,7 +95,7 @@ npx playwright install chromium
 npm run e2e                 # browser tests that drive the real app
 ```
 
-The unit tests cover sign-up and questionnaire validation, plan suggestions, the exercise library, running files and screenshots, imports, yoga, Progress cards, badges and the tour's example data. The browser tests sign up, log strength sessions, runs and yoga, import files, restore backups and walk through the whole guided tour. GitHub runs both on every push and pull request (`.github/workflows/test.yml`).
+The unit tests cover sign-up and questionnaire validation, plan suggestions, the exercise library, running files and screenshots (in six languages), imports, yoga, Progress cards, badges, the tour's example data and the translation table. The browser tests sign up, log strength sessions, runs and yoga, import files, restore backups, switch languages, turn on notifications and walk through the whole guided tour. GitHub runs both on every push and pull request (`.github/workflows/test.yml`).
 
 ## How it's built
 
@@ -100,6 +106,7 @@ Plain HTML, CSS and JavaScript, no build step. The app is a Progressive Web App:
 | `app/index.html`, `app/app.js` | The page with its design, and the app itself (screens, sessions, storage) |
 | `app/plan.js`, `exercises.js`, `run.js`, `yoga.js`, `muscles.js`, `progress.js`, `tour.js` | The logic as pure, tested functions: plans, exercise library, running, yoga, muscles, Progress and badges, tour data |
 | `app/guide.js` | The guided tour |
+| `app/i18n.js`, `app/i18n-data.js` | The four languages: the translation layer and the table of texts |
 | `netlify/functions/` | Strava, the running loop and the news (server side) |
 | `tests/`, `e2e/` | Unit tests and browser tests |
 | `docs/` | Setup, architecture and security notes |
@@ -132,7 +139,7 @@ Every change went through its own branch and pull request into `main`, with a sh
 
 - **Julius Veith:** the first version of the app and the Nova redesign (v1.0, v2.0), the English app with sign-up, questionnaire and personal plans, goals and body data, the exercise library with 124 drawings, strength splits and mobility add-ons
 - **Tassilo Mylius:** running: screenshots, GPX/FIT/TCX files, the Strava connection, importing a training history from Garmin and Strava, runs near you; yoga goals and the flexibility check; security headers and protected functions; the browser tests
-- **Dominic Quadflieg:** the Nova design system, header, photo pack and icon; calories; build-your-own plans; the workout page; weather; yoga sessions with voice and the tension check; the Today · Train · Progress layout, Nova news, sport pages, reviews by sport, Progress cards, badges and the guided tour
+- **Dominic Quadflieg:** the Nova design system, header, photo pack and icon; calories; build-your-own plans; the workout page; weather; yoga sessions with voice and the tension check; the Today · Train · Progress layout, Nova news, sport pages, reviews by sport, Progress cards, badges and the guided tour; the rotating Today messages and backups; the compact menu and profile photo; installing first on an iPhone; edge cases (full storage, empty Progress, dark mode, screenshots in more languages); the four languages; push notifications; sets in own templates, the workout overview and Profile and body
 
 **Use of AI.** We used AI coding assistants throughout, mainly Claude (Anthropic) through Claude Code, as encouraged in the course. We decided what to build, described features and designs, reviewed the results on real phones, asked for changes and merged each pull request ourselves. Commits written by the assistant are marked with the author “Claude” or a `Co-Authored-By: Claude` line, so the history shows which code was generated. The tests were part of every change, so generated code had to pass the same checks as our own.
 
@@ -148,6 +155,9 @@ Every change went through its own branch and pull request into `main`, with a sh
 | | 17–18 Nov | Yoga, weather, workout page, Today · Train · Progress layout ([#19](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/19)–[#30](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/30)) |
 | v2.11–v2.14 | 19 Nov | Runs near you, yoga goals, security, browser tests ([#32](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/32)–[#36](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/36)) |
 | | 21 Nov | Nova news, new Train with sport pages, reviews by sport, Progress per sport, badges, guided tour ([#37](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/37)–[#52](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/52)) |
+| | 22 Nov | README and docs, rotating Today messages, backups, compact menu, iPhone install, edge cases ([#53](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/53)–[#57](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/57)) |
+| | 22 Nov | Four languages, push notifications in the app language, sign out, library and running fixes ([#58](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/58)–[#65](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/65)) |
+| | 22 Nov | Polar Flow import, external services in the README, Runs near you and running plan in the new design, sets in own templates, workout overview, Profile and body ([#66](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/66)–[#70](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/70)) |
 
 Every change in detail: [CHANGELOG.md](CHANGELOG.md).
 
