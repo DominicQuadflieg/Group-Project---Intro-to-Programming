@@ -2,6 +2,10 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – README for the submission
+
+New README with objectives, features, how to run the app and the tests, who did what and how we used AI. Setup, architecture and security notes moved to `docs/`, with four screenshots in `docs/img/`.
+
 ## Unreleased – Guided tour
 
 After sign-up a guided tour walks through Today, Train (Gym, Run, Yoga) and Progress on the real screens: you tap the highlighted buttons, pauses show each new screen, the library can be browsed and a yoga session tried. Optional example data, removed again at the end. Restart it any time under Menu › Guided tour.

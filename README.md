@@ -1,6 +1,13 @@
-# Group Project - Intro to Programming
+# NOVAFit
 
-Group project for Introduction to Programming at NOVA.
+**One training app for gym, running and yoga, made for Nova SBE students.**
+Group project for *Introduction to Programming* at Nova SBE, 2026/27.
+
+**Live app:** _link follows (Netlify)_ · open it on a phone and choose “Add to Home Screen”.
+
+| Today | Train | Workout | Progress |
+|---|---|---|---|
+| ![Today](docs/img/today.jpg) | ![Train](docs/img/train.jpg) | ![Workout](docs/img/workout.jpg) | ![Progress](docs/img/progress.jpg) |
 
 ## Team
 
@@ -8,196 +15,121 @@ Group project for Introduction to Programming at NOVA.
 - Dominic Quadflieg
 - Julius Veith
 
-## The app: NOVAFit
+## Objectives
 
-A training app for your phone (Progressive Web App) in the design of Nova SBE: strength (lower body, upper body), running and yoga, with personal training plans, progress, stats, a calendar, badges and reminders.
+**The problem.** Students who want to stay fit next to their studies usually juggle three apps: one for the gym, one for running, one for yoga or stretching. None of them knows about the others, about exam weeks or about the 15 minutes between two lectures.
 
-On first start, new users create an account (name, email, password) and answer a short questionnaire:
+**What NOVAFit does.** It builds one weekly plan from a short questionnaire (days per week, mix of sports, goals, level) and then helps with every session: what's next today, the weights from last time, runs from a watch screenshot, guided yoga, and progress that shows only the sports you actually do. It looks and feels like Nova SBE.
 
-1. About you: sex, age and body weight (the weight is used to estimate calories)
-2. How many sessions per week (2–6)
-3. How to split them across strength, running and yoga
-4. Predefined goals, up to 2 per type and 6 in total (e.g. “10 km under 60 minutes”, “Your first pull-up”, “Exam-week stress relief”)
-5. Level and time per session
-6. How to split the strength sessions, e.g. for three a week: 3× Full Body, Push / Pull / Legs, 2× Upper + 1× Lower or 1× Upper + 2× Lower (the best match for the goal and level is marked)
+**What we wanted to learn and show as a programming project:**
 
-NOVAFit then suggests three plans (balanced, focused on the main goal, easy start). Each week combines the strength split with running and yoga, avoids a run the day after a heavy leg session and suggests a short mobility routine after each session. The chosen plan sets the weekly goal and shows the next session on the home screen.
+1. Build a complete, usable application from scratch in plain HTML, CSS and JavaScript, without a framework.
+2. Model real data (plans, sessions, sets, runs, yoga) and keep it safe on the device: validation of every input, a hashed password, no secrets in the code.
+3. Keep the logic testable: pure functions in their own files, 217 unit tests and 13 browser tests that run on every push.
+4. Work as a team with Git: every change in its own pull request, a changelog and a version history.
+5. Use AI coding assistants responsibly, with us deciding what gets built and reviewing what gets merged (see [How we worked](#how-we-worked)).
 
-The exercise library has 124 exercises, each with a drawing (named like in the Strong app, e.g. “Bench Press (Barbell)”), searchable by name, body part and equipment. In a session, exercises can be added, removed or swapped, and users can create their own exercises. Sets are logged as weight × reps, reps only, assisted (kg of help) or time.
+## Features
 
-A session that has been started can be reset at any time (Reset → Start over or Delete session).
+**Getting started**
+- Account (name, Nova email, password) and a questionnaire: body data, days per week, mix of gym, running and yoga, goals, level, strength split
+- Three suggested week plans; the chosen one sets the weekly goal
+- A guided tour right after sign-up that walks through every page (you tap, it explains; optional example data that is removed afterwards). Restart it under *Menu › Guided tour*.
 
-The account is a local profile: it lives on the phone together with the training data. The password is never stored in plain text, only as a salted PBKDF2-SHA256 hash, and locks the app on that device (Settings → Lock app).
+**Today**
+- The next session from the plan, one tap to start
+- The week ahead, with a heads-up before exams
+- Nova SBE news, the last session, a weekly review on Sunday evenings
 
-## Files
+**Train**
+- A week line in the colour of each sport and today's session on top
+- *Gym:* plan days, own templates, ready-made workouts, 124 exercises with drawings; sets filled in from last time, a suggestion when to add weight, rest timer, guided warm-up, swap or add exercises, records
+- *Running:* outdoor or treadmill; read a run from a watch screenshot, import GPX, FIT and TCX files or the whole history from Garmin and Strava, or connect Strava; interval timer; goal plans for 10 km, a half marathon or your own loop
+- *Yoga:* 7 guided sessions read aloud, 5-minute study breaks, a tension check before and after, a flexibility check every two weeks
+- *Edit what's on Train:* switch sports on or off; everything else follows
 
-The app needs no build step:
+**Progress**
+- Cards per sport that you pick yourself (strength score, records, balance, race prediction, calm effect and more)
+- Weekly, monthly and yearly reviews as stories with your own photos, shareable as an image
+- Calendar and full history, 27 badges including special Nova badges
 
-| File | Content |
-|---|---|
-| `app/index.html` | The page: layout and design (CSS) |
-| `app/app.js` | The app itself: screens, sessions, storage and everything you tap (kept out of `index.html` so the site can forbid inline scripts) |
-| `app/plan.js` | Sign-up validation, questionnaire checks, strength splits and plan suggestions (pure functions, tested) |
-| `app/exercises.js` | Exercise library, workout templates, search and checks for custom exercises (pure functions, tested) |
-| `app/run.js` | Running logic: reading runs from screenshots and from GPX, TCX and FIT files, checking the values, turning Strava activities into runs (pure functions, tested) |
-| `app/muscles.js` | Which muscles were trained and how much, and the headline of the muscle slide in the reviews (pure functions, tested) |
-| `app/manifest.webmanifest` | Name, colours and icon for the home screen |
-| `app/OneSignalSDKWorker.js` | Service worker: offline use and push reminders |
-| `app/img/` | Pictures for the home screen and training cards (placeholders) |
-| `app/img/ex/` | Exercise drawings from Everkinetic and Workout Guide, CC BY-SA 4.0, see `SOURCES.md` there |
-| `app/icon-*.png`, `app/apple-touch-icon.png` | App icons |
-| `netlify/functions/route.mjs` | Server part of “A loop from here” (keeps the openrouteservice key) |
-| `netlify/lib/guard.mjs` | Shared protection for the functions: same site only, rate limit, small requests |
-| `netlify/functions/strava.mjs` | Server part of the Strava connection (keeps the client secret) |
-| `netlify.toml` | Netlify settings: publishes `app`, runs the Strava function |
-| `app/INSTALL.txt` | How to install the app on a phone |
-| `releases/` | Zipped versions of the app, ready to install |
-| `tests/plan.test.js` | Tests for `app/plan.js` |
-| `tests/exercises.test.js` | Tests for `app/exercises.js` |
-| `tests/run.test.js` | Tests for `app/run.js` (screenshots) |
-| `tests/run-files.test.js` | Tests for `app/run.js` (GPX, TCX, FIT, ZIP) |
-| `tests/muscles.test.js` | Tests for `app/muscles.js` |
-| `tests/history.test.js` | Tests for importing a training history (Garmin CSV, Strava archive, files) |
-| `tests/nearby.test.js` | Tests for “Runs near you” (routes, loop link and shape, route function) |
-| `tests/guard.test.js` | Tests for the protection of the functions |
-| `tests/strava.test.js` | Tests for the Strava connection (app side and function) |
+**Make it yours:** own photos, dark mode, push reminders, backup and restore, app lock.
 
-## Run
+## Run the application
 
-- **Locally:** `python3 -m http.server 8000 --directory app`, then open http://localhost:8000 (opening `app/index.html` directly also works in most browsers).
-- **Ready-made download:** `releases/NOVAFit 2.8.2.zip` contains the current app. Unzip it and use the `novafit` folder like the `app` folder below.
-- **On a phone:** drag the `app` folder onto https://app.netlify.com/drop, open the address on the phone and choose “Add to Home Screen” (details in `app/INSTALL.txt`). Everything works this way except Strava.
-- **With Strava:** see below. The Strava connection needs the Netlify function, which Netlify Drop can't run.
+**Easiest: the live version.** Open the link above on a phone or computer. On a phone choose *Share › Add to Home Screen*: NOVAFit then starts full screen and works offline.
 
-## Bring your training history
-
-New users can bring their runs from other apps right after choosing a plan (“Bring your training history”), and everyone can do it later under *Settings → Your data → Import runs from other apps*:
-
-| Source | What to choose | How to get it |
-|---|---|---|
-| Garmin Connect | the activity list (CSV) | connect.garmin.com → *Activities → All Activities* → scroll until the year is loaded → *Export CSV* |
-| Strava | the archive (ZIP) or `activities.csv` from it | strava.com → *Settings → My Account → Download or Delete Your Account → Request Your Archive* |
-| Strava (connected) | nothing, NOVAFit gets the runs since 1 January | needs the Strava connection below |
-| Polar, Coros, Suunto, Apple Watch … | several GPX, FIT or TCX files at once | export from the app of the watch |
-
-A preview shows the number of runs and kilometres, with the time range (this year, last 12 months, everything), walks on or off, and kilometres or miles for Garmin files. Rides and other sports are left out, runs that are already in NOVAFit are skipped, and an import can be undone right away. Everything is read on the phone; big Strava archives are not loaded completely, only the activity list inside.
-
-## Runs near you
-
-*Run → Runs near you* suggests at most five runs:
-
-- **Up to 4 hand-picked routes** (`NEARBY_ROUTES` in `app/run.js`): Carcavelos seafront, Oeiras seafront, Paredão Estoril–Cascais and the Lisbon riverside at Belém, sorted by how far away they are. The weather location is used for this (rounded to about 1 km, Nova SBE if location is off). Routes that fit the next run of your running plan are marked. Lengths are approximate: it's a demo set, check them before you rely on them.
-- **A loop from here:** pick 3, 5, 8 or 10 km (or the length of your next plan run) and NOVAFit makes a round trip on foot paths from where you are, shows its shape and opens it in Google Maps. For this one request the position is sent to the route service, it isn't stored.
-
-“Start this run” opens an outdoor run with the distance and the route already filled in.
-
-The loop needs a free openrouteservice key (the list of routes works without it):
-
-1. Sign up at https://openrouteservice.org and create a token in the dashboard.
-2. In Netlify → *Site configuration → Environment variables* add `ORS_API_KEY` with the token, then deploy again (like the Strava keys, it only works when Netlify is connected to this repository).
-
-Without the key the app shows “Needs a one-time setup” instead of the loop button.
-
-## Strava connection
-
-Garmin, Polar, Coros, Suunto and Apple Watch can send runs to Strava automatically. Connected to Strava, NOVAFit picks up those runs whenever the app is opened.
-
-Strava gives each app a public client ID and a secret. The secret must never be in the app or in this repository, so a small Netlify Function (`netlify/functions/strava.mjs`) talks to Strava for the app.
-
-One-time setup:
-
-1. **Connect Netlify to GitHub:** on Netlify, *Add new site → Import an existing project → GitHub* and pick this repository. `netlify.toml` already says what to publish (`app`) and where the function is. Every merge into `main` then deploys automatically.
-2. **Create a Strava API app:** https://www.strava.com/settings/api. Use the site address as *Website* and its domain (e.g. `novafit.netlify.app`, without `https://`) as *Authorization Callback Domain*.
-3. **Add the keys to Netlify:** *Site configuration → Environment variables*: `STRAVA_CLIENT_ID` and `STRAVA_CLIENT_SECRET` from the Strava page, then deploy again.
-4. Open the app: *Run → Connect Strava*. The Strava button only shows up once the function answers, so the app looks as before without this setup.
-
-Notes:
-
-- New Strava API apps can only be used by a few athletes at first. If more people want to connect, ask Strava for more capacity on the API settings page.
-- NOVAFit only asks for read access to activities. The login stays on the phone under its own storage key, so it isn't part of backups or the cloud sync. *Settings → Strava → Disconnect* removes it and the access on Strava.
-- Strava allows 100 requests per 15 minutes per app. NOVAFit checks at most every 15 minutes per phone.
-
-## Security
-
-What is protected, and what isn't:
-
-- **No secrets in the repository.** The Strava and openrouteservice keys live only in Netlify's environment variables and are used by the functions; the app never sees them.
-- **Passwords** are stored only as a salted PBKDF2-SHA256 hash, never as text.
-- **Input is checked** where it comes in: forms (with an error next to the field), imported files (GPX, FIT, TCX, CSV, ZIP) and backup files. Text that comes back from a backup or the cloud sync is cleaned before it is shown (`safeText`, `safeCustom` in `app/exercises.js`), and names are escaped in the HTML.
-- **Content-Security-Policy** (`netlify.toml`): the browser runs only our own scripts (no inline scripts), the pinned text recognition and OneSignal, and only connects to the services the app uses. Further headers stop the app from being framed and from sniffing file types.
-- **Pinned outside code:** the text recognition is fixed to version 5.1.1 and checked with Subresource Integrity, so a changed file on the CDN is refused. The app itself has no npm dependencies.
-- **The functions** only accept calls from the site itself, limit each IP address (Strava 120, loops 20 per 10 minutes) and refuse large requests (`netlify/lib/guard.mjs`).
-
-Limits we know about:
-
-- **Data lives on the phone.** Training data is in the browser's storage. “Lock app” hides the app behind the password, but it is not encryption: someone with access to the unlocked phone and the browser's developer tools could read the data. A real fix needs accounts on a server.
-- **OneSignal** has to be loaded from its own address for major version 16, which can change without notice, so it can't be checked with Subresource Integrity.
-- **The rate limit** is kept in the memory of a function instance: it slows abuse down but resets when Netlify starts a new instance.
-- **The Strava tokens** are kept in the browser's storage on the phone (not in backups or the sync), like most web apps do.
-
-## Test
-
-Requires Node.js 18 or newer, no packages to install:
+**Locally on your computer** (needs Python 3, nothing to install):
 
 ```
-node --test
+git clone https://github.com/juveith/Group-Project---Intro-to-Programming.git
+cd Group-Project---Intro-to-Programming
+python3 -m http.server 8000 --directory app
 ```
 
-or `npm test`. The tests cover valid and rejected sign-up input (empty fields, invalid email, weak or too long passwords, markup in names), body data (age and weight limits, non-numeric input), questionnaire limits (days, mix, goals per type, level, session length), the plan suggestions (session counts, rest days, splits, no run after leg day, mobility add-ons, edge cases), the exercise library (search, filters, alternatives, templates) and custom exercises (empty, too short or long, markup, duplicates). GitHub runs them automatically on every push and pull request.
+Then open http://localhost:8000 and create an account. Everything works locally except the parts that need a server function (Strava connection, the news and the running loop).
 
-### In the browser (end-to-end)
+**On your own phone without Git:** drag the `app` folder onto https://app.netlify.com/drop, open the address it gives you on the phone and add it to the home screen (details in `app/INSTALL.txt`).
 
-The logic tests don't touch `app.js`, so a second set of tests drives the real app in a real browser (Chromium via Playwright, the only package, a development dependency with a fixed version):
+**Full setup with Netlify, Strava and push reminders:** see [docs/setup.md](docs/setup.md).
+
+## Run the tests
+
+Needs Node.js 18 or newer:
 
 ```
-npm ci
+node --test                 # 217 unit tests, no packages needed
+npm ci                      # once, installs Playwright (the only package)
 npx playwright install chromium
-npm run e2e
+npm run e2e                 # 13 tests that drive the real app in a browser
 ```
 
-They serve `app/` with the same security headers as Netlify (`netlify.toml`), keep the browser offline and fail on any page error or blocked request. Covered: sign-up with wrong and right input, body data, the app lock with a wrong password, an empty and a logged strength session, a run without time and a valid run, importing a wrong file and a GPX file from a watch, a wrong time in the check step, the flexibility check, importing a wrong CSV and a Garmin list (twice, so nothing is counted double), a broken backup and a backup with markup in its names. GitHub runs them in a second job next to the logic tests.
+The unit tests cover sign-up and questionnaire validation, plan suggestions, the exercise library, running files and screenshots, imports, yoga, Progress cards, badges and the tour's example data. The browser tests sign up, log strength sessions, runs and yoga, import files, restore backups and walk through the whole guided tour. GitHub runs both on every push and pull request (`.github/workflows/test.yml`).
 
-## Replacing the pictures
+## How it's built
 
-**Photo pack (home screen and reviews):** put the photos into `app/img/pack/` with the names listed in `app/img/pack/README.txt`. They are used for the photo box on the home screen and as backgrounds in the weekly and monthly reviews, unless a user has added own photos in Settings. The list and the crop for portrait screens are in `PHOTO_PACK` in `app/index.html`. Missing files are skipped.
+Plain HTML, CSS and JavaScript, no build step. The app is a Progressive Web App: it installs from the browser, keeps all data on the phone (`localStorage`) and works offline through a service worker. Three small Netlify Functions keep the Strava secret, the routing key and the news feed off the phone.
 
-**Placeholder graphics:** the pictures in `app/img/` are placeholders:
-
-| File | Where |
+| Path | What it is |
 |---|---|
-| `campus-1.svg`, `campus-2.svg` | Photo box on the home screen, only if the photo pack is empty |
-| `gym.svg`, `run.svg`, `yoga.svg` | Picture at the top of the training cards |
+| `app/index.html`, `app/app.js` | The page with its design, and the app itself (screens, sessions, storage) |
+| `app/plan.js`, `exercises.js`, `run.js`, `yoga.js`, `muscles.js`, `progress.js`, `tour.js` | The logic as pure, tested functions: plans, exercise library, running, yoga, muscles, Progress and badges, tour data |
+| `app/guide.js` | The guided tour |
+| `netlify/functions/` | Strava, the running loop and the news (server side) |
+| `tests/`, `e2e/` | Unit tests and browser tests |
+| `docs/` | Setup, architecture and security notes |
 
-To change the training card pictures, update the file names in `.simg-gym`, `.simg-run`, `.simg-yoga` in `app/index.html`. When you add files the app loads at start, also add them to `FILES` in `app/OneSignalSDKWorker.js` and increase `CACHE` by one so installed apps pick them up (photo pack files are cached automatically when they are first shown).
+More detail: [docs/architecture.md](docs/architecture.md) · [docs/security.md](docs/security.md) · notes for new team members and coding agents in [AGENTS.md](AGENTS.md).
 
-The photos in `app/img/pack/` are © Nova SBE and used only for this course project. For anything beyond the course, replace them with your own photos or photos with a suitable licence.
+## How we worked
+
+Every change went through its own branch and pull request into `main`, with a short description and an entry in [CHANGELOG.md](CHANGELOG.md). The tests run on every pull request. 52 pull requests so far.
+
+**Who did what** (pull requests as listed on GitHub; we discussed and tested together):
+
+- **Julius Veith:** the first version of the app and the Nova redesign (v1.0, v2.0), the English app with sign-up, questionnaire and personal plans, goals and body data, the exercise library with 124 drawings, strength splits and mobility add-ons
+- **Tassilo Mylius:** running: screenshots, GPX/FIT/TCX files, the Strava connection, importing a training history from Garmin and Strava, runs near you; yoga goals and the flexibility check; security headers and protected functions; the browser tests
+- **Dominic Quadflieg:** the Nova design system, header, photo pack and icon; calories; build-your-own plans; the workout page; weather; yoga sessions with voice and the tension check; the Today · Train · Progress layout, Nova news, sport pages, reviews by sport, Progress cards, badges and the guided tour
+
+**Use of AI.** We used AI coding assistants throughout, mainly Claude (Anthropic) through Claude Code, as encouraged in the course. We decided what to build, described features and designs, reviewed the results on real phones, asked for changes and merged each pull request ourselves. Commits written by the assistant are marked with the author “Claude” or a `Co-Authored-By: Claude` line, so the history shows which code was generated. The tests were part of every change, so generated code had to pass the same checks as our own.
 
 ## Version history
 
-How the app got to where it is, one row per version. The commits show the code exactly as it was at that point; v1.0 lives on the branch `novafit-redesign` and stays reachable through pull request #1.
+| Version | Date | Milestone |
+|---|---|---|
+| v1.0 | 10 Nov 2026 | First version of the app ([#1](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/1), kept on purpose, not merged) |
+| v2.0–v2.2 | 10–11 Nov | NOVAFit in the Nova SBE design ([#2](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/2), [#3](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/3)) |
+| v2.3–v2.4 | 17 Nov | Account, questionnaire and personal plans ([#4](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/4), [#5](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/5)) |
+| v2.5–v2.7 | 17 Nov | Runs from screenshots, files and Strava ([#6](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/6)–[#9](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/9)) |
+| v2.8–v2.10 | 17–18 Nov | Exercise library with drawings, training history import ([#12](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/12)–[#17](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/17)) |
+| | 17–18 Nov | Yoga, weather, workout page, Today · Train · Progress layout ([#19](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/19)–[#30](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/30)) |
+| v2.11–v2.14 | 19 Nov | Runs near you, yoga goals, security, browser tests ([#32](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/32)–[#36](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/36)) |
+| | 21 Nov | Nova news, new Train with sport pages, reviews by sport, Progress per sport, badges, guided tour ([#37](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/37)–[#52](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/52)) |
 
-| Version | Date | What changed | Commit | Pull request |
-|---|---|---|---|---|
-| v1.0 | 2026-11-10 | My Workout: the starting version of the app | [f77a1b5](https://github.com/juveith/Group-Project---Intro-to-Programming/commit/f77a1b5dc83b618598eef718a4b594d8fe51079f) | [#1](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/1) (kept on purpose, not merged) |
-| v2.0 | 2026-11-10 | NOVAFit: redesign in the Nova SBE style | [baa4569](https://github.com/juveith/Group-Project---Intro-to-Programming/commit/baa4569f48aadb86d32821b194942ba9fd6fa0e1) |  |
-| v2.1 | 2026-11-10 | New NOVAFit header with the shrinking sign | [40a0bf9](https://github.com/juveith/Group-Project---Intro-to-Programming/commit/40a0bf976efa2beed753c39f4b16e869a3d7dca8) | [#2](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/2) |
-| v2.2 | 2026-11-10 | Nova design: photos, image cards, colour blocks, menu | [ecce412](https://github.com/juveith/Group-Project---Intro-to-Programming/commit/ecce41206db9190e4d6dbbfcfae7d401b04adedc) | [#3](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/3) |
-| v2.3 | 2026-11-17 | English app, account sign-up, questionnaire and personal plans | [9c62da3](https://github.com/juveith/Group-Project---Intro-to-Programming/commit/9c62da35d62cae90a10031d3c23349e406a13a2b) | [#4](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/4) |
-| v2.4 | 2026-11-17 | Goals per type, body data, lower body workout, session reset | [34965f2](https://github.com/juveith/Group-Project---Intro-to-Programming/commit/34965f26cde32f62da77ef70eb1ae789edb9532b) | [#5](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/5) |
-| v2.5 | 2026-11-17 | Run screenshots: more reliable and with a check | [ea6be22](https://github.com/juveith/Group-Project---Intro-to-Programming/commit/ea6be2214dc0996627346ca1706b1c323b98113f) |  |
-| v2.6 | 2026-11-17 | Import runs from GPX, FIT and TCX files | [30dddcd](https://github.com/juveith/Group-Project---Intro-to-Programming/commit/30dddcdb35645bdb2fdffda69bf32952a22e5ae1) | [#9](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/9) |
-| v2.7 | 2026-11-17 | Strava: runs from your watch come in by themselves | [5e77f55](https://github.com/juveith/Group-Project---Intro-to-Programming/commit/5e77f55eec30b1da32cc00a66ec048c9f9de5cb3) | [#9](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/9) |
-| v2.8 | 2026-11-17 | Exercise library, custom exercises, strength splits and mobility add-ons | [e0b72a4](https://github.com/juveith/Group-Project---Intro-to-Programming/commit/e0b72a4256ce279bdecc62b873067038b3eee39e) |  |
-| v2.8.1 | 2026-11-17 | Drawings for 124 exercises | [dc67964](https://github.com/juveith/Group-Project---Intro-to-Programming/commit/dc67964ef2cec8ac7f188c51b8f78e0c1d8f91d1) |  |
-| v2.8.2 | 2026-11-17 | Only exercises with a drawing in the library | [cd98248](https://github.com/juveith/Group-Project---Intro-to-Programming/commit/cd9824819a4e336b97fd317f8ec918fa4d124fd9) |  |
-| v2.10 | 2026-11-17 | Bring your training history from Garmin and Strava | [0897dd2](https://github.com/juveith/Group-Project---Intro-to-Programming/commit/0897dd2ea8d68f1bb408ad763155d3ee97b765f3) | [#17](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/17) |
-
-After v2.10 (18 Nov 2026, merged into `main` as separate pull requests, details in [CHANGELOG.md](CHANGELOG.md)): muscle slide that follows your training [#10](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/10), Nova photo pack [#11](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/11), calories by sex, age, weight and height [#19](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/19), build-your-own strength plan [#20](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/20), readable numbers and a safer finish [#21](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/21), screen stays on and rest sound [#22](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/22), compact workout page [#23](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/23), weather where you are and your own running loop [#24](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/24), German Strava screenshot test [#25](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/25), yoga sessions, breath-by-breath Sun Salutations, level and voice, tension check [#26](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/26)–[#29](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/29), and the new layout with Today · Train · Progress tabs and the "You" page [#30](https://github.com/juveith/Group-Project---Intro-to-Programming/pull/30).
+Every change in detail: [CHANGELOG.md](CHANGELOG.md).
 
 ## Credits
 
-The exercise drawings in `app/img/ex/` are from [Everkinetic](https://github.com/everkinetic/data) and [Workout Guide](https://github.com/bryllim/workout-guide) by Bryl Lim and licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). The app shows this credit under each drawing. New drawings must come from a source with a suitable licence and be listed in `app/img/ex/SOURCES.md`.
-
-## Tracking changes
-
-Every change is saved as its own commit with a short description. Versions are listed in [`CHANGELOG.md`](CHANGELOG.md); the exact code changes are under “Commits” on GitHub.
+- Exercise drawings in `app/img/ex/` from [Everkinetic](https://github.com/everkinetic/data) and [Workout Guide](https://github.com/bryllim/workout-guide) by Bryl Lim, licensed [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) (list in `app/img/ex/SOURCES.md`).
+- Photos in `app/img/pack/` © Nova SBE, used only for this course project.
+- Text recognition for run screenshots: [Tesseract.js](https://github.com/naptha/tesseract.js) 5.1.1. Push reminders: OneSignal.
