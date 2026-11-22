@@ -5271,13 +5271,19 @@ function initPush(){
   document.head.appendChild(sc);
 }
 async function enablePush(){
-  if(!OS) return;
+  if(!OS){ toast("Notifications are still loading. Try again in a moment."); return; }
+  // On an iPhone the question "Allow notifications?" only appears if it is asked right in the tap,
+  // before anything else waits. OneSignal's own request waits for its setup first, so iOS ignored the tap.
+  let ask = null;
+  try{ if("Notification" in window && Notification.permission==="default") ask = Notification.requestPermission(); }catch(e){}
   try{
-    await OS.Notifications.requestPermission();
-    if(OS.Notifications.permission){ try{ await OS.User.PushSubscription.optIn(); }catch(e){} }
+    if(ask) await ask; else await OS.Notifications.requestPermission();
+    if(("Notification" in window ? Notification.permission==="granted" : OS.Notifications.permission)) await OS.User.PushSubscription.optIn();
   }catch(e){}
   refreshPush(); syncTags();
   if(push==="on") toast("Notifications are on.");
+  else if(push==="denied") toast("Notifications are blocked. Allow them in your phone's settings under Notifications → NOVAFit.");
+  else toast("Notifications couldn't be turned on. Close NOVAFit completely, open it again and try once more.");
 }
 
 /* Direktlinks aus Push-Nachrichten: #woche öffnet den Wochenrückblick, #yoga startet Yoga, #studybreak die Lernpause */

@@ -2,6 +2,11 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Allow notifications on iPhone
+
+- Tapping Allow notifications in the installed iPhone app now shows the question right away (it was asked too late, so iOS ignored the tap).
+- The app always says what happened: on, blocked (with where to allow it) or not possible right now.
+
 ## Unreleased – Push messages in four languages
 
 - The weekly and review push messages come in English, Portuguese, German or Italian; the app tells OneSignal the language chosen in the app where the browser allows it.
