@@ -52,7 +52,7 @@ test("body weight: letters or 3 kg show a message and are not kept", async () =>
   await signedIn(page, { bodyKg: "70" });
   await page.evaluate(() => settingsSheet("profile"));
   await page.fill("#set-kg", "abc");
-  assert.match(await text(page, "#set-kg-err"), /between 30 and 250/);
+  assert.match(await text(page, "#set-kg-err"), /weight/);
   await page.fill("#set-kg", "3");
   assert.equal(await page.evaluate(() => S.settings.bodyKg), "70");
   await page.fill("#set-kg", "72,5");

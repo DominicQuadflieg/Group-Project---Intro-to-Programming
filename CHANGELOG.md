@@ -4,19 +4,44 @@ Alle Versionen der App, die neueste oben.
 
 ## Unreleased – Usability check: no impossible numbers, and Undo
 
-A walk through the whole app with nonsense inputs (−3 km, 100 km in 30 minutes, 80 % incline, 600 min of yoga, 3 kg body weight, a 1-second 10 km target) and every action that deletes or replaces something.
+A walk through the whole app with nonsense inputs (−3 km, 80 % incline, 600 min of yoga, 99 999 km per month, a 5-second loop goal) and every action that deletes or replaces something.
 
-- **Runs and treadmill**: distance and time typed in by hand are checked before saving, with a message under the fields: more than 0 and up to 300 km, 3 minutes to 24 hours, seconds up to 59, a pace between world record and walking (2:30 to 30:00 /km), incline 0 to 30 %. Until now such typos were saved, became records and unlocked badges
-- **Yoga**: 1 to 300 minutes. **Body weight**: 30 to 250 kg, **height** 120 to 230 cm, with a message instead of saving any text (old invalid weights are cleared)
+- **Runs and treadmill**: on top of the run check, a pace slower than 30:00 /km and a treadmill incline outside 0 to 30 % are refused, with a message
+- **Yoga**: 1 to 300 minutes, with a message
 - **Running goals**: the loop target must be a pace someone can run, kilometres per month 1 to 1000 (the race target check came with *Runs and race targets are checked*)
 - **Edit a saved session** (history › Edit): fix reps, weights, distance, time or yoga minutes, with the same checks. Empty reps remove a set
 - **Undo** after deleting a session, saving an edit, loading a backup, removing a progress photo or the profile photo, and deleting an own exercise
 - **Badges** that only the deleted or edited session had earned are taken back (and come back with Undo)
-- **Backups** ask first, say how many sessions are new and warn when the backup belongs to another account. Name, email and password on the phone are never replaced
+- **Backups** ask first, say how many sessions are new and warn when the backup belongs to another account (the account itself already stays, see *A backup never replaces the account*); Undo puts everything back. Demo data loads without the question
 - **Own exercises** can be edited (name, body part, equipment; the log type only while it was never logged) and deleted. Past workouts keep the name; an exercise still in an own workout or the running session can't be deleted
 - **Skip this exercise** (optional exercises) asks first when sets are already ticked off, like *Remove from today*
 - Removed the *Send a test notification* button
 - Checks are pure functions with unit tests (`run.js`: `checkIncline`, `checkKmMonth`, a slowest pace in `validateRun`; `yoga.js`: `checkMinutes`); 8 new browser tests in `e2e/usability.e2e.js`; all new texts in four languages
+
+## Unreleased – Translation gaps closed
+
+- A test user clicked through every screen in German and listed what stayed English. About 100 texts now have a row in Portuguese, German and Italian: the yoga page (“A little space for yourself”, “Find your flow.” …), the empty Progress cards, “Back to top”, “Already trained today”, the flexibility check result, *added* / *your exercise* in the library, the sign-up and own-exercise errors, and many short messages (Strava, weather, import undo, running goal, calendar, backup)
+- Two places mixed a sentence and a number in one text and could not be translated; they are now two parts (“Already trained today” card, *last:* badge)
+- Fixed: “1 sessions loaded.” is now “1 session loaded.”
+- One new browser test in German
+
+## Unreleased – Swapping an exercise keeps your sets
+
+- Machine taken after two sets? Swapping the exercise used to delete the sets you had already done (a small grey note said so). They now stay with the session, are saved with it, and a line under the new exercise says so (“Before the swap: 2 sets of …”). Swapping back brings them back, followed by fresh sets
+- “Machine taken? Choose an alternative.” is translated now
+- `swapSets` in `exercises.js` with a unit test; one new browser test
+
+## Unreleased – A backup never replaces your account
+
+- Loading a backup brings training data and settings, but name, email, password and the lock of this phone stay as they are. Until now a backup file from someone else (or a changed one) replaced them, so after loading it your own password no longer worked
+- On a phone without an account (*Welcome back › Load backup file*), the account still comes from the file, so moving to a new phone works as before
+- `backupSettings` in `plan.js` with a unit test; two new browser tests and a sample file
+
+## Unreleased – Body weight and height in Settings are checked
+
+- *Settings › Profile and body*: weight and height get the same check as at sign-up (weight 30 to 250 kg, height 120 to 230 cm or empty). Until now “abc” or “−70” were saved as body weight, which the calorie estimate uses. A wrong number shows an error below the field and the last good value stays saved
+- The sign-up's errors for weight, height, age and “Choose an option” were never translated; they are now
+- `kgError` and `cmError` in `plan.js`, also used by the sign-up, with a unit test; one new browser test
 
 ## Unreleased – Demo data to try the app
 

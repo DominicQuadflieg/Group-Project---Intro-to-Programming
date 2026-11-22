@@ -1053,7 +1053,7 @@ function progressTabHtml(st){
   h += `<section id="sec-cal"><h2 class="sec">Calendar &amp; history</h2><button class="pbox" data-act="calopen"><span class="pbt"><b>This week</b><span>${MONTHS[now.getMonth()]}: ${mr.n} ${mr.n===1?"session":"sessions"}</span></span><span class="pweek">${[0,1,2,3,4,5,6].map(cell).join("")}</span>${last ? `<span class="pses"><i class="k-${kindOfW(last.type)}"></i><span><b>${esc(W[last.type].name)}</b><small>Last session · ${dShort(last.start)}</small></span></span>` : ""}</button><button class="pmore" data-act="calopen"><span>Open calendar &amp; history</span><span>›</span></button></section>`;
   // Badges preview
   const vis = visibleBadges(), got = vis.filter(b => S.badges && S.badges[b.id]).sort((a,b) => S.badges[b.id]-S.badges[a.id]), nb = nextBadge();
-  h += `<section id="sec-badges"><h2 class="sec">Badges</h2><div class="pbox"><span class="pbt"><b>${got.length} of ${vis.length} earned</b><span>${got.length ? "last: " + esc(got[0].t) : ""}</span></span><span class="pbrow">${got.slice(0,3).map(b => badgeEl(b, true)).join("")}${nb ? `<span class="pbn"><b>Almost: ${esc(nb.b.t)}</b><small>${esc(nb.p.txt)}</small><span class="btrack"><i style="width:${Math.round(nb.p.pct*100)}%"></i></span></span>` : ""}</span></div><button class="pmore" data-act="badgesopen"><span>All badges</span><span>›</span></button></section>`;
+  h += `<section id="sec-badges"><h2 class="sec">Badges</h2><div class="pbox"><span class="pbt"><b>${got.length} of ${vis.length} earned</b><span>${got.length ? "last: <span>" + esc(got[0].t) + "</span>" : ""}</span></span><span class="pbrow">${got.slice(0,3).map(b => badgeEl(b, true)).join("")}${nb ? `<span class="pbn"><b>Almost: ${esc(nb.b.t)}</b><small>${esc(nb.p.txt)}</small><span class="btrack"><i style="width:${Math.round(nb.p.pct*100)}%"></i></span></span>` : ""}</span></div><button class="pmore" data-act="badgesopen"><span>All badges</span><span>›</span></button></section>`;
   return h;
 }
 function pcardsSheet(k){
@@ -1162,6 +1162,12 @@ function cardPic(e){
 // How often an exercise was done before: the instructions show for the first 3 times, later behind ⋯ › How to
 const timesDone = id => S.history.reduce((n, e) => n + (e.sets && e.sets[id] && e.sets[id].length ? 1 : 0), 0);
 const allDone = id => { const a = (S.active.sets||{})[id] || []; return a.length>0 && a.every(isDone); };
+// Sets done before a swap: still saved with the session, named under the new exercise
+function keptHtml(base, ex){
+  const a = S.active, ids = ((a.kept||{})[base.id]||[]).filter(id => id!==ex.id && (a.sets[id]||[]).some(isDone));
+  return ids.map(id => { const n = a.sets[id].filter(isDone).length;
+    return `<p class="keptl small muted">Before the swap: ${n} ${n===1?"set":"sets"} of ${esc((EXN[id]||{}).n||id)}, saved with this session.</p>`; }).join("");
+}
 function exCard(ex, base, pos){
   base = base || ex; pos = pos || {};
   // finished exercises fold into one line (tap to open again)
@@ -1187,7 +1193,7 @@ function exCard(ex, base, pos){
       <button class="more" ${menu} aria-haspopup="dialog" aria-label="Options for ${esc(ex.n)}">${MORE_ICO}</button></div>
     ${ex.cue && timesDone(ex.id) < 3 ? `<p class="cue">${ex.cue}</p>` : ""}${ll}${hint}
     <div class="colhead"><span>Set</span><span>${COLS[ex.type||"w"][0]}</span><span>${COLS[ex.type||"w"][1]}</span><span></span></div>
-    <div class="sets">${setRows(ex)}</div>
+    ${keptHtml(base, ex)}<div class="sets">${setRows(ex)}</div>
     <button class="addsetin" data-act="addset" data-ex="${ex.id}">+ Add set</button>
   </article>`;
 }
@@ -2671,7 +2677,7 @@ function moveEx(baseId, d){
 function swapSheet(baseId){
   const base = exIn(S.active.type, baseId), cur = eff(base).id, opts = [base, ...altsOf(baseId)];
   const has = (S.active.sets[cur]||[]).some(isDone);
-  sheet(`<h3>Swap exercise</h3><p class="muted small">Machine taken? Choose an alternative. ${has?"Sets you already checked off for this exercise will be reset.":""}</p>
+  sheet(`<h3>Swap exercise</h3><p class="muted small">Machine taken? Choose an alternative. ${has?"Sets you already did stay saved with this session.":""}</p>
     <div class="alts">${opts.map(o => `<button class="altrow ${o.id===cur?"cur":""}" data-act="doswap" data-base="${baseId}" data-id="${o.id}"><b>${esc(o.n)}</b>${o.id===baseId?`<small>Original</small>`:`<small>${esc(o.eq)} · ${NFEx.TYPES[o.type]}</small>`}${o.id===cur?`<span class="pill">current</span>`:""}</button>`).join("")}</div>
     <button class="secondary" data-act="closesheet">Cancel</button>`);
 }
@@ -2679,9 +2685,10 @@ function doSwap(baseId, id){
   const a = S.active; a.swap = a.swap || {};
   const cur = eff(exIn(a.type, baseId)).id;
   if(cur!==id){
-    delete a.sets[cur];
     if(id===baseId) delete a.swap[baseId]; else a.swap[baseId] = id;
-    a.sets[id] = prefilledSets(eff(exIn(a.type, baseId)));
+    // sets already done stay with the session (and come back when swapping back)
+    a.sets = NFEx.swapSets(a.sets, cur, id, prefilledSets(eff(exIn(a.type, baseId))));
+    if((a.sets[cur]||[]).length){ a.kept = a.kept || {}; a.kept[baseId] = [...new Set([...(a.kept[baseId]||[]), cur])]; }
   }
   save(); closeSheet(); renderSession();
 }
@@ -3966,7 +3973,8 @@ function heroMain(st){
     if(gains[0]) what += ` · new record: ${esc(gains[0].n)} ${fmt(gains[0].to)} kg`;
     const tail = left===0 ? "Weekly goal reached! 🏆" : `${left} more ${left===1?"session":"sessions"} this week.`;
     prepShare(entryShareSpec(e));
-    return card("gold", "Already trained today 🎉", `${what}. ${tail}`, `<button class="herobtn" data-act="share">📤 Share result</button>`);
+    return card("gold", "Already trained today 🎉", `${what}. <span>${tail}</span>`,   // two text nodes, so each half is translated
+      `<button class="herobtn" data-act="share">📤 Share result</button>`);
   }
   // 4) Sonntag tagsüber: Yoga
   if(d===0) return card("yoga", "Sunday is yoga day 🧘‍♀️", "Up for 30 minutes of vinyasa? Or 10 minutes of glute mobility to unwind.", `<button class="herobtn" data-act="yogaflow">🧘‍♀️ Start yoga</button>`, `<span class="heroalt">or <button class="linkbtn" data-act="mobility">Glute Mobility</button></span>`);
@@ -5122,6 +5130,8 @@ async function signOutNow(){
   location.replace(location.pathname);
 }
 
+/* An error under a settings field (the page translator translates it) */
+function fieldErr(inp, sel, msg){ const er = $(sel); if(er) er.textContent = msg || ""; inp.setAttribute("aria-invalid", msg ? "true" : "false"); }
 /* Account section in settings */
 function accountHtml(){
   const p = S.settings.profile; if(!p) return "";
@@ -5540,11 +5550,12 @@ function loadBackupText(text){
 function applyBackup(d){
   const prev = JSON.stringify(S), mine = S.settings.profile ? {profile:S.settings.profile, name:S.settings.name, avatar:S.settings.avatar, locked:S.settings.locked} : null;
   try{
+    d.settings = NFPlan.backupSettings(d.settings, !!mine);   // the account on this phone stays (plan.js)
     S = merge(S, d);
     if(mine) Object.keys(mine).forEach(k => { if(mine[k]===undefined) delete S.settings[k]; else S.settings[k] = mine[k]; });
   }catch(e){ S = normalize(JSON.parse(prev)); toast("That's not a valid backup."); return; }
   addCustomToEXN(); registerOwn(); checkBadges(true); save(); applyTheme(); closeSheet(); screen = "home"; render();
-  if(!mine){ toast(d.demo===true ? T(`Demo data loaded: ${d.history.length} sessions. Settings › Your data removes it again.`) : `${d.history.length} sessions loaded.`); return; }
+  if(!mine){ toast(d.demo===true ? T(`Demo data loaded: ${d.history.length} sessions. Settings › Your data removes it again.`) : `${d.history.length} ${d.history.length===1 ? "session" : "sessions"} loaded.`); return; }
   undoToast(d.demo===true ? `Demo data loaded: ${d.history.length} sessions. Settings › Your data removes it again.` : "Backup loaded.", () => { S = normalize(JSON.parse(prev)); addCustomToEXN(); registerOwn(); save(); applyTheme(); render(); });
 }
 /* Demo file (app/demo/novafit-demo.json): move every date forward by whole weeks, so the last demo
@@ -5572,17 +5583,14 @@ document.addEventListener("input", ev => {
   if(k==="libq"){ LIB.q = t.value; const l = $("#liblist"); if(l) l.innerHTML = libListHtml(); return; }
   if(k==="ownname"){ const day = OB.a && OB.a.own && OB.a.own.days[+t.dataset.i]; if(day) day.name = t.value; return; }
   if(k==="name"){ S.settings.name = t.value; save(); return; }
-  if(k==="bodykg"){ const v = t.value.trim(), kg = num(v), okK = /^\d{1,3}([.,]\d{1,2})?$/.test(v) && kg>=NFPlan.MIN_KG && kg<=NFPlan.MAX_KG, er = $("#set-kg-err");
-    if(er) er.textContent = !v || okK ? "" : T(`Enter a weight between ${NFPlan.MIN_KG} and ${NFPlan.MAX_KG} kg`); t.setAttribute("aria-invalid", v && !okK ? "true" : "false");
-    // only a plausible weight is kept (it sets calories and the "bench your bodyweight" badge); empty turns calories off
-    if(!v || okK){ S.settings.bodyKg = v ? String(kg) : ""; save(); } return; }
+  // like the sign-up: a wrong number shows an error and the last good value stays saved
+  if(k==="bodykg"){ const v = t.value.trim(), e = NFPlan.kgError(v); fieldErr(t, "#set-kg-err", e);
+    if(!e){ S.settings.bodyKg = String(Math.round(num(v)*10)/10); save(); } return; }
   if(k==="bodyage"){ const v = t.value.trim(), age = Math.round(num(v)), er = $("#set-age-err"), okA = age>=NFPlan.MIN_AGE && age<=NFPlan.MAX_AGE;
     if(er) er.textContent = !v || okA ? "" : T(`Enter an age between ${NFPlan.MIN_AGE} and ${NFPlan.MAX_AGE}`); t.setAttribute("aria-invalid", v && !okA ? "true" : "false");
     if(okA){ S.settings.body = S.settings.body || {}; S.settings.body.age = age; save(); } return; }
-  if(k==="bodycm"){ const v = t.value.trim(), cm = Math.round(num(v)), okC = /^\d{2,3}$/.test(v) && cm>=NFPlan.MIN_CM && cm<=NFPlan.MAX_CM, er = $("#set-cm-err");
-    if(er) er.textContent = !v || okC ? "" : T(`Enter a height between ${NFPlan.MIN_CM} and ${NFPlan.MAX_CM} cm`); t.setAttribute("aria-invalid", v && !okC ? "true" : "false");
-    S.settings.body = S.settings.body || {};
-    if(okC) S.settings.body.cm = cm; else if(!v) delete S.settings.body.cm; save(); return; }
+  if(k==="bodycm"){ const v = t.value.trim(), e = NFPlan.cmError(v); fieldErr(t, "#set-cm-err", e); if(e) return;
+    S.settings.body = S.settings.body || {}; if(v) S.settings.body.cm = Math.round(num(v)); else delete S.settings.body.cm; save(); return; }
   if(k==="time"){ S.settings.remTime = t.value || "18:00"; save(); return; }
   if(k==="edtime"){ const f = fmtTimeDigits(t.value); if(f!==t.value) t.value = f; return; }
   if(k==="plw"){ if(t.dataset.f==="target"){ const f = fmtTimeDigits(t.value); if(f!==t.value) t.value = f; } PLW[t.dataset.f] = t.value; if(t.type==="date") render(); return; }

@@ -58,3 +58,28 @@ test("backup: markup in a changed file is shown as text, never run", async () =>
   assert.equal(await page.evaluate(() => S.settings.custom[0].n.includes("<")), false);
   assert.deepEqual(await page.done(), []);
 });
+
+test("backup: a file with another account brings the runs, not the other person's name and password", async () => {
+  const page = await app.open();
+  await signedIn(page);
+  const mine = await page.evaluate(() => JSON.stringify(S.settings.profile));
+  await page.evaluate(() => settingsSheet());
+  await page.setInputFiles("#importf", fixture("other-account-backup.json"));
+  await page.waitForSelector("[data-act=backupok]");                    // the app asks first
+  assert.match(await page.textContent(".sheet"), /another account/);
+  await page.click("[data-act=backupok]");
+  await page.waitForFunction(() => S.history.length === 1);
+  assert.equal(await page.evaluate(() => JSON.stringify(S.settings.profile)), mine);
+  assert.equal(await page.evaluate(() => S.settings.goal), 5);           // ordinary settings still come in
+  assert.deepEqual(await page.done(), []);
+});
+
+test("backup: on a phone without an account, Welcome back › Load backup file brings the account", async () => {
+  const page = await app.open();
+  await page.evaluate(() => startOnboarding("restore"));
+  await page.waitForSelector('[data-act="import"]');
+  await page.setInputFiles("#importf", fixture("other-account-backup.json"));
+  await page.waitForFunction(() => S.history.length === 1);
+  assert.equal(await page.evaluate(() => S.settings.profile && S.settings.profile.email), "other@example.com");
+  assert.deepEqual(await page.done(), []);
+});
