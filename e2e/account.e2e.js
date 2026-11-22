@@ -1,7 +1,7 @@
 // End-to-end: first start, account and questionnaire · run with: npm run e2e
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { setup, text } = require("./helpers");
+const { setup, text, waitForStep } = require("./helpers");
 
 let app;
 test.before(async () => { app = await setup(); });
@@ -38,7 +38,7 @@ test("a valid sign-up stores only a password hash and leads to the questionnaire
   await page.fill("#ob-email", "Julius@NovaSBE.pt");
   await page.fill("#ob-pw", "secret123");
   await page.click('#ob-form button[type="submit"]');
-  await page.waitForSelector("#ob-age");
+  await waitForStep(page, "body");
   const stored = await page.evaluate(() => localStorage.getItem("po-plan-app-v2"));
   assert.ok(stored.includes("julius@novasbe.pt"), "email saved in lower case");
   assert.ok(!stored.includes("secret123"), "password is never stored as text");
@@ -65,7 +65,7 @@ test("the locked app asks for the password and refuses a wrong one", async () =>
   await page.fill("#ob-email", "dominic@novasbe.pt");
   await page.fill("#ob-pw", "secret123");
   await page.click('#ob-form button[type="submit"]');
-  await page.waitForSelector("#ob-age");
+  await waitForStep(page, "body");
   await page.evaluate(() => { S.settings.locked = true; save(); location.reload(); });
   await page.waitForSelector('#ob-form[data-form="login"]');
   await page.fill("#ob-pw", "wrongpass1");

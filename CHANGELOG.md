@@ -9,6 +9,10 @@ Alle Versionen der App, die neueste oben.
 - A new account sees one short card per sport on Progress instead of many empty cards.
 - Earned badges are visible in dark mode.
 
+## Unreleased – Clearer browser test failures
+
+- When the sign-up in a browser test doesn't reach the next step, the test now says what the screen showed (step, error messages, which fields were filled, whether the account was saved) instead of only “timeout”, so a failure on GitHub can be understood from the log
+
 ## Unreleased – Menu, profile photo, install first on iPhone
 
 A compact menu: five groups, one line per setting that says what it is for, missing things in red, a profile photo (tap + to add, tap the photo to change or remove it), Nova default pack for photos, no footer; the guided tour explains the sections. On an iPhone in Safari, Create account first shows how to add NOVAFit to the Home Screen (Safari and the app keep separate data); anyone who signed up in Safari moves everything with Copy my data and Paste from Safari.
