@@ -84,6 +84,15 @@ Then open http://localhost:8000 and create an account. Everything works locally 
 
 **Full setup with Netlify, Strava and push reminders:** see [docs/setup.md](docs/setup.md).
 
+### Try it with demo data (optional)
+
+A new account starts empty, so most statistics only fill up after a few weeks of training. To see the app as it looks after a semester, load the demo file:
+
+1. Download [novafit-demo.json](https://inquisitive-pegasus-dbcd63.netlify.app/demo/novafit-demo.json) (also in the repository at [`app/demo/novafit-demo.json`](app/demo/novafit-demo.json)).
+2. In the app: *Menu › Settings › Your data › Load backup*, and choose the file.
+
+It adds 16 weeks of made-up sessions (gym, runs and yoga), moved so the last one was a few days ago. Your name, plan and settings stay as they are. *Remove demo data* in the same place takes them out again. The file is made by [`demo/make_demo.py`](demo/make_demo.py) (`python3 demo/make_demo.py`).
+
 ## Run the tests
 
 Needs Node.js 18 or newer:

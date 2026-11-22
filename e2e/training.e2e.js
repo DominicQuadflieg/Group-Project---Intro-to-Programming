@@ -73,6 +73,69 @@ test("strength: impossible numbers show an error next to the set and are not sav
   assert.deepEqual(await page.done(), []);
 });
 
+test("run typed in by hand: impossible distance or pace shows an error next to the field", async () => {
+  const page = await app.open();
+  await signedIn(page);
+  await page.evaluate(() => startSession("lauf", "out"));
+  await page.waitForSelector("#run-min");
+  await page.fill("#run-min", "3000");                        // 30:00
+  for (const [km, msg] of [["-5", /Enter the distance as a number/], ["900", /between 0 and 300 km/], ["20", /faster than a world record/]]) {
+    await page.fill("#run-km", km);
+    await page.click('[data-act="finish"] >> nth=0');
+    assert.match(await text(page, "#run-km-err"), msg, km);
+    assert.equal(await page.getAttribute("#run-km", "aria-invalid"), "true");
+    assert.equal(await page.evaluate(() => S.history.length), 0);
+  }
+  await page.fill("#run-km", "5,2");                          // typing clears the message
+  assert.equal(await text(page, "#run-km-err"), "");
+  await page.click('[data-act="finish"] >> nth=0');
+  await page.waitForFunction(() => S.history.length === 1);
+  assert.equal(await page.evaluate(() => S.history[0].run.km), 5.2);
+  assert.deepEqual(await page.done(), []);
+});
+
+test("strength: swapping an exercise keeps the sets already done and saves them", async () => {
+  const page = await app.open();
+  await signedIn(page);
+  const t = await page.evaluate(() => startKeys()[0]);
+  await page.evaluate(t => startSession(t), t);
+  const first = await page.waitForSelector('input[data-in="set"][data-f="r"]');
+  const ex = await first.getAttribute("data-ex");
+  await first.fill("10");
+  await page.fill(`input[data-in="set"][data-f="kg"][data-ex="${ex}"][data-i="0"]`, "40");
+
+  await page.click(`[data-act="exmenu"][data-ex="${ex}"]`);
+  await page.click('.sheet [data-act="exm"][data-go="swap"]');
+  await page.waitForSelector('.sheet [data-act="doswap"]');
+  assert.match(await text(page, ".sheet"), /stay saved with this session/);
+  const alt = await page.$('.sheet [data-act="doswap"]:not(.cur)');
+  const to = await alt.getAttribute("data-id");
+  await alt.click();
+  await page.waitForFunction(to => !!S.active.sets[to], to);
+  assert.deepEqual(await page.evaluate(ex => S.active.sets[ex].map(s => [s.r, s.kg, s.ok]), ex), [["10", "40", true]]);
+  assert.match(await text(page, ".keptl"), /Before the swap: 1 set of/);
+
+  // swapping back brings the set back
+  await page.click(`[data-act="exmenu"][data-ex="${to}"]`);
+  await page.click('.sheet [data-act="exm"][data-go="swap"]');
+  await page.waitForSelector('.sheet [data-act="doswap"]');
+  await page.click(`.sheet [data-act="doswap"][data-id="${ex}"]`);
+  await page.waitForFunction(ex => S.active.sets[ex].length > 1, ex);
+  assert.equal(await page.inputValue(`input[data-in="set"][data-f="r"][data-ex="${ex}"][data-i="0"]`), "10");
+
+  // swap away again and finish: the set is in the history
+  await page.click(`[data-act="exmenu"][data-ex="${ex}"]`);
+  await page.click('.sheet [data-act="exm"][data-go="swap"]');
+  await page.waitForSelector('.sheet [data-act="doswap"]');
+  await page.click(`.sheet [data-act="doswap"][data-id="${to}"]`);
+  await page.click('[data-act="finish"] >> nth=0');
+  const ok = await page.$('.sheet [data-act="finishok"]');
+  if (ok) await ok.click();
+  await page.waitForFunction(() => screen === "summary");
+  assert.deepEqual(await page.evaluate(ex => S.history[S.history.length - 1].sets[ex], ex), [{ r: 10, kg: 40 }]);
+  assert.deepEqual(await page.done(), []);
+});
+
 test("run: no time means no save; a valid run shows the pace and is saved", async () => {
   const page = await app.open();
   await signedIn(page);

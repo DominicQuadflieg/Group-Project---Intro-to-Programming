@@ -1,0 +1,2 @@
+{"v": 2, "history": [{"id": "s1794943990736", "type": "lauf", "start": 1794943990736, "end": 1794945790736, "run": {"mode": "out", "km": 5, "min": 30, "note": ""}}],
+ "settings": {"profile": {"name": "Someone Else", "email": "other@example.com", "hash": "00", "salt": "00"}, "locked": false, "goal": 5}}

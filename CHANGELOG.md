@@ -9,6 +9,36 @@ Alle Versionen der App, die neueste oben.
 - Fixed: “1 sessions loaded.” is now “1 session loaded.”
 - One new browser test in German
 
+## Unreleased – Swapping an exercise keeps your sets
+
+- Machine taken after two sets? Swapping the exercise used to delete the sets you had already done (a small grey note said so). They now stay with the session, are saved with it, and a line under the new exercise says so (“Before the swap: 2 sets of …”). Swapping back brings them back, followed by fresh sets
+- “Machine taken? Choose an alternative.” is translated now
+- `swapSets` in `exercises.js` with a unit test; one new browser test
+
+## Unreleased – A backup never replaces your account
+
+- Loading a backup brings training data and settings, but name, email, password and the lock of this phone stay as they are. Until now a backup file from someone else (or a changed one) replaced them, so after loading it your own password no longer worked
+- On a phone without an account (*Welcome back › Load backup file*), the account still comes from the file, so moving to a new phone works as before
+- `backupSettings` in `plan.js` with a unit test; two new browser tests and a sample file
+
+## Unreleased – Body weight and height in Settings are checked
+
+- *Settings › Profile and body*: weight and height get the same check as at sign-up (weight 30 to 250 kg, height 120 to 230 cm or empty). Until now “abc” or “−70” were saved as body weight, which the calorie estimate uses. A wrong number shows an error below the field and the last good value stays saved
+- The sign-up's errors for weight, height, age and “Choose an option” were never translated; they are now
+- `kgError` and `cmError` in `plan.js`, also used by the sign-up, with a unit test; one new browser test
+
+## Unreleased – Demo data to try the app
+
+Optional demo file (app/demo/novafit-demo.json, made by demo/make_demo.py): 16 weeks of gym, runs and yoga, loaded via Load backup and moved to recent weeks. Remove demo data takes it out again. README explains it. Tonnage badges raised to 100 t and 500 t.
+
+## Unreleased – Runs and race targets are checked
+
+- A run typed in by hand gets the same check as a screenshot or a watch file: distance 0 to 300 km, time 3 minutes to 24 hours, and no pace faster than a world record. Until now −5 km, 900 km in 30 minutes or 10 km in 5 seconds were saved. The message shows right below the field
+- Running goal: the target time has to be a pace a person can run (2:30 to 20 min per km); a 10 km target of 10 seconds made a plan before
+- Fixed: without earlier runs, the 10 km goal suggested “1:0000–” as target time, which counted as 1 minute. Full hours now show as 1:00:00
+- The error messages of the screenshot and file check are translated now too
+- `checkTarget` in `run.js` with unit tests; two new browser tests
+
 ## Unreleased – Set numbers are checked
 
 - Reps and weights in a gym session are checked while you type: reps a whole number from 1 to 200, weight 0 to 500 kg (assistance 0 to 200 kg), timed exercises 1 to 3600 seconds or 0.5 to 300 minutes. Until now −5 reps, letters or 99 999 kg were saved and spoiled records and totals

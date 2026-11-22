@@ -422,6 +422,22 @@
   }
   const setOk = (set, ex) => { const e = checkSet(set, ex); return !e.r && !e.kg; };
 
+  /* Swapping an exercise in a running session (machine taken): the sets already done of the
+     old one stay in the session and are saved with it, the open ones go. Swapping back brings
+     the done sets back, followed by fresh ones. `fresh` are the new exercise's prefilled sets.
+     Returns the new sets map; the one passed in isn't changed. */
+  function swapSets(sets, from, to, fresh) {
+    const out = Object.assign({}, sets || {});
+    // done like in the app: ticked, or typed in by an older version (no ok field)
+    const done = s => !!s && (s.ok === true || (s.ok === undefined && String(s.r == null ? "" : s.r).trim() !== ""));
+    if (from === to) return out;
+    const kept = (out[from] || []).filter(done);
+    if (kept.length) out[from] = kept; else delete out[from];
+    const back = (out[to] || []).filter(done);
+    out[to] = back.concat((fresh || []).slice(back.length));
+    return out;
+  }
+
   function carryForward(sets, i, field, value) {
     const changed = [];
     if (!Array.isArray(sets) || !(field === "r" || field === "kg")) return changed;
@@ -435,7 +451,7 @@
   }
 
   const api = { safeText, safeCustom, RETIRED, TYPES, PARTS, EQUIP, PATTERNS, LIBRARY, BY_ID, DRAWINGS, TEMPLATES, TEMPLATE_ORDER, MUSCLE_NAMES,
-    unitOf, search, alternatives, validateCustom, makeCustom, templateExercises, focusOf, carryForward, checkSet, setOk, SET_LIMITS };
+    unitOf, search, alternatives, validateCustom, makeCustom, templateExercises, focusOf, carryForward, checkSet, setOk, SET_LIMITS, swapSets };
   if (typeof module === "object" && module.exports) module.exports = api;
   else root.NFEx = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);

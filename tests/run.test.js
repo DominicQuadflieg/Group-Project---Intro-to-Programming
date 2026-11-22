@@ -214,3 +214,22 @@ test("screenshots in Portuguese, Spanish, French and Italian, and 'Tempo' as tim
     if (day) { const d = new Date(r.at); assert.deepEqual([d.getDate(), d.getHours()], [day, hour], txt.split("\n")[0]); }
   }
 });
+
+/* ---------- a run typed in by hand, and target times ---------- */
+test("validateRun refuses what the QA run could type by hand", () => {
+  assert.ok(R.validateRun({ km: "-5", time: "30:00" }, NOW).errors.km);            // negative distance
+  assert.ok(R.validateRun({ km: "900", time: "30:00" }, NOW).errors.km);           // 900 km
+  assert.ok(R.validateRun({ km: "10", time: "0:05" }, NOW).errors.time);           // 5 seconds
+  assert.ok(R.validateRun({ km: "10", time: "20:00" }, NOW).errors.km);            // 2:00 /km: faster than a world record
+  assert.equal(R.validateRun({ km: "5,2", time: "31:40" }, NOW).ok, true);
+  assert.equal(R.validateRun({ km: "", time: "1:05:10" }, NOW).ok, true);          // treadmill time only
+});
+
+test("checkTarget only accepts a pace a person can run", () => {
+  assert.equal(R.checkTarget(10, 0), "");                                          // no target (optional)
+  assert.equal(R.checkTarget(10, 52), "");
+  assert.equal(R.checkTarget(42.195, 3 * 60 + 30), "");
+  assert.match(R.checkTarget(10, 10 / 60), /faster than the world record/);        // 10 seconds
+  assert.match(R.checkTarget(10, 24), /faster/);                                    // 2:24 /km
+  assert.match(R.checkTarget(21.0975, 9 * 60), /slower than walking/);
+});
