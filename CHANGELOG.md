@@ -2,6 +2,11 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Push messages in four languages
+
+- The weekly and review push messages come in English, Portuguese, German or Italian; the app tells OneSignal the language chosen in the app where the browser allows it.
+- Calendar reminders (Add to my calendar) are in the chosen language too.
+
 ## Unreleased – Four languages
 
 - The app is available in English, Portuguese, German and Italian. It starts in the language of the phone; switch on the welcome screen or under Menu › Look and feel › Language.

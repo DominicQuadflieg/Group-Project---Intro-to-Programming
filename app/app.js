@@ -2421,9 +2421,9 @@ function icsText(){
   const days = st.remDays.slice().sort().map(i => by[i]).join(",");
   return ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//NOVAFit//Training//EN","CALSCALE:GREGORIAN","BEGIN:VEVENT",
     "UID:poplan-"+Date.now()+"@po-plan","DTSTAMP:"+stamp,"DTSTART:"+loc,"DURATION:PT1H30M","RRULE:FREQ=WEEKLY;BYDAY="+days,
-    "SUMMARY:Training (NOVAFit)","DESCRIPTION:Time to train! Open the app and start your session.",
-    "BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:Training time is coming up","TRIGGER:-PT15M","END:VALARM",
-    "BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:Training time!","TRIGGER:PT0M","END:VALARM",
+    "SUMMARY:"+T("Training")+" (NOVAFit)","DESCRIPTION:"+T("Time to train! Open the app and start your session."),
+    "BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:"+T("Training time is coming up"),"TRIGGER:-PT15M","END:VALARM",
+    "BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:"+T("Training time!"),"TRIGGER:PT0M","END:VALARM",
     "END:VEVENT","END:VCALENDAR",""].join("\r\n");
 }
 
@@ -5239,6 +5239,8 @@ function syncTags(){
   try{
     const last = S.history.length ? S.history[S.history.length-1] : null;
     const st = stats();
+    // OneSignal sends each push in the language chosen in the app (en, pt, de, it), where the SDK allows it; otherwise the phone language
+    try{ if(typeof OS.User.setLanguage==="function") OS.User.setLanguage(NFI18N.getLang()); }catch(e){}
     OS.User.addTags({ last_workout: String(last ? Math.floor((last.end||last.start)/1000) : 0), next_name: W[st.next].name });
   }catch(e){}
 }
