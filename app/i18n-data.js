@@ -1,6 +1,11 @@
 /* NOVAFit · translations: English, Portuguese (Portugal), German, Italian.
    One row per text. {0}, {1} … are numbers, {a}, {b} … names, months or weekdays (see i18n.js). Generated from the app's texts; edit by hand. */
 NFI18N.load([
+["Help: {0} to {1} kg", "Ajuda: {0} a {1} kg", "Hilfe: {0} bis {1} kg", "Aiuto: da {0} a {1} kg"],
+["Reps: a whole number from {0} to {1}", "Repetições: um número inteiro de {0} a {1}", "Wiederholungen: eine ganze Zahl von {0} bis {1}", "Ripetizioni: un numero intero da {0} a {1}"],
+["Time: {0} to {1} minutes", "Tempo: {0} a {1} minutos", "Zeit: {0} bis {1} Minuten", "Tempo: da {0} a {1} minuti"],
+["Time: {0} to {1} seconds", "Tempo: {0} a {1} segundos", "Zeit: {0} bis {1} Sekunden", "Tempo: da {0} a {1} secondi"],
+["Weight: {0} to {1} kg", "Peso: {0} a {1} kg", "Gewicht: {0} bis {1} kg", "Peso: da {0} a {1} kg"],
 ["\"Where I am\" asks your phone for its location, rounded to about {0} km. It is only used for the forecast.", "\"Onde estou\" pede a localização ao teu telemóvel, arredondada a cerca de {0} km. Só é usada para a previsão.", "„Wo ich bin“ fragt dein Handy nach dem Standort, gerundet auf etwa {0} km. Er wird nur für die Vorhersage genutzt.", "\"Dove sono\" chiede la posizione al telefono, arrotondata a circa {0} km. Si usa solo per le previsioni."],
 ["(website): open the run →", "(site): abre a corrida →", "(Website): Lauf öffnen →", "(sito): apri la corsa →"],
 ["(website): open the run → gear icon →", "(site): abre a corrida → ícone da engrenagem →", "(Website): Lauf öffnen → Zahnrad-Symbol →", "(sito): apri la corsa → icona dell'ingranaggio →"],

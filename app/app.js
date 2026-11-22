@@ -1135,15 +1135,16 @@ const COLS = {w:["Reps","Weight"], r:["Reps",""], a:["Reps","Help"], t:["Time","
 function setRows(ex){
   const a = S.active, arr = a.sets[ex.id] || [], last = lastSets(ex.id) || [], t = ex.type || "w", u = NFEx.unitOf(ex);
   return arr.map((s,i) => {
-    const p = last[i] || last[last.length-1] || {};
-    const first = `<div class="field"><input inputmode="${t==="t"?"decimal":"numeric"}" autocomplete="off" id="r-${ex.id}-${i}" data-in="set" data-ex="${ex.id}" data-i="${i}" data-f="r" value="${esc(s.r)}" placeholder="${p.r!=null?esc(p.r):ex.r[1]}" aria-label="${esc(ex.n)} set ${i+1} ${t==="t"?(u==="min"?"minutes":"seconds"):"reps"}"><span class="u">${t==="t"?u:"reps"}</span></div>`;
+    const p = last[i] || last[last.length-1] || {}, er = NFEx.checkSet(s, ex), bad = er.r || er.kg;
+    const first = `<div class="field"><input inputmode="${t==="t"?"decimal":"numeric"}" autocomplete="off" id="r-${ex.id}-${i}" data-in="set" data-ex="${ex.id}" data-i="${i}" data-f="r" aria-describedby="se-${ex.id}-${i}"${er.r?` aria-invalid="true"`:""} value="${esc(s.r)}" placeholder="${p.r!=null?esc(p.r):ex.r[1]}" aria-label="${esc(ex.n)} set ${i+1} ${t==="t"?(u==="min"?"minutes":"seconds"):"reps"}"><span class="u">${t==="t"?u:"reps"}</span></div>`;
     const second = t==="w" || t==="a"
-      ? `<div class="field"><input inputmode="decimal" autocomplete="off" id="kg-${ex.id}-${i}" data-in="set" data-ex="${ex.id}" data-i="${i}" data-f="kg" value="${esc(s.kg)}" placeholder="${p.kg!=null?esc(fmt(num(p.kg))):""}" aria-label="${esc(ex.n)} set ${i+1} ${t==="a"?"assistance":"weight"}"><span class="u">${t==="a"?"−kg":"kg"}</span></div>`
+      ? `<div class="field"><input inputmode="decimal" autocomplete="off" id="kg-${ex.id}-${i}" data-in="set" data-ex="${ex.id}" data-i="${i}" data-f="kg" aria-describedby="se-${ex.id}-${i}"${er.kg?` aria-invalid="true"`:""} value="${esc(s.kg)}" placeholder="${p.kg!=null?esc(fmt(num(p.kg))):""}" aria-label="${esc(ex.n)} set ${i+1} ${t==="a"?"assistance":"weight"}"><span class="u">${t==="a"?"−kg":"kg"}</span></div>`
       : `<span class="nokg">${t==="r"?"bodyweight":""}</span>`;
-    return `<div class="setrow ${isDone(s)?"done":filled(s)?"pre":""}" data-row="${ex.id}-${i}">
+    return `<div class="setrow ${bad?"bad":isDone(s)?"done":filled(s)?"pre":""}" data-row="${ex.id}-${i}">
       ${i>=ex.s?`<button class="rmset" data-act="rmset" data-ex="${ex.id}" data-i="${i}" aria-label="Remove set ${i+1}">−</button>`:`<span class="sn">${i+1}</span>`}
       ${first}${second}
-      <button class="tick" data-act="tick" data-ex="${ex.id}" data-i="${i}" aria-label="Set ${i+1} done">✓</button></div>`;
+      <button class="tick" data-act="tick" data-ex="${ex.id}" data-i="${i}" aria-label="Set ${i+1} done">✓</button>
+      <p class="err seterr" id="se-${ex.id}-${i}" role="alert">${esc(bad || "")}</p></div>`;
   }).join("");
 }
 
@@ -2124,10 +2125,23 @@ function renderSession(){
 
 function updateBottom(){ const bb = $("#bb"); if(!bb) return; const w = W[S.active.type]; bb.innerHTML = restBar() + `<button class="primary ${kc(w)}" data-act="finish">${w.kind==="run"?"Save run":"Finish session"}</button>`; }
 
+/* Shows or clears the error of one set row (numbers out of range, letters); true when the numbers are fine */
+function setShowCheck(exId, i){
+  const s = S.active.sets[exId][i], er = NFEx.checkSet(s, curEx(exId)), msg = er.r || er.kg;
+  const row = document.querySelector(`[data-row="${exId}-${i}"]`), el = document.getElementById(`se-${exId}-${i}`);
+  if(el) el.textContent = msg || "";   // the page translator picks it up
+  if(row) row.classList.toggle("bad", !!msg);
+  [["r", er.r], ["kg", er.kg]].forEach(([f, e]) => { const inp = document.getElementById(`${f}-${exId}-${i}`); if(inp){ if(e) inp.setAttribute("aria-invalid", "true"); else inp.removeAttribute("aria-invalid"); } });
+  return !msg;
+}
 function tick(exId, i){
   const a = S.active, s = a.sets[exId][i], ex = curEx(exId);
   const last = lastSets(exId) || [], p = last[i] || last[last.length-1];
   const row = document.querySelector(`[data-row="${exId}-${i}"]`);
+  if(!isDone(s) && filled(s) && !setShowCheck(exId, i)){
+    row.classList.remove("shake"); void row.offsetWidth; row.classList.add("shake");
+    const er = NFEx.checkSet(s, ex), inp = document.getElementById(`${er.r ? "r" : "kg"}-${exId}-${i}`); inp && inp.focus(); return;
+  }
   if(isDone(s)){ s.ok = false; row.classList.remove("done"); row.classList.toggle("pre", filled(s)); save(); return; }
   if(!filled(s)){
     if(p && num(p.r)>0){ s.r = String(p.r); if(String(s.kg).trim()==="") s.kg = fmt(num(p.kg)); }
@@ -2184,7 +2198,7 @@ function buildEntry(withPending){
   if(isGym(a.type) && now-a.start>GYM_MAX) e.capped = true;
   const sets = {};
   Object.keys(a.sets).forEach(id => {
-    const d = a.sets[id].filter(x => isDone(x) || (withPending && filled(x))).map(s => ({r:num(s.r), kg:num(s.kg)}));
+    const ex = EXN[id] || {}, d = a.sets[id].filter(x => (isDone(x) || (withPending && filled(x))) && NFEx.setOk(x, ex)).map(s => ({r:num(s.r), kg:num(s.kg)}));
     if(d.length) sets[id] = d;
   });
   if(Object.keys(sets).length) e.sets = sets;
@@ -5360,10 +5374,12 @@ document.addEventListener("input", ev => {
   if(!S.active) return;
   if(k==="set"){
     const arr = S.active.sets[t.dataset.ex], i = +t.dataset.i, s = arr[i]; s[t.dataset.f] = t.value;
-    s.ok = filled(s);
+    const ok = setShowCheck(t.dataset.ex, i);
+    s.ok = filled(s) && ok;
     const row = t.closest(".setrow"); row.classList.toggle("done", s.ok); row.classList.remove("pre", "shake");
     // Same reps or weight for the next sets: fill them in as a suggestion until they are ticked
-    NFEx.carryForward(arr, i, t.dataset.f, t.value).forEach(j => {
+    // (only numbers that are fine: a typo like -5 is not handed on to the next sets)
+    if(ok) NFEx.carryForward(arr, i, t.dataset.f, t.value).forEach(j => {
       const inp = document.getElementById(`${t.dataset.f==="kg" ? "kg" : "r"}-${t.dataset.ex}-${j}`); if(inp) inp.value = t.value;
       const r = document.querySelector(`[data-row="${CSS.escape(t.dataset.ex+"-"+j)}"]`); if(r){ r.classList.remove("done"); r.classList.toggle("pre", filled(arr[j])); }
     });
