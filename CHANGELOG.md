@@ -1,8 +1,8 @@
 # Changelog
 
-Alle Versionen der App, die neueste oben.
+Alle Versionen der App, die neueste oben. Alle Abschnitte mit *v2.15* gehören zur Version 2.15.0 (21.–22. Nov 2026).
 
-## Unreleased – Usability check: no impossible numbers, and Undo
+## v2.15 – Usability check: no impossible numbers, and Undo
 
 A walk through the whole app with nonsense inputs (−3 km, 80 % incline, 600 min of yoga, 99 999 km per month, a 5-second loop goal) and every action that deletes or replaces something.
 
@@ -18,36 +18,36 @@ A walk through the whole app with nonsense inputs (−3 km, 80 % incline, 600 mi
 - Removed the *Send a test notification* button
 - Checks are pure functions with unit tests (`run.js`: `checkIncline`, `checkKmMonth`, a slowest pace in `validateRun`; `yoga.js`: `checkMinutes`); 8 new browser tests in `e2e/usability.e2e.js`; all new texts in four languages
 
-## Unreleased – Translation gaps closed
+## v2.15 – Translation gaps closed
 
 - A test user clicked through every screen in German and listed what stayed English. About 100 texts now have a row in Portuguese, German and Italian: the yoga page (“A little space for yourself”, “Find your flow.” …), the empty Progress cards, “Back to top”, “Already trained today”, the flexibility check result, *added* / *your exercise* in the library, the sign-up and own-exercise errors, and many short messages (Strava, weather, import undo, running goal, calendar, backup)
 - Two places mixed a sentence and a number in one text and could not be translated; they are now two parts (“Already trained today” card, *last:* badge)
 - Fixed: “1 sessions loaded.” is now “1 session loaded.”
 - One new browser test in German
 
-## Unreleased – Swapping an exercise keeps your sets
+## v2.15 – Swapping an exercise keeps your sets
 
 - Machine taken after two sets? Swapping the exercise used to delete the sets you had already done (a small grey note said so). They now stay with the session, are saved with it, and a line under the new exercise says so (“Before the swap: 2 sets of …”). Swapping back brings them back, followed by fresh sets
 - “Machine taken? Choose an alternative.” is translated now
 - `swapSets` in `exercises.js` with a unit test; one new browser test
 
-## Unreleased – A backup never replaces your account
+## v2.15 – A backup never replaces your account
 
 - Loading a backup brings training data and settings, but name, email, password and the lock of this phone stay as they are. Until now a backup file from someone else (or a changed one) replaced them, so after loading it your own password no longer worked
 - On a phone without an account (*Welcome back › Load backup file*), the account still comes from the file, so moving to a new phone works as before
 - `backupSettings` in `plan.js` with a unit test; two new browser tests and a sample file
 
-## Unreleased – Body weight and height in Settings are checked
+## v2.15 – Body weight and height in Settings are checked
 
 - *Settings › Profile and body*: weight and height get the same check as at sign-up (weight 30 to 250 kg, height 120 to 230 cm or empty). Until now “abc” or “−70” were saved as body weight, which the calorie estimate uses. A wrong number shows an error below the field and the last good value stays saved
 - The sign-up's errors for weight, height, age and “Choose an option” were never translated; they are now
 - `kgError` and `cmError` in `plan.js`, also used by the sign-up, with a unit test; one new browser test
 
-## Unreleased – Demo data to try the app
+## v2.15 – Demo data to try the app
 
 Optional demo file (app/demo/novafit-demo.json, made by demo/make_demo.py): 16 weeks of gym, runs and yoga, loaded via Load backup and moved to recent weeks. Remove demo data takes it out again. README explains it. Tonnage badges raised to 100 t and 500 t.
 
-## Unreleased – Runs and race targets are checked
+## v2.15 – Runs and race targets are checked
 
 - A run typed in by hand gets the same check as a screenshot or a watch file: distance 0 to 300 km, time 3 minutes to 24 hours, and no pace faster than a world record. Until now −5 km, 900 km in 30 minutes or 10 km in 5 seconds were saved. The message shows right below the field
 - Running goal: the target time has to be a pace a person can run (2:30 to 20 min per km); a 10 km target of 10 seconds made a plan before
@@ -55,167 +55,167 @@ Optional demo file (app/demo/novafit-demo.json, made by demo/make_demo.py): 16 w
 - The error messages of the screenshot and file check are translated now too
 - `checkTarget` in `run.js` with unit tests; two new browser tests
 
-## Unreleased – Set numbers are checked
+## v2.15 – Set numbers are checked
 
 - Reps and weights in a gym session are checked while you type: reps a whole number from 1 to 200, weight 0 to 500 kg (assistance 0 to 200 kg), timed exercises 1 to 3600 seconds or 0.5 to 300 minutes. Until now −5 reps, letters or 99 999 kg were saved and spoiled records and totals
 - A wrong number turns the set red with a short message right below it (in all four languages); the set doesn't count, the tick doesn't accept it, and the typo isn't copied into the next sets
 - Saving leaves out any set with impossible numbers, also with *I did all, save them all*
 - The check is a pure function in `exercises.js` (`checkSet`) with unit tests; one new browser test
 
-## Unreleased – Badges that take longer
+## v2.15 – Badges that take longer
 
 21 new long-term badges (★★ months, ★★★ a year or more), sorted easy to hard per group. Triple week now says 3× SPORTS. No more NEW tags in the Progress card editor.
 
-## Unreleased – Own gym days and templates
+## v2.15 – Own gym days and templates
 
 - Choose my own at sign-up: every exercise starts at 0 sets; set 1 to 10 with + and −. Exercises without a set are marked red.
 - Own templates can be edited from Your plan too, and deleted (Edit › Delete template). Past workouts keep their name; a plan day that used it gets a ready-made workout again.
 - New exercises: Pull-up (Weighted) and Chest Dip (Weighted), logged with the extra kg.
 
-## Unreleased – Marathon, and session length from what's in it
+## v2.15 – Marathon, and session length from what's in it
 
 - Running goal: Finish a marathon, with an optional target time and a 16-week plan (long run up to 32 km, shorter the week before). If you raced today now shows a marathon time too; Marathon is also a goal at sign-up.
 - The sign-up no longer asks for minutes per session. Gym sessions show about how long they take, worked out from their sets and rests; yoga shows its length; runs follow the running plan.
 
-## Unreleased – Runs near you on the running page
+## v2.15 – Runs near you on the running page
 
 - *Train › Running* (the running page most people use) has a new section **Where to run** with *Runs near you*, built like *Your goal* and *Import runs*. Until now the entry was only in the older running menu that opens from *Today*, so it couldn't be found from the running page
 - The route service on the live site was checked first: it returns real loops
 - “week 1 of 13” under *Your goal* is now translated too
 - Browser test: the running page shows the section and opens *Runs near you*
 
-## Unreleased – iPhone notifications, second step
+## v2.15 – iPhone notifications, second step
 
 - “Allow notifications” now creates the phone's own push subscription first, right in the tap, with the app's push key from OneSignal's public config (loaded when the app starts); OneSignal then registers that subscription. On an iPhone this is the only moment iOS allows it
 - Every step has a time limit, so a call that never answers can't freeze the button any more; the reason shows in “Check notifications”
 - “Send a test notification” also appears when the phone allows notifications but OneSignal isn't subscribed yet; “Check notifications” shows whether the push key is loaded
 - Two new browser tests
 
-## Unreleased – iPhone notifications subscribe
+## v2.15 – iPhone notifications subscribe
 
 - On the iPhone, permission could be granted while OneSignal never created a subscription, so Notifications stayed “Off”. When permission is already granted, “Allow notifications” now starts the subscription right in the tap (iPhone only allows it there); otherwise it asks first and a second tap finishes
 - The app waits a moment for OneSignal's device ID and, if it is still missing, says why in “Check notifications” (no push subscription on the phone, or OneSignal hasn't registered it yet)
 - “Allow notifications” is translated now; two new browser tests
 
-## Unreleased – Check notifications
+## v2.15 – Check notifications
 
 - *Settings › Notifications* has **Send a test notification** (shown straight from the device, without OneSignal: if it appears, the phone or laptop is fine and a missing reminder is a OneSignal question)
 - **Check notifications** lists device, permission, OneSignal, service worker, subscription and address, plus the last problem (e.g. OneSignal couldn't start or load, the permission question didn't appear, subscribing failed) instead of hiding it
 - The device's OneSignal ID with a copy button, to send a test message to exactly this device from the OneSignal dashboard
 - In all four languages; two new browser tests
 
-## Unreleased – Clearer settings
+## v2.15 – Clearer settings
 
 - Chosen options in the settings (sex, show calories, appearance, sound …) are filled black with a ✓, white in dark mode.
 - Weekly goal and My plan are one row: the plan sets how many sessions a week. The duplicate Edit profile and plan link under your name is gone.
 
-## Unreleased – Running plan looks right again
+## v2.15 – Running plan looks right again
 
 - **Fixed:** the weeks of the running plan (“This week”, “Next week”) were squeezed into narrow columns side by side. The plan used the class `.pweek`, which the new Progress page also uses for its 7-day strip; the plan's week cards are now `.rweek`, so each run is a full-width row again
 - The next run is marked with a small tag (“Up next”) like other tags in the app
 - The running goal wizard and the plan are now in all four languages: run types (Easy, Tempo, Intervals, Long), their descriptions, targets, weeks to go, race day, buttons and the note below. The gym-days sentence was split so every weekday is translated on its own
 - Two browser tests: the runs of a week are full-width rows under each other (it fails on the old styles), and in German nothing in the wizard and the plan stays English
 
-## Unreleased – Profile and body in settings
+## v2.15 – Profile and body in settings
 
 - Changing your plan starts with how often you want to train; sex, age, weight and height are set under Settings › Profile and body (sex and age are new there).
 
-## Unreleased – Workout overview
+## v2.15 – Workout overview
 
 - + Add set right under each exercise; extra sets can be removed with −, the planned ones stay.
 - ⋯ now shows today's whole workout with the sets per exercise; ↑ ↓ change the order.
 
-## Unreleased – Sets in your own templates
+## v2.15 – Sets in your own templates
 
 - In Save a new template every exercise starts at 0 sets; set 1 to 10 sets per exercise with + and −. The template keeps them.
 - During a workout, ⋯ › Remove a set takes away a set, also one of the planned ones.
-## Unreleased – Polar Flow CSV
+## v2.15 – Polar Flow CSV
 
 - Runs exported from Polar Flow as **CSV** can now be imported, as a single run (Log a run → watch file) and in “Bring your training history”, several files at once. NOVAFit reads date, start time, duration and distance; without a distance it uses the watch's per-second distances
 - Recognised by the content, so `.CSV` in capitals works too; other Polar sports (e.g. cycling) are skipped, treadmill runs count as treadmill
 - Clear error messages in all four languages; 5 new unit tests and a browser check with a real Polar export
 
-## Unreleased – Runs near you in the new design
+## v2.15 – Runs near you in the new design
 
 - *Runs near you* is now built from the same parts as the running and yoga menus: two sections with a small heading, a serif title and a short line (“Close by · Routes near you”, “From where you are · A loop from here”)
 - Routes are rows like “Outdoor run” (stripe, serif name, distance, arrow); tapping one opens the description with *Directions* and *Start this run*, so only one pair of buttons shows at a time
 - The loop button reads “Make me a loop · 8 km” (it said “Make a 8 km loop”); *Start this run* is the main button in blue
 - Works in light and dark mode and in all four languages; the browser tests open and close a route too
 
-## Unreleased – External services in the README
+## v2.15 – External services in the README
 
 - New section *External services and APIs* in the README: every outside service NOVAFit uses (openrouteservice, Open-Meteo, BigDataCloud, the Nova SBE news page, OneSignal, Strava, Tesseract.js via jsDelivr, Google Fonts, Google Maps links), what for, where in the code, which key it needs and what is sent
 - Credits name Open-Meteo (CC BY 4.0), openrouteservice with OpenStreetMap data (ODbL) and BigDataCloud
 
-## Unreleased – Runs near you is back in the running menu
+## v2.15 – Runs near you is back in the running menu
 
 - *Train › Running* has a row **Runs near you** again (it was taken out in #39, so the routes and the loop from here could not be opened anymore, even though the route service is set up on the live site)
 - The sheet is now in all four languages: titles, buttons, route names and descriptions, distances (“about 5 km · 3 km away”), loop texts and errors; place names stay as they are
 - Three browser tests: the menu opens the sheet with the nearest routes and a loop that starts a run; without the route key the routes still work; in German nothing stays in English
 
-## Unreleased – Sign out
+## v2.15 – Sign out
 
 - New **Sign out** in Settings › Account. NOVAFit has no server account, so signing out removes the account and all training from this phone: it offers a backup first (to sign in again on any phone with “I already have an account”), asks for the password and then removes the training data, photos, Strava login, weather and news caches and turns off push reminders. Other sites' data stays
 - “Only lock the app (keep my data)” in the same sheet, like Lock app
 - Wrong or empty password: an error next to the field; after 5 wrong tries a 30-second pause, like unlocking
 - In all four languages; one unit test and three browser tests (wrong password, only lock, full sign out)
 
-## Unreleased – README and docs for the submission
+## v2.15 – README and docs for the submission
 
 - README and `docs/setup.md` say clearly that the direct Strava connection is built and tested but not switched on in the live version: the Strava API needs a Strava subscription, which none of us has. Runs still come in by screenshot, watch file and the free Strava archive
 - The README no longer names fixed numbers of tests and pull requests (they went out of date with every change); it links to the list of pull requests instead
 - The old ready-made `releases/NOVAFit 2.8.2.zip` is no longer part of the current files; `docs/setup.md` links to it in the Git history, so it can still be downloaded
 
-## Unreleased – Allow notifications on iPhone
+## v2.15 – Allow notifications on iPhone
 
 - Tapping Allow notifications in the installed iPhone app now shows the question right away (it was asked too late, so iOS ignored the tap).
 - The app always says what happened: on, blocked (with where to allow it) or not possible right now.
 
-## Unreleased – Push messages in four languages
+## v2.15 – Push messages in four languages
 
 - The weekly and review push messages come in English, Portuguese, German or Italian; the app tells OneSignal the language chosen in the app where the browser allows it.
 - Calendar reminders (Add to my calendar) are in the chosen language too.
 
-## Unreleased – Four languages
+## v2.15 – Four languages
 
 - The app is available in English, Portuguese, German and Italian. It starts in the language of the phone; switch on the welcome screen or under Menu › Look and feel › Language.
 - Exercise names stay in English. Dates, voice cues in yoga, toasts and story images follow the language.
 - Fixed a German label ("Wunschzeit") in the running goal form.
 
-## Unreleased – Edge cases
+## v2.15 – Edge cases
 
 - Screenshots in Portuguese, Spanish, French and Italian are read correctly (dates, labels, "Tempo" as time).
 - A full phone storage is no longer silent: the app says so once and points to the backup.
 - A new account sees one short card per sport on Progress instead of many empty cards.
 - Earned badges are visible in dark mode.
 
-## Unreleased – The cursor stays where you tapped
+## v2.15 – The cursor stays where you tapped
 
 - **Fixed:** on a slow phone, the sign-up form (and the form for your own exercise) could move the cursor back to the first field just after you tapped the next one, so your email landed in the name field. The app now only places the cursor when you haven't chosen a field yet
 - Found through a browser test that failed now and then on GitHub; a new test stops the page's clock to reproduce it every time
 - When the sign-up in a browser test doesn't reach the next step, the test now says what the screen showed (step, error messages, which fields were filled, whether the account was saved) instead of only “timeout”
 
-## Unreleased – Menu, profile photo, install first on iPhone
+## v2.15 – Menu, profile photo, install first on iPhone
 
 A compact menu: five groups, one line per setting that says what it is for, missing things in red, a profile photo (tap + to add, tap the photo to change or remove it), Nova default pack for photos, no footer; the guided tour explains the sections. On an iPhone in Safari, Create account first shows how to add NOVAFit to the Home Screen (Safari and the app keep separate data); anyone who signed up in Safari moves everything with Copy my data and Paste from Safari.
 
-## Unreleased – Today takes turns, backups, README
+## v2.15 – Today takes turns, backups, README
 
 The big card on Today now takes turns every 5 seconds between the day's message, the week or month review and a reminder to back up (after 5 sessions, then every 2 weeks). Backups open the phone's share sheet, Settings shows the last backup, and the browser is asked to keep NOVAFit's data. New README with objectives, features, how to run and test, team and AI use; setup, architecture and security notes in docs/.
 
-## Unreleased – Guided tour
+## v2.15 – Guided tour
 
 After sign-up a guided tour walks through Today, Train (Gym, Run, Yoga) and Progress on the real screens: you tap the highlighted buttons, pauses show each new screen, the library can be browsed and a yoga session tried. Optional example data, removed again at the end. Restart it any time under Menu › Guided tour.
 
-## Unreleased – Progress per sport, Calendar & history, Nova badges
+## v2.15 – Progress per sport, Calendar & history, Nova badges
 
 Progress shows only the sports you train, each with cards you pick (Edit cards). Calendar and history now have their own page with a month view and the full list. Badges are Nova squares, grouped by sport, with new special badges.
 
-## Unreleased – Reviews follow your sports
+## v2.15 – Reviews follow your sports
 
 The weekly review now shows only the chapters for the sports you did: gym, running, yoga or a balanced mix. Every slide uses your photo with the same calm overlay, and the end slide says your name.
 
-## Unreleased – Train with your week, and one page each for Gym, Run and Yoga
+## v2.15 – Train with your week, and one page each for Gym, Run and Yoga
 
 - **Train**: "Train" with "3 of 6 this week", a thin week line coloured by sport (Upper, Lower, Run …; done crossed out, today marked), today's session with Start, then one Nova photo per sport (Gym, Run, Yoga). The heavy footer is gone from Train
 - **Edit what's on Train** is now just three switches (Gym, Run, Yoga); at least one stays on. Without a choice Train shows the sports in your plan. With one sport only, its picture is bigger
@@ -224,71 +224,71 @@ The weekly review now shows only the chapters for the sports you did: gym, runni
 - **Yoga page**: suggested session, short routines, all sessions with their figure and length (each starts directly), flexibility check
 - Replaces the per-session Edit from #43/#46 (`NFPlan.trainList`/`trainToggle` → `NFPlan.trainKinds`/`toggleKind`, tests in `tests/train-sports.test.js`). Own workouts are now "templates" under Gym
 
-## Unreleased – Next sets take over your reps and weight
+## v2.15 – Next sets take over your reps and weight
 
 - In a workout, typing reps or weight in a set fills the same value into the later sets of that exercise (e.g. 10 reps, 62.5 kg in set 1 → sets 2 and 3 show 10 and 62.5). They stay suggestions until you tick them or change them; sets you already entered or ticked are never overwritten
 - New `NFEx.carryForward` with tests in `tests/carry-sets.test.js`
 
-## Unreleased – Build your own workout from Edit Train
+## v2.15 – Build your own workout from Edit Train
 
 - In "Edit Train", the Strength block has "+ Build your own workout": give it a name, pick exercises from the library (or create your own exercise), and save. It goes on Train with a "Yours" label and can be edited later
 - Optional: "In your plan" puts it on one of your strength days instead of that day's workout (e.g. Fri · instead of Lower Body B)
 - Errors show next to the field: a name (up to 30 characters) and at least one exercise (up to 15) are needed
 - Saved like the own workouts from "Build my own". New `NFPlan.validateBuild` / `NFPlan.placeInPlan` with tests in `tests/build-workout.test.js`
 
-## Unreleased – Edit Train sorted by kind
+## v2.15 – Edit Train sorted by kind
 
 - "Edit Train" is now sorted into Strength, Running and Yoga, each with a small photo and how many are on Train. Your own workouts carry a "Yours" label; templates you can add sit under their kind
 - Train with everything hidden says so and offers "Reset to my plan" next to Edit
 
-## Unreleased – Train keeps your own workouts
+## v2.15 – Train keeps your own workouts
 
 - Fix for #43: workouts you built yourself ("Build my own" when setting up the plan) disappeared from Train. They show again, and "Edit Train" can add your other own workouts too
 
-## Unreleased – Nova SBE News on Today
+## v2.15 – Nova SBE News on Today
 
 - New section at the bottom of Today: the three newest headlines from the Nova SBE news page, each opening the article on novasbe.unl.pt, plus "All news ›"
 - The school has no RSS feed, so a small Netlify Function (`netlify/functions/news.mjs`) reads its news page and keeps only headline and link. Netlify caches the answer for 3 hours; the app keeps the last list for offline use
 - If the page can't be read (offline, or the school changes its site), Today just shows a link to the news page
 - Parser in `netlify/lib/news.mjs`, tests in `tests/news.test.js` (only links to novasbe.unl.pt articles are taken, no markup in headlines)
 
-## Unreleased – Train: Edit instead of the extra rows
+## v2.15 – Train: Edit instead of the extra rows
 
 - The four dashed rows under "Start a session" on Train (More workouts, Exercise library, Running plan, Yoga) are gone. In their place, "Edit what's on Train" opens a sheet that starts from your plan: hide sessions you never do, show them again, add any other workout (full body, push, pull, legs, an empty session …) or reset to your plan. Hidden sessions stay in your plan
 - The exercise library stays in the menu (top right), the running plan in the running menu
 - New `NFPlan.trainList` / `NFPlan.trainToggle` with tests in `tests/train-edit.test.js`
 
-## Unreleased – Today photo shows more of the campus
+## v2.15 – Today photo shows more of the campus
 
 - The photo card on Today is a little shorter, the text and Start button sit smaller in the lower left, and the dark fade only covers the bottom, so more of the picture shows
 
-## Unreleased – Service worker restored
+## v2.15 – Service worker restored
 
 - Fix: `app/OneSignalSDKWorker.js` was accidentally emptied in #39, which turned off offline use and push messages. Restored the file (cache v22) and added `tests/service-worker.test.js`, which fails if the file is ever empty again
 
-## Unreleased – Calmer last slide in the weekly review
+## v2.15 – Calmer last slide in the weekly review
 
 - The last slide of the weekly review no longer ends with emojis (the red heart in "New week, new chance" is gone). It now reads "Weekly goal reached", "Every session counts" or "A fresh week starts Monday"
 
-## Unreleased – Running menu without "Runs near you"
+## v2.15 – Running menu without "Runs near you"
 
 - Removed the "Runs near you" link from the running menu again; the menu now matches the new design exactly (Up next, Outdoor run, Treadmill, My running goal)
 
-## Unreleased – Runs near you stays in the running menu
+## v2.15 – Runs near you stays in the running menu
 
 - "Runs near you" (hand-picked routes and a loop from where you are) is reachable again: a small link under "Outdoor run" in the running menu, since the new menu no longer has its own card
 
-## Unreleased – Running chooser
+## v2.15 – Running chooser
 
 - Put the next planned run first and highlight it when a running goal has an upcoming run
 - Keep Outdoor run, Treadmill at the gym and My running goal in the existing compact card layout, with a small weather line
 - Remove Runs near you from this menu and keep the Strava connection available
 
-## Unreleased – Running goal layout fix
+## v2.15 – Running goal layout fix
 
 - Give the running plan’s week and race-date row its own class, so the page footer’s full-width black background and shadow cannot cover the plan
 
-## Unreleased – Clearer Yoga menu
+## v2.15 – Clearer Yoga menu
 
 - Give Yoga a prominent Nova-inspired blue block and group Short routines under Between classes, with compact cards and copy for campus life; keep duration and level controls in the session picker
 - Move glute activation alongside the other short mobility routines instead of presenting Glute Mobility as a separate main option
@@ -331,7 +331,7 @@ The weekly review now shows only the chapters for the sports you did: gym, runni
 - Without the openrouteservice key the app shows that a one-time setup is needed; the routes work anyway
 - 10 new tests (159 in total)
 
-## Unreleased – Version history in the README
+## v2.15 – Version history in the README
 
 - New section "Version history" in `README.md`: every version from v1.0 to v2.10 with date, what changed, the commit and the pull request, plus what came after v2.10
 
@@ -345,32 +345,32 @@ The weekly review now shows only the chapters for the sports you did: gym, runni
 - Big Strava archives are read in parts (only the list of files and activities.csv), so even hundreds of MB work on a phone
 - 16 new tests (106 in total), one older test no longer depends on the computer's time zone
 
-## Unreleased – New layout: Today · Train · Progress, "You" page
+## v2.15 – New layout: Today · Train · Progress, "You" page
 
 - Bottom tabs instead of one long home page. **Today**: the photo card, three big numbers (sessions this week opens the weekly review, last run, weeks in a row), "What's next" with the next two sessions of your plan, a note before and during exam weeks, and your last session. **Train**: your plan week, all sessions as photo tiles, more workouts, exercise library, running plan, yoga and short routines. **Progress**: numbers for the month, all reviews (this week, earlier weeks, this and last month, the year), strength, running, calendar, badges and history
 - The NOVAFit header with the shrinking sign stays; its menu button now opens **You**: name, week ring, numbers, and every setting grouped (You, Training, Connected, App, Your data). Each row opens only its own settings
 - "Photos for reviews" is now "Your photos" and says where they show (big card on Today and the reviews); small tiles use fixed photos per kind of training
 
-## Unreleased – Tension check before and after yoga
+## v2.15 – Tension check before and after yoga
 
 - Before a yoga session or study break the app asks "How tense do you feel right now?" (1 relaxed to 5 very tense), and again afterwards: "From 4 down to 2. Nice." Skip is always one tap away, "Don't ask me again" turns it off, the yoga screen turns it back on
 - After two checks the result shows the average of the last 60 days; the monthly and yearly reviews show "tension 3.8 → 2.1 after yoga" when it went down, otherwise the number of study breaks
 - Answers are saved with the yoga session (`e.yoga.calm`) or, for study breaks from the home screen, in `S.settings.breaks`; `validTension`, `tension` and `tensionText` in `app/yoga.js` with tests
 
-## Unreleased – Yoga level and spoken guidance
+## v2.15 – Yoga level and spoken guidance
 
 - Level on the yoga screen: "New to yoga" explains every pose and shows an easier option (knees down in plank, hands on a chair in downward dog …); "I know the poses" shows only the names. New users start on "New to yoga" until their 5th yoga session
 - "Read the poses aloud": the phone reads each pose (and the easier option) with its built-in voice and lowers the music meanwhile; also a speaker button in the timer. Sun Salutation steps are read short ("Plank, exhale")
 - `easier` and `cue` in `app/yoga.js` with tests
 
-## Unreleased – Sun Salutations breath by breath, new pose drawings
+## v2.15 – Sun Salutations breath by breath, new pose drawings
 
 - Sun Salutations are no longer one 2–3 minute step under a single picture: each movement is its own step with its own drawing and "Inhale"/"Exhale" (arms up, fold, half lift, plank, lower down, cobra, downward dog …), in the new sessions and in the vinyasa flows
 - New drawings for the half lift and lowering down
 - All pose drawings now use a dark outline around a light body, like the exercise drawings; in the timer they are white lines on the timer color. A dot marks where you should feel the stretch
 - `expandSun` in `app/yoga.js` with tests
 
-## Unreleased – Yoga sessions to choose from
+## v2.15 – Yoga sessions to choose from
 
 - Yoga now has 7 sessions instead of one rotating flow: Study break (5–10 min on a chair), Wind down, Beginner basics, Morning wake-up, After your run, Back and neck, and the existing Vinyasa flow. Each shows its length, what you need (chair, mat, floor) and how calm or strong it is
 - The app suggests one: wind down after 21:00, after-run stretches on days you ran, the morning session before 10:00, and the study break during the December exam weeks
@@ -378,27 +378,27 @@ The weekly review now shows only the chapters for the sports you did: gym, runni
 - New drawings for the chair poses and legs up the wall; history and reviews show the session's name; calm sessions count fewer calories
 - Sessions and their timing live in the new `app/yoga.js`, with tests in `tests/yoga.test.js`
 
-## Unreleased – Weather where you are, your own loop
+## v2.15 – Weather where you are, your own loop
 
 - Running weather follows your location: tap "📍 Show the weather where I am" on the run screen or pick "Where I am" in Settings. The position is rounded to about 1 km and only used for the forecast (Open-Meteo) and the town name (BigDataCloud). Without permission the weather is for Carcavelos (Nova SBE).
 - The Hamburg leftovers are gone: "Alster loop" is now your own loop with a name and length (Running goals, default "Home loop", 5 km). Old runs keep counting as loop runs.
 - New pure helpers in `run.js` (`wxUrl`, `samePlace`, `placeName`, `loopName`, `validateLoop`) with tests
 
-## Unreleased – Compact workout page
+## v2.15 – Compact workout page
 
 - Compact workout page: each exercise shows its drawing, name and target in one line; "How to", swap, add set, move and remove sit behind ⋯. Instructions only show for the first 3 times, finished exercises fold into one line (tap to open), and new exercises get a short hint for choosing a weight.
 
-## Unreleased – Screen stays on, sound when rest is over
+## v2.15 – Screen stays on, sound when rest is over
 
 - The screen stays on from Start to Finish of every workout, not only in the warm-up and yoga timers; it comes back on after switching apps
 - When the rest is over, a short double tone plays on every phone (iPhones can't vibrate from a web app), plus vibration on Android, and the next open set scrolls into view
 - New switch in Settings: “Sound when rest is over” (on by default). On an iPhone set to silent the tone stays off
-## Unreleased – Readable numbers, safer finish
+## v2.15 – Readable numbers, safer finish
 
 - Large numbers get thousands separators everywhere they are shown, e.g. “16,440 kg moved” instead of “16440 kg”
 - Finishing with sets that aren't ticked off: the dialog now names them (“Triceps Pushdown set 1, 2 and 3”), and the main button saves only the sets you actually did. Saving the untouched sets with last time's numbers is the second, deliberate choice
 
-## Unreleased – Build my own strength plan
+## v2.15 – Build my own strength plan
 
 - New step after the questionnaire: “Recommended for you” (the ready plan as before) or “Build my own”
 - Build my own: pick a split (or a custom split with your own day names, e.g. “Chest & Back”), then for each day choose “Recommended” (our template, you can still add exercises during the workout) or “Choose my own” (no suggestions, you pick every exercise, up to 15)
@@ -406,14 +406,14 @@ The weekly review now shows only the chapters for the sports you did: gym, runni
 - Exercise list redone in the style of Strong: a small drawing next to every exercise, A–Z sections, search, body part and equipment filters, an ⓘ button for the how-to with “Back to the list”, and checkboxes to pick several exercises at once
 - 4 new tests for the own-day logic in `app/plan.js`
 
-## Unreleased – Calories by sex, age, weight and height
+## v2.15 – Calories by sex, age, weight and height
 
 - Calorie estimates for strength, yoga and timed runs now use your personal resting burn (Mifflin-St Jeor) from sex, age, weight and height instead of the same value for everyone: women and older people get a more honest, slightly lower number (e.g. 45 min strength at 70 kg: about 265 kcal for a 21-year-old man, about 240 kcal for a 21-year-old woman)
 - New optional field “Height (cm)” in “A bit about you” and in Settings; without it a typical height is used. Distance runs and treadmill runs keep their pace-based formula
 - Profiles without sex or age keep the old numbers
 - 3 new tests
 
-## Unreleased – Default photo pack for home screen and reviews
+## v2.15 – Default photo pack for home screen and reviews
 
 - New default photo pack in `app/img/pack/`: campus and gym photos for the photo box on the home screen and as backgrounds in the weekly and monthly reviews
 - Own photos from Settings still come first; the pack is used when there are none, missing files are skipped
@@ -421,7 +421,7 @@ The weekly review now shows only the chapters for the sports you did: gym, runni
 - Review slides with charts (calendar, curves, muscle map, rhythm) no longer get a photo behind them, so they stay readable
 - Five photos included: campus plaza, roof terrace, glass hall, gym cardio area and weights area (© Nova SBE, used for this course project only, see `app/img/pack/README.txt`)
 
-## Unreleased – Muscle slide follows your training
+## v2.15 – Muscle slide follows your training
 
 - The muscle slide in the weekly and monthly reviews now names the muscle that got the most volume, e.g. “Back on fire 🔥”, “Quads on fire 🔥” or “Glutes on fire 🔥”, instead of always talking about the glutes
 - Two muscles that are almost even share the headline (“Quads & calves on fire 🔥”)
@@ -429,12 +429,12 @@ The weekly review now shows only the chapters for the sports you did: gym, runni
 - The monthly share card shows the top muscle instead of only the glutes
 - New file `app/muscles.js` with the muscle logic and 9 new tests
 
-## Unreleased – New app icon
+## v2.15 – New app icon
 
 - New home screen icon: the white NOVA ring with its bar on Nova blue (`icon-192.png`, `icon-512.png`, `apple-touch-icon.png`); the design keeps to the safe area, so Android's round and squircle masks don't cut it
 - Service worker cache bumped so installed apps pick up the new icon
 
-## Unreleased – Own OneSignal app for NOVAFit
+## v2.15 – Own OneSignal app for NOVAFit
 
 - Push notifications now go through NOVAFit's own OneSignal app instead of the one the app was copied from, so NOVAFit users only get NOVAFit messages
 
