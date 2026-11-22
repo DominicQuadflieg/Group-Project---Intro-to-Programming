@@ -10,7 +10,7 @@ How to run NOVAFit with everything switched on. For a quick start see the [READM
 | Variable | For | Where to get it |
 |---|---|---|
 | `STRAVA_CLIENT_ID`, `STRAVA_CLIENT_SECRET` | Strava connection | https://www.strava.com/settings/api |
-| `ORS_API_KEY` | A running loop from where you are | https://openrouteservice.org (free token) |
+| `ORS_API_KEY` | A running loop from where you are | https://account.heigit.org (free Basic Key) |
 
 The keys never go into the repository: only the functions in `netlify/functions/` use them.
 
@@ -61,7 +61,7 @@ The code for runs near you (`NEARBY_ROUTES` in `app/run.js`, `netlify/functions/
 
 The loop needs a free openrouteservice key (the list of routes works without it):
 
-1. Sign up at https://openrouteservice.org and create a token in the dashboard.
+1. Sign up at https://account.heigit.org (openrouteservice now runs there). Open the **API Key** tab and copy the **Basic Key** with the Copy button; it starts with `eyJ`.
 2. In Netlify → *Site configuration → Environment variables* add `ORS_API_KEY` with the token, then deploy again (like the Strava keys, it only works when Netlify is connected to this repository).
 
 Without the key the app shows “Needs a one-time setup” instead of the loop button.

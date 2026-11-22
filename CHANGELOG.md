@@ -8,6 +8,11 @@ Alle Versionen der App, die neueste oben.
 - The README no longer names fixed numbers of tests and pull requests (they went out of date with every change); it links to the list of pull requests instead
 - The old ready-made `releases/NOVAFit 2.8.2.zip` is no longer part of the current files; `docs/setup.md` links to it in the Git history, so it can still be downloaded
 
+## Unreleased – Push messages in four languages
+
+- The weekly and review push messages come in English, Portuguese, German or Italian; the app tells OneSignal the language chosen in the app where the browser allows it.
+- Calendar reminders (Add to my calendar) are in the chosen language too.
+
 ## Unreleased – Four languages
 
 - The app is available in English, Portuguese, German and Italian. It starts in the language of the phone; switch on the welcome screen or under Menu › Look and feel › Language.
