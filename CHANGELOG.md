@@ -2,6 +2,13 @@
 
 Alle Versionen der App, die neueste oben.
 
+## Unreleased – Translation gaps closed
+
+- A test user clicked through every screen in German and listed what stayed English. About 100 texts now have a row in Portuguese, German and Italian: the yoga page (“A little space for yourself”, “Find your flow.” …), the empty Progress cards, “Back to top”, “Already trained today”, the flexibility check result, *added* / *your exercise* in the library, the sign-up and own-exercise errors, and many short messages (Strava, weather, import undo, running goal, calendar, backup)
+- Two places mixed a sentence and a number in one text and could not be translated; they are now two parts (“Already trained today” card, *last:* badge)
+- Fixed: “1 sessions loaded.” is now “1 session loaded.”
+- One new browser test in German
+
 ## Unreleased – Swapping an exercise keeps your sets
 
 - Machine taken after two sets? Swapping the exercise used to delete the sets you had already done (a small grey note said so). They now stay with the session, are saved with it, and a line under the new exercise says so (“Before the swap: 2 sets of …”). Swapping back brings them back, followed by fresh sets
