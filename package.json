@@ -1,6 +1,6 @@
 {
   "name": "novafit",
-  "version": "2.15.0",
+  "version": "2.15.1",
   "private": true,
   "description": "NOVAFit – training app with personal plans for strength, running and yoga",
   "scripts": {

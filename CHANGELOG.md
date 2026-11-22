@@ -2,7 +2,13 @@
 
 Alle Versionen der App, die neueste oben. Alle Abschnitte mit *v2.15* gehören zur Version 2.15.0 (21.–22. Nov 2026).
 
-## Unreleased – iPhone push works
+## v2.15.1 – Runs near you without openrouteservice
+
+- *A loop from here* (a round trip from openrouteservice) is gone, as the team decided: no more `netlify/functions/route.mjs`, no `ORS_API_KEY`, no location sent to an outside route service. *Runs near you* shows the hand-picked routes close by (at most 4), each with directions and *Start this run*
+- Removed with it: the loop helpers in `run.js` (`validLoopKm`, `loopMapsUrl`, `loopSvg`), their styles, texts and translations, and the tests for the route function. README (external services, credits), docs and `netlify.toml` no longer mention it
+- An `ORS_API_KEY` left in Netlify's environment variables isn't used any more and can be deleted
+
+## v2.15.1 – iPhone push works
 
 On iPhone and Safari the app now subscribes with OneSignal's Safari key, so OneSignal can register the device; an old subscription with the wrong key is removed. The app only shows notifications as on when OneSignal knows the device. The reminder card is translated and matches the real push times.
 
